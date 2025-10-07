@@ -11,9 +11,6 @@ function App() {
         <Routes>
           <Route path="/" element={<LoginPage />} />
           <Route path="/login" element={<LoginPage />} />
-          {/* Добавьте другие маршруты здесь */}
-          {/* <Route path="/dashboard" element={<DashboardPage />} /> */}
-          {/* <Route path="/courses" element={<CoursesPage />} /> */}
         </Routes>
       </div>
     </Router>

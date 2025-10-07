@@ -27,14 +27,11 @@ const LoginPage = () => {
         position: 'top-center',
       });
       console.log('Успешный вход');
-      // здесь можно добавить переход на профиль, например:
-      // navigate('/profile');
     }
   };
 
   return (
     <div className="auth-page">
-      {/* Toaster нужно размещать один раз на странице */}
       <Toaster />
 
       <div className="auth-card">
