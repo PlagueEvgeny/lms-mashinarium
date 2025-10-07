@@ -1,0 +1,49 @@
+.home-wrapper {
+  background: #f7f8fc;
+  min-height: 100vh;
+}
+
+.home-content {
+  padding: 40px 80px;
+}
+
+.home-heading {
+  font-size: 28px;
+  font-weight: 600;
+  margin-bottom: 40px;
+  color: #1e1e2f;
+}
+
+.courses-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 25px;
+}
+
+.course-card {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  padding: 25px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+}
+
+.course-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.1);
+}
+
+.course-icon {
+  width: 40px;
+  height: 40px;
+}
+
+.course-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+}
