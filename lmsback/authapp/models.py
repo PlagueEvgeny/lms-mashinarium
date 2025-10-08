@@ -71,7 +71,7 @@ class UserProfile(AbstractUser):
     objects = UserProfileManager()
 
     def __str__(self):
-        return f'{self.username} | {self.balance}'
+        return f'{self.email} | {self.balance}'
 
     def restore(self):
         self.is_active = True

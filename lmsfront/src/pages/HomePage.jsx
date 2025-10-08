@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import MainLayout from '../components/MainLayout';
 import '../css/HomePage.css';
 import VKLogo from '../images/vk-logo.png';
+import toast, { Toaster } from 'react-hot-toast';
+
 
 
 const HomePage = () => {
@@ -23,6 +25,7 @@ const HomePage = () => {
 
   return (
     <MainLayout>
+      <Toaster />
       <h1 className="home-heading">Курсы</h1>
 
       <div className="courses-grid">

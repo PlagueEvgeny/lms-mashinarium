@@ -1,15 +1,28 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from authapp.views import UserProfileViewSet
-from authapp.views import EmailTokenObtainPairView
+from django.urls import path
+from authapp.views import (
+    UserProfileCreateView,
+    UserProfileListView,
+    UserProfileRetrieveView,
+    UserProfileUpdateView,
+    UserProfilePartialUpdateView,
+    UserProfileDestroyView,
+    UserProfileMeView,
+    EmailTokenObtainPairView,
+    LogoutView
+)
 
 app_name = 'authapp'
 
-router = DefaultRouter()
-router.register(r'users', UserProfileViewSet, basename='user')
-
 urlpatterns = [
-    path('', include(router.urls)),
-    path('api/token/', EmailTokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('users/', UserProfileListView.as_view(), name='user-list'),
+    path('users/create/', UserProfileCreateView.as_view(), name='user-create'),
+    path('users/<int:pk>/', UserProfileRetrieveView.as_view(), name='user-detail'),
+    path('users/<int:pk>/update/', UserProfileUpdateView.as_view(), name='user-update'),
+    path('users/<int:pk>/partial-update/', UserProfilePartialUpdateView.as_view(), name='user-partial-update'),
+    path('users/<int:pk>/delete/', UserProfileDestroyView.as_view(), name='user-delete'),
 
+    path('users/me/', UserProfileMeView.as_view(), name='user-me'),
+
+    path('api/token/', EmailTokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/logout/', LogoutView.as_view(), name='logout'),
 ]

@@ -1,15 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast, { Toaster } from 'react-hot-toast';
-import '../css/LoginPage.css';
-
 import logo from '../images/logo.jpg';
 import VKLogo from '../images/vk-logo.png';
 import YandexLogo from '../images/yandex-logo.png';
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState('');          // не тримим здесь
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -18,12 +16,11 @@ const LoginPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-
     try {
       const response = await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: email.trim(), password }), // тримим при отправке
       });
 
       const data = await response.json();
@@ -32,16 +29,9 @@ const LoginPage = () => {
         localStorage.setItem('access', data.access);
         localStorage.setItem('refresh', data.refresh);
 
-        toast.success('Успешный вход!', {
-          position: 'top-center',
-          duration: 2000,
-        });
-
-        setTimeout(() => {
-          navigate('/profile'); 
-        }, 800);
-      } else {
-        console.error('Ошибка входа:', data);
+        toast.success('Успешный вход!', { position: 'top-center', duration: 2000 });
+        setTimeout(() => navigate('/profile'), 800);
+      } else if (response.status === 401) {
         toast.error(data.detail || 'Неверный логин или пароль!', {
           position: 'top-center',
           duration: 2500,
@@ -49,63 +39,94 @@ const LoginPage = () => {
       }
     } catch (err) {
       console.error('Ошибка сети:', err);
-      toast.error('Ошибка соединения с сервером', {
-        position: 'top-center',
-      });
+      toast.error('Ошибка соединения с сервером', { position: 'top-center' });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="auth-page">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-[#f6f6f6] relative">
       <Toaster />
 
-      <div className="auth-card">
-        <img src={logo} alt="Mashinarium IT-School" className="auth-logo" />
-        <h2 className="auth-title">Вход в профиль</h2>
+      <div className="bg-white rounded-lg shadow-md p-[40px] w-[420px] max-w-[90%] text-center">
+        <img src={logo} alt="Mashinarium IT-School" className="w-[90px] mx-auto mb-3" />
 
-        <form onSubmit={handleSubmit} className="auth-form">
-          <div className="input-container">
+        <h2 className="font-semibold text-lg mb-6">Вход в профиль</h2>
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          {/* Email: оборачиваем input в label — клик по метке фокусит поле */}
+          <label className="relative w-full block">
             <input
+              name="email"
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value.trim())}
-              className={`auth-input ${email ? 'filled' : ''}`}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder=" "
               required
+              className="peer w-full h-[55px] border border-gray-300 rounded-lg px-3 pt-5 pb-2 text-[16px] outline-none transition-colors duration-200 focus:border-green-500"
             />
-            <label className="floating-label">Электронная почта</label>
-          </div>
+            <span
+              className={`absolute left-3 px-1 bg-white text-gray-600 transition-all duration-200 ease-in-out pointer-events-none
+                ${
+                  email
+                    ? 'top-[-10px] text-[14px] text-green-600'
+                    : 'top-[16px] text-[16px]'
+                } peer-focus:top-[-10px] peer-focus:text-[14px] peer-focus:text-green-600`}
+            >
+              Электронная почта
+            </span>
+          </label>
 
-          <div className="input-container">
+          <label className="relative w-full block">
             <input
+              name="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className={`auth-input ${password ? 'filled' : ''}`}
+              placeholder=" "
               required
+              className="peer w-full h-[55px] border border-gray-300 rounded-lg px-3 pt-5 pb-2 text-[16px] outline-none transition-colors duration-200 focus:border-green-500"
             />
-            <label className="floating-label">Пароль</label>
+            <span
+              className={`absolute left-3 px-1 bg-white text-gray-600 transition-all duration-200 ease-in-out pointer-events-none
+                ${
+                  password
+                    ? 'top-[-10px] text-[14px] text-green-600'
+                    : 'top-[16px] text-[16px]'
+                } peer-focus:top-[-10px] peer-focus:text-[14px] peer-focus:text-green-600`}
+            >
+              Пароль
+            </span>
+          </label>
+
+          <div className="text-left text-[13px] text-gray-500 cursor-pointer mt-1 hover:text-gray-700">
+            Не помню пароль
           </div>
 
-          <button type="submit" className="auth-submit" disabled={loading}>
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full h-[55px] bg-[#39b54a] text-white rounded-lg text-[16px] font-medium hover:bg-[#32a043] transition-all duration-200 disabled:opacity-70"
+          >
             {loading ? 'Вход...' : 'Войти'}
           </button>
         </form>
 
         <button
-          className="auth-create"
           onClick={() => navigate('/register')}
+          className="w-full h-[55px] mt-3 border border-gray-300 bg-white rounded-lg text-[16px] font-medium text-gray-700 hover:border-[#39b54a] hover:text-[#39b54a] transition-all duration-200"
         >
           Создать профиль
         </button>
 
-        <div className="auth-social">
-          <button className="social-btn vk" title="Войти через ВКонтакте">
-            <img src={VKLogo} alt="VK" className="social-icon" />
+        <div className="mt-4 flex justify-center gap-6">
+          <button className="border border-[#4a76a8] bg-white rounded-full w-[55px] h-[55px] flex justify-center items-center hover:scale-110 shadow-sm hover:shadow transition">
+            <img src={VKLogo} alt="VK" className="w-[28px] h-[28px]" />
           </button>
-          <button className="social-btn yandex" title="Войти через Яндекс">
-            <img src={YandexLogo} alt="Yandex" className="social-icon" />
+
+          <button className="border border-[#e53935] bg-white rounded-full w-[55px] h-[55px] flex justify-center items-center hover:scale-110 shadow-sm hover:shadow transition">
+            <img src={YandexLogo} alt="Yandex" className="w-[28px] h-[28px]" />
           </button>
         </div>
       </div>
