@@ -61,7 +61,7 @@ class UserProfile(AbstractUser):
     avatar = models.ImageField(_("Аватар"), upload_to='avatar/', blank=True, default='avatar/default.png')
     phone_number = models.CharField(_("Номер телефона"), validators=[phone_validator], max_length=17, blank=True)
     gender = models.CharField(_("Пол"), max_length=1, choices=GENDER_CHOICES, blank=True)
-    role = models.CharField(_("Роль"), max_length=1, choices=ROLE_CHOICES, blank=False)
+    role = models.CharField(_("Роль"), max_length=1, choices=ROLE_CHOICES, default="s", blank=False)
     balance = models.DecimalField(_("Баланс"), max_digits=6, decimal_places=2, default=0)
     is_active = models.BooleanField(_("Активен"), default=True, db_index=True)
 

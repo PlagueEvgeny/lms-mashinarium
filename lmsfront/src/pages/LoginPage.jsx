@@ -11,13 +11,13 @@ const LoginPage = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const API_URL = 'http://127.0.0.1:5000/api/token/';
+  const API_URL = 'http://127.0.0.1:5000/';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await fetch(API_URL, {
+      const response = await fetch(API_URL + "api/token/", {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email.trim(), password }), // тримим при отправке
@@ -39,7 +39,7 @@ const LoginPage = () => {
       }
     } catch (err) {
       console.error('Ошибка сети:', err);
-      toast.error('Ошибка соединения с сервером', { position: 'top-center' });
+      toast.error('Ошибка соединения с сервером' + {err}, { position: 'top-center' });
     } finally {
       setLoading(false);
     }
@@ -55,7 +55,6 @@ const LoginPage = () => {
         <h2 className="font-semibold text-lg mb-6">Вход в профиль</h2>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          {/* Email: оборачиваем input в label — клик по метке фокусит поле */}
           <label className="relative w-full block">
             <input
               name="email"

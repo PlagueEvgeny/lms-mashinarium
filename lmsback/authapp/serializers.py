@@ -7,7 +7,7 @@ class UserProfileCreateSerializer(serializers.ModelSerializer):
         model = UserProfile
         fields = [
             'email', 'first_name', 'last_name', 'patronymic',
-            'password', 'role', 'date_birth', 'phone_number', 
+            'password', 'date_birth', 'phone_number', 
             'telegram', 'avatar'
         ]
         extra_kwargs = {'password': {'write_only': True}}
@@ -26,7 +26,8 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
         model = UserProfile
         fields = [
             'first_name', 'last_name', 'patronymic',
-            'phone_number', 'telegram', 'gender', 'avatar'
+            'date_birth', 'phone_number', 'gender', 
+            'telegram',  'avatar'
         ]
 
 

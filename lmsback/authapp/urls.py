@@ -8,7 +8,8 @@ from authapp.views import (
     UserProfileDestroyView,
     UserProfileMeView,
     EmailTokenObtainPairView,
-    LogoutView
+    LogoutView,
+    CheckEmailView
 )
 
 app_name = 'authapp'
@@ -22,7 +23,7 @@ urlpatterns = [
     path('users/<int:pk>/delete/', UserProfileDestroyView.as_view(), name='user-delete'),
 
     path('users/me/', UserProfileMeView.as_view(), name='user-me'),
-
+    path('users/check_email/', CheckEmailView.as_view(), name='check-email'),
     path('api/token/', EmailTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/logout/', LogoutView.as_view(), name='logout'),
 ]

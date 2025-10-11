@@ -2,6 +2,7 @@ from .models import UserProfile
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth import authenticate
+from rest_framework.permissions import AllowAny
 
 
 from rest_framework import generics, permissions, decorators, response, status, serializers
@@ -12,7 +13,6 @@ from .serializers import (
 )
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status, permissions
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 
 class UserProfileBaseView(generics.GenericAPIView):
@@ -28,6 +28,7 @@ class UserProfileBaseView(generics.GenericAPIView):
 
 class UserProfileCreateView(UserProfileBaseView, generics.CreateAPIView):
     serializer_class = UserProfileCreateSerializer
+    permission_classes = [AllowAny] 
 
 
 class UserProfileListView(UserProfileBaseView, generics.ListAPIView):
@@ -66,6 +67,17 @@ class UserProfileMeView(UserProfileBaseView, generics.RetrieveAPIView):
     def get_object(self):
         return self.request.user
 
+
+class CheckEmailView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        email = request.query_params.get('email')
+        if not email:
+            return Response({'error': 'Email не передан'}, status=status.HTTP_400_BAD_REQUEST)
+
+        exists = UserProfile.objects.filter(email=email).exists()
+        return Response({'exists': exists})
 
 
 class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
