@@ -20,7 +20,7 @@ const ProfilePage = () => {
       return;
     }
 
-    fetch(API_URL + 'auth/users/me/', {
+    fetch(`${API_URL}/auth/users/me/`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -117,20 +117,11 @@ const ProfilePage = () => {
                 <InputField label="Номер телефона" value={user.phone_number} />
                 <SelectField label="Пол" value={user.gender} />
                 <InputField label="Telegram" value={user.telegram} />
+                <SelectField label="Роль" value={user.role}  />
+                <InputField label="Почта" value={user.email}  />
               </div>
               <button className="bg-green-500 text-white px-8 py-3 rounded-lg hover:bg-green-600 transition">
                 Сохранить
-              </button>
-            </div>
-
-            <div className="p-6 bg-white rounded-[20px] shadow-sm">
-              <h4 className="text-xl font-semibold mb-6">Удаление профиля</h4>
-              <p className="text-gray-700 mb-6">
-                После запроса на удаление ваш профиль и персональные данные будут полностью удалены через 30 дней.
-                В течение этого времени вы можете написать в поддержку для отмены удаления.
-              </p>
-              <button className="bg-red-500 text-white px-8 py-3 rounded-lg hover:bg-red-600 transition">
-                Удалить профиль
               </button>
             </div>
           </form>
@@ -150,39 +141,22 @@ const ProfilePage = () => {
                 Сменить пароль
               </button>
             </div>
-
-            <div className="p-8 bg-white rounded-[20px] shadow-sm">
-              <h4 className="text-xl font-semibold mb-6">Сессии и выход</h4>
-              <p className="text-gray-700 mb-6">
-                Здесь вы можете выйти из системы на всех устройствах.
-              </p>
-              <button
-                onClick={async () => {
-                  const refresh = localStorage.getItem('refresh');
-                  if (refresh) {
-                    try {
-                      await fetch(API_URL + 'auth/api/logout/', {
-                        method: 'POST',
-                        headers: {
-                          'Content-Type': 'application/json',
-                          Authorization: `Bearer ${localStorage.getItem('access')}`,
-                        },
-                        body: JSON.stringify({ refresh }),
-                      });
-                    } catch (err) {
-                      console.error('Ошибка при выходе:', err);
-                    }
-                  }
-                  navigate('/login');
-                  localStorage.removeItem('access');
-                  localStorage.removeItem('refresh');
-                  setUser(null);
-                }}
-                className="bg-gray-700 text-white px-8 py-3 rounded-lg hover:bg-gray-800 transition"
-              >
-                Выйти
-              </button>
-            </div>
+              <div className="p-6 bg-white rounded-[20px] shadow-sm">
+                <h4 className="text-xl font-semibold mb-3">Почта</h4>
+                <p className="text-gray-500">{user.email}</p>
+                <p className="mb-6 text-xm">
+                  Для смены почты, пожалуйста, обратитесь в поддержку
+                </p>
+                <hr className="mb-4 mt-4" />
+                <h4 className="text-xl font-semibold mb-6">Удаление профиля</h4>
+                <p className="text-gray-700 mb-6">
+                  После запроса на удаление ваш профиль и персональные данные будут полностью удалены через 30 дней.
+                  В течение этого времени вы можете написать в поддержку для отмены удаления.
+                </p>
+                <button className="bg-red-500 text-white px-8 py-3 rounded-lg hover:bg-red-600 transition">
+                  Удалить профиль
+                </button>
+              </div>
           </div>
         )}
       </div>

@@ -1,19 +1,20 @@
-from .models import UserProfile
-from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth import authenticate
+
+from rest_framework import generics, permissions, status, serializers
+from rest_framework.views import APIView
+from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 
-from rest_framework import generics, permissions, decorators, response, status, serializers
-from .serializers import (
+from authapp.models import UserProfile
+from authapp.serializers import (
     UserProfileCreateSerializer,
     UserProfileUpdateSerializer,
     UserProfileDetailSerializer
 )
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 
 class UserProfileBaseView(generics.GenericAPIView):
     permission_classes = [permissions.IsAuthenticated]

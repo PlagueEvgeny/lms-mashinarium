@@ -1,7 +1,7 @@
 from rest_framework import serializers
-from .models import UserProfile
+from authapp.models import UserProfile
 
-# ------------------ CREATE ------------------
+# ------------------ СОЗДАТЬ ------------------
 class UserProfileCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
@@ -20,7 +20,7 @@ class UserProfileCreateSerializer(serializers.ModelSerializer):
         return user
 
 
-# ------------------ UPDATE ------------------
+# ------------------ ОБНОВИТЬ ------------------
 class UserProfileUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
@@ -31,7 +31,7 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
         ]
 
 
-# ------------------ DETAIL / LIST ------------------
+# ------------------ ДЕТАЛИ / СПИСОК ------------------
 class UserProfileDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile

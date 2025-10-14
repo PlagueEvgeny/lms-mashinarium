@@ -7,6 +7,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('auth/', include('authapp.urls', namespace='authapp')),
+    path('course/', include('courseapp.urls', namespace='courseapp')),
 
     # JWT выдача токенов
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
