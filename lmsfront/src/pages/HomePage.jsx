@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import MainLayout from '../components/MainLayout';
 import VKLogo from '../images/vk-logo.png';
 import toast, { Toaster } from 'react-hot-toast';
 
 const HomePage = () => {
-  const navigate = useNavigate();
   const [courses] = useState([
     { id: 1, title: 'Искусственный интеллект на Python', logo: VKLogo },
     { id: 2, title: 'Rust — основы языка программирования', logo: VKLogo },

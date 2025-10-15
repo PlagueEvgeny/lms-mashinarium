@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast, { Toaster } from 'react-hot-toast';
-import InputMask from 'react-input-mask';
 import logo from '../images/logo.jpg';
+import { API } from "../config/api.js";
 
-const API_URL = 'http://127.0.0.1:5000/';
+
+
 
 const RegisterPage = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [checking, setChecking] = useState(false);
+  const setChecking = useState(false);
   const [emailError, setEmailError] = useState('');
 
   const [formData, setFormData] = useState({
@@ -38,7 +39,7 @@ const RegisterPage = () => {
 
     try {
         const results = await fetch(
-            `${API_URL}auth/users/check_email/?email=${formData.email}`
+            `${API.check_email}?email=${formData.email}`
         );
         const data = await results.json();
 
@@ -73,7 +74,7 @@ const RegisterPage = () => {
     });
 
     try {
-      const response = await fetch(API_URL + "auth/users/create/", {
+      const response = await fetch(API.register, {
         method: 'POST',
         body: form,
       });

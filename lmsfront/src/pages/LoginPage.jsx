@@ -4,23 +4,22 @@ import toast, { Toaster } from 'react-hot-toast';
 import logo from '../images/logo.jpg';
 import VKLogo from '../images/vk-logo.png';
 import YandexLogo from '../images/yandex-logo.png';
+import { API } from '../config/api';  // импортируем конфиг
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');          // не тримим здесь
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-
-  const API_URL = 'http://127.0.0.1:5000/';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await fetch(API_URL + "api/token/", {
+      const response = await fetch(API.token, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim(), password }), // тримим при отправке
+        body: JSON.stringify({ email: email.trim(), password }),
       });
 
       const data = await response.json();
@@ -39,7 +38,7 @@ const LoginPage = () => {
       }
     } catch (err) {
       console.error('Ошибка сети:', err);
-      toast.error('Ошибка соединения с сервером' + {err}, { position: 'top-center' });
+      toast.error('Ошибка соединения с сервером', { position: 'top-center' });
     } finally {
       setLoading(false);
     }

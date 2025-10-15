@@ -13,14 +13,18 @@ class CourseBaseView(generics.GenericAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        qs = Course.objects.filter(status=Course.Status.PUBLISHED)
-        return qs
+        return Course.objects.filter(status=Course.Status.PUBLISHED)
+        
 
 
-class CourseProfileListView(CourseBaseView, generics.ListAPIView):
+class CourseListView(CourseBaseView, generics.ListAPIView):
     serializer_class = CourseDetailSerializer
     permission_classes = [AllowAny] 
 
 
 class CourseCreateView(CourseBaseView, generics.CreateAPIView):
     serializer_class = CourseCreateSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        serializer.save()
