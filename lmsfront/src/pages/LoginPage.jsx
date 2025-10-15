@@ -29,7 +29,7 @@ const LoginPage = () => {
         localStorage.setItem('refresh', data.refresh);
 
         toast.success('Успешный вход!', { position: 'top-center', duration: 2000 });
-        setTimeout(() => navigate('/profile'), 800);
+        setTimeout(() => navigate('/my'), 800);
       } else if (response.status === 401) {
         toast.error(data.detail || 'Неверный логин или пароль!', {
           position: 'top-center',

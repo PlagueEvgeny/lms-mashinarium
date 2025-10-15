@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MessageCircle, LogOut, User, Settings } from 'lucide-react';
+import { MessageCircle, NotebookPen, LogOut, User, Brain } from 'lucide-react';
 import logo from '../images/logo.jpg';
 import { useAuthUser } from '../hooks/useAuthUser';
 import { getAvatarUrl } from '../utils/helpers';
@@ -137,19 +137,27 @@ const Header = () => {
                       {/* Пункты меню */}
                       <div className="py-1">
                         <button
-                          onClick={() => handleNavigation('/profile')}
+                          onClick={() => handleNavigation('/my/course')}
+                          className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                        >
+                          <Brain size={16} className="mr-3" />
+                          Мое обучение
+                        </button>
+                        {user?.role === "t" && (
+                          <button
+                            onClick={() => handleNavigation('/teacher')}
+                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                          >
+                            <NotebookPen size={16} className="mr-3" />
+                            Преподавание
+                          </button>
+                        )}
+                        <button
+                          onClick={() => handleNavigation('/my')}
                           className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                         >
                           <User size={16} className="mr-3" />
-                          Профиль
-                        </button>
-                        
-                        <button
-                          onClick={() => handleNavigation('/settings')}
-                          className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-                        >
-                          <Settings size={16} className="mr-3" />
-                          Настройки
+                          Настройки профиля
                         </button>
                         
                         <div className="border-t border-gray-100 my-1" />
