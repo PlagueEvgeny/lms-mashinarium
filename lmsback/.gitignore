@@ -1,0 +1,18 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+
+
+# # Environments
+/venv
+.env
+
+# uv
+.python-version
+pyrightconfig.json
+# uv.lock
+
+
+# alembic
+alembic.ini
+
+
