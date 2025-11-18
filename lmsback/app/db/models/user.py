@@ -1,4 +1,7 @@
 import uuid
+
+from enum import Enum
+
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy import Column
 from sqlalchemy import Boolean
@@ -6,6 +9,17 @@ from sqlalchemy import String
 
 from app.db.base import Base
 
+class PortalRole(str, Enum):
+    ROLE_PORTAL_USER = "ROLE_PORTAL_USER"
+    ROLE_PORTAL_TEACHER = "ROLE_PORTAL_TEACHER"
+    ROLE_PORTAL_MODERATOR = "ROLE_PORTAL_MODERATOR"
+    ROLE_PORTAL_ADMIN = "ROLE_PORTAL_ADMIN"
+
+
+class Gender(str, Enum):
+    MALE = "MALE"
+    FEMALE = "FEMALE"
+    OTHER = "OTHER"
 
 class User(Base):
     __tablename__ = "users"

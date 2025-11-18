@@ -1,4 +1,3 @@
-import re
 import uuid
 
 from pydantic import BaseModel
@@ -7,8 +6,8 @@ from pydantic import validator
 
 from fastapi import HTTPException
 
-
-LETTER_MATCH_PATTERN = re.compile(r"[а-яА-Яa-zA-Z\-]+$")
+from app.utils.letter_pattern import LETTER_MATCH_PATTERN
+from app.utils.letter_pattern import PHONE_MATCH_PATTERN
 
 
 class TunedModel(BaseModel):

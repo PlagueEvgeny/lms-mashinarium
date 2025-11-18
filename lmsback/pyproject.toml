@@ -15,4 +15,6 @@ dependencies = [
     "alembic",
     "envparse",
     "psycopg2-binary",
+    "pytest>=9.0.1",
+    "pytest-asyncio>=1.3.0",
 ]

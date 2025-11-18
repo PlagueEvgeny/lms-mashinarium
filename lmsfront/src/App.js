@@ -4,7 +4,6 @@ import HomePage from './pages/HomePage';
 import ProfilePage from './pages/ProfilePage';
 import RegisterPage from './pages/RegisterPage';
 import MyCourse from './pages/MyCourse';
-import TeacherPage from './pages/TeacherPage';
 
 function App() {
   return (
@@ -15,7 +14,6 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/my" element={<ProfilePage />} />
         <Route path="/my/course" element={<MyCourse />} />
-        <Route path="/teacher" element={<TeacherPage />} />
       </Routes>
     </Router>
   );

@@ -1,11 +1,7 @@
 {
-  "include": [
-    "venv"
-  ],
-  "exclude": [
-    "**/__pycache__"
-  ],
-
   "venvPath": ".",
-  "venv": ".venv"
+  "venv": ".venv",
+  "pythonVersion": "3.12",
+  "reportMissingImports": true
 }
+
