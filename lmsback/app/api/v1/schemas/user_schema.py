@@ -3,8 +3,16 @@ import uuid
 from pydantic import BaseModel
 from pydantic import EmailStr
 from pydantic import validator
+from pydantic import constr
 
 from fastapi import HTTPException
+
+from typing import Optional
+from typing import List
+
+from decimal import Decimal
+
+from datetime import date
 
 from app.utils.letter_pattern import LETTER_MATCH_PATTERN
 from app.utils.letter_pattern import PHONE_MATCH_PATTERN
@@ -12,25 +20,35 @@ from app.utils.letter_pattern import PHONE_MATCH_PATTERN
 
 class TunedModel(BaseModel):
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class ShowUser(TunedModel):
     user_id: uuid.UUID
     last_name: str
     first_name: str
-    patronymic: str
-    telegram: str
+    patronymic: Optional[str] = None
+    avatar: Optional[str] = None
+    telegram: Optional[str] = None
     email: EmailStr
+    phone: Optional[str] = None
+    gender: List[str]
+    date_of_birth: Optional[date] = None
+    balance: Decimal
     is_active: bool
+
 
 
 class UserCreate(BaseModel):
     last_name: str
     first_name: str
-    patronymic: str
-    telegram: str
+    patronymic: Optional[str] = None
+    avatar: Optional[str] = None
+    telegram: Optional[str] = None
     email: EmailStr
+    phone: Optional[str] = None
+    gender: Optional[List[str]] = None
+    date_of_birth: Optional[date] = None
 
 
     @validator("last_name")
@@ -58,3 +76,43 @@ class UserCreate(BaseModel):
         return value
 
 
+class DeleteUserResponse(BaseModel):
+    deleted_user_id: uuid.UUID
+
+class UpdatedUserResponse(BaseModel):
+    updated_user_id: uuid.UUID
+
+
+class UpdateUserRequest(BaseModel):
+    last_name: Optional[str] = None
+    first_name: Optional[str] = None
+    patronymic: Optional[str] = None
+    avatar: Optional[str] = None
+    telegram: Optional[str] = None
+    phone: Optional[str] = None
+    gender: Optional[List[str]] = None
+    date_of_birth: Optional[date] = None
+
+    @validator("last_name")
+    def validate_last_name(cls, value):
+        if not LETTER_MATCH_PATTERN.match(value):
+            raise HTTPException(
+                    status_code=422, detail="Last Name should contains only letters"
+                    )
+        return value
+
+    @validator("first_name")
+    def validate_first_name(cls, value):
+        if not LETTER_MATCH_PATTERN.match(value):
+            raise HTTPException(
+                    status_code=422, detail="First Name should contains only letters"
+                    )
+        return value
+
+    @validator("patronymic")
+    def validate_patronymic(cls, value):
+        if not LETTER_MATCH_PATTERN.match(value):
+            raise HTTPException(
+                    status_code=422, detail="Patronymic should contains only letters"
+                    )
+        return value
