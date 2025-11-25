@@ -46,6 +46,7 @@ class UserCreate(BaseModel):
     avatar: Optional[str] = None
     telegram: Optional[str] = None
     email: EmailStr
+    password: str
     phone: Optional[str] = None
     gender: Optional[List[str]] = None
     date_of_birth: Optional[date] = None
@@ -116,3 +117,8 @@ class UpdateUserRequest(BaseModel):
                     status_code=422, detail="Patronymic should contains only letters"
                     )
         return value
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str

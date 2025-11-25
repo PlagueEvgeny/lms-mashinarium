@@ -23,6 +23,13 @@ class UserDAL:
         user_row = result.fetchone()
         if user_row is not None:
             return user_row[0]
+    
+    async def get_user_by_email(self, email: str) -> Union[User, None]:
+        query = select(User).where(User.email == email)
+        results = await self.db_session.execute(query)
+        user_row = results.fetchone()
+        if user_row is not None:
+            return user_row[0]
 
     async def create_user(
             self,
@@ -31,6 +38,7 @@ class UserDAL:
             email: str,
             balance: Decimal,
             roles: List[PortalRole], 
+            hashed_password: str,
             patronymic: Optional[str] = None,
             avatar: Optional[str] = None,
             telegram: Optional[str] = None,
@@ -55,6 +63,7 @@ class UserDAL:
         gender=gender,
         date_of_birth=date_of_birth,
         balance=balance,
+        hashed_password=hashed_password
     )
         self.db_session.add(new_user)
         await self.db_session.flush()

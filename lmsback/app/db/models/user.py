@@ -40,4 +40,5 @@ class User(Base):
     date_of_birth = Column(Date, nullable=True)
     balance = Column(DECIMAL(precision=10, scale=2), nullable=False, default=0)
     is_active = Column(Boolean, default=True)
+    hashed_password = Column(String, nullable=False)
 
