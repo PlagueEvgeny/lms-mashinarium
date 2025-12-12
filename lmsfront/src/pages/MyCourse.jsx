@@ -34,7 +34,7 @@ const MyCourse = () => {
             <Toaster />     
                 <div className="flex justify-center w-full">
                     <div className="max-w-6xl w-full px-6 py-10">
-                        <h1 className="text-4xl font-bold mb-2"> {`${user.first_name} ${user.role} `} добрый день! </h1>
+                        <h1 className="text-4xl font-bold mb-2"> {`${user.first_name} ${user.roles} `} добрый день! </h1>
                         <p className="text-lg mb-8"> Сегодня отличный день, чтобы узнать новое или закрепить знания на практике. </p>
                         <h1 className="text-3xl font-bold mb-8 text-gray-800">Ваши курсы</h1>
                         <div className="grid gap-6 sm:grid-cols-1 lg:grid-cols-2">

@@ -8,25 +8,29 @@ import { API } from '../config/api';  // импортируем конфиг
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+
+    const formData = new URLSearchParams();
+    formData.append('username', username);
+    formData.append('password', password);
     try {
       const response = await fetch(API.token, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim(), password }),
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: formData.toString(),
       });
+      console.log(response)
 
       const data = await response.json();
 
       if (response.ok) {
-        localStorage.setItem('access', data.access);
-        localStorage.setItem('refresh', data.refresh);
+        localStorage.setItem('access_token', data.access_token);
 
         toast.success('Успешный вход!', { position: 'top-center', duration: 2000 });
         setTimeout(() => navigate('/my'), 800);
@@ -35,6 +39,8 @@ const LoginPage = () => {
           position: 'top-center',
           duration: 2500,
         });
+      } else if (response.status === 422){
+          console.log(data.detail);
       }
     } catch (err) {
       console.error('Ошибка сети:', err);
@@ -58,8 +64,8 @@ const LoginPage = () => {
             <input
               name="email"
               type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               placeholder=" "
               required
               className="peer w-full h-[55px] border border-gray-300 rounded-lg px-3 pt-5 pb-2 text-[16px] outline-none transition-colors duration-200 focus:border-green-500"
@@ -67,7 +73,7 @@ const LoginPage = () => {
             <span
               className={`absolute left-3 px-1 bg-white text-gray-600 transition-all duration-200 ease-in-out pointer-events-none
                 ${
-                  email
+                  username
                     ? 'top-[-10px] text-[14px] text-green-600'
                     : 'top-[16px] text-[16px]'
                 } peer-focus:top-[-10px] peer-focus:text-[14px] peer-focus:text-green-600`}

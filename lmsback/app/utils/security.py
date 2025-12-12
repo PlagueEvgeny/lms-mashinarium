@@ -4,9 +4,9 @@ from typing import Optional
 
 from jose import jwt
 
-from app.core.config import SECRET_KEY
-from app.core.config import ALGORITHM
-from app.core.config import ACCESS_TOKEN_EXPIRE_MINUTES
+from core.config import SECRET_KEY
+from core.config import ALGORITHM
+from core.config import ACCESS_TOKEN_EXPIRE_MINUTES
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):

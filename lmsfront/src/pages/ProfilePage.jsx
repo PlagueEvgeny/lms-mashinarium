@@ -15,6 +15,15 @@ const ProfilePage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
+  const roleMapping = {
+  'ROLE_PORTAL_USER': 'Ученик',
+  'ROLE_PORTAL_TEACHER': 'Преподаватель',
+  'ROLE_PORTAL_ADMIN': 'Администратор',
+  'ROLE_PORTAL_MODERATOR': 'Модератор'
+};
+
+    const getRoleName = (role) => roleMapping[role] || 'Пользователь';
+
   // Инициализация формы данными пользователя
   useEffect(() => {
     if (user) {
@@ -22,8 +31,8 @@ const ProfilePage = () => {
         first_name: user.first_name || '',
         last_name: user.last_name || '',
         patronymic: user.patronymic || '',
-        date_birth: user.date_birth || '',
-        phone_number: user.phone_number || '',
+        date_of_birth: user.date_of_birth || '',
+        phone: user.phone || '',
         gender: user.gender || '',
         telegram: user.telegram || '',
       });
@@ -233,7 +242,7 @@ const ProfilePage = () => {
     );
   }
 
-  if (!user) return navigate('/login');
+if (!user) return navigate('/login');
 
   return (
     <MainLayout>
@@ -305,9 +314,7 @@ const ProfilePage = () => {
                     <p className="text-gray-500 mt-1">{user.email}</p>
                     <div className="flex gap-4 mt-3">
                       <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
-                        {user.role === 't' ? 'Преподаватель' : 
-                         user.role === 's' ? 'Ученик' : 
-                         user.role === 'a' ? 'Администратор' : 'Пользователь'}
+                        {getRoleName(user.roles)}
                       </span>
                     </div>
                   </div>
@@ -351,15 +358,15 @@ const ProfilePage = () => {
                   <InputField 
                     label="Дата рождения" 
                     type="date"
-                    value={formData.date_birth}
-                    onChange={(value) => handleInputChange('date_birth', value)}
+                    value={formData.date_of_birth}
+                    onChange={(value) => handleInputChange('date_of_birth', value)}
                     disabled={!isEditing}
                   />
                   <InputField 
                     label="Номер телефона" 
                     type="tel"
-                    value={formData.phone_number}
-                    onChange={(value) => handleInputChange('phone_number', value)}
+                    value={formData.phone}
+                    onChange={(value) => handleInputChange('phone', value)}
                     disabled={!isEditing}
                     placeholder="+7 (XXX) XXX-XX-XX"
                   />
@@ -369,9 +376,9 @@ const ProfilePage = () => {
                     onChange={(value) => handleInputChange('gender', value)}
                     disabled={!isEditing}
                     options={[
-                      { value: '', label: 'Не указано' },
-                      { value: 'm', label: 'Мужской' },
-                      { value: 'f', label: 'Женский' }
+                      { value: 'ORDER', label: 'Другое' },
+                      { value: 'MALE', label: 'Мужской' },
+                      { value: 'FEMALE', label: 'Женский' }
                     ]}
                   />
                   <InputField 

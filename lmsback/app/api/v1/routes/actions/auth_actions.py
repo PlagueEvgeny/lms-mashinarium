@@ -8,15 +8,15 @@ from jose import JWTError
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.services.user_service import UserDAL
-from app.db.models.user import User
+from services.user_service import UserDAL
+from db.models.user import User
 
-from app.core.config import SECRET_KEY, ALGORITHM
-from app.utils.hashing import Hasher
-from app.db.session import get_db
+from core.config import SECRET_KEY, ALGORITHM
+from utils.hashing import Hasher
+from db.session import get_db
 
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login/token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
 
 
 async def _get_user_by_email_for_auth(email: str, session: AsyncSession):

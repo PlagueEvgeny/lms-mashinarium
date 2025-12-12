@@ -9,6 +9,8 @@ services:
       - POSTGRES_DB=postgres
     ports:
       - "5432:5432"
+    networks:
+      - custom
   
   db_test:
     image: postgres:14.1-alpine
@@ -20,7 +22,46 @@ services:
       - POSTGRES_DB=postgres_test
     ports:
       - "5433:5432"
+    networks:
+      - custom
 
+  alembic_migrations:
+    image: alembic_migrations
+    container_name: alembic_migrations
+    ports:
+      - "8001:8001"
+    environment:
+      ALEMBIC_DATABASE_URL: "postgresql://postgres:postgres@db/postgres"
+      REAL_DATABASE_URL: "postgresql+asyncpg://postgres:postgres@db:5432/postgres"
+      APP_PORT: "8001"
+    build:
+      context: ./lmsback
+      dockerfile: Dockerfile
+
+    depends_on:
+      - db
+    command: sh ./run_migrations.sh
+    networks:
+      - custom
+  
+  backend:
+    container_name: fastapi-app
+    ports:
+      - "8000:8000"
+    environment:
+      ALEMBIC_DATABASE_URL: "postgresql://postgres:postgres@db/postgres"
+      REAL_DATABASE_URL: "postgresql+asyncpg://postgres:postgres@db:5432/postgres"
+      APP_PORT: "8000"
+    build: 
+      context: ./lmsback  # Point to your backend directory
+      dockerfile: Dockerfile
+    depends_on:
+      - db 
+      - alembic_migrations
+    restart: always
+    networks:
+      - custom
+  
   frontend:
     image: node:22
     container_name: react-app
@@ -32,17 +73,8 @@ services:
     command: npm start
     restart: always
 
-    #  backend:
-    #container_name: fastapi-app
-    #build: 
-    #  context: ./lmsback  # Point to your backend directory
-    #  dockerfile: Dockerfile
-    #working_dir: /docker_lmsback
-    #volumes:
-    #  - ./lmsback:/docker_lmsback
-    #ports:
-    #  - "8000:8000"
-    #restart: always
-
-  
+networks:
+  custom:
+    driver: bridge
+    
 

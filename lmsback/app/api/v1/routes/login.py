@@ -1,26 +1,24 @@
 from datetime import timedelta
-from uuid import UUID
 
 from fastapi.security import OAuth2PasswordRequestForm
 from loguru import logger
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import status
 
-from app.api.v1.schemas.user_schema import Token
-from app.api.v1.routes.actions.auth import authenticate_user  
-from app.db.session import get_db
-from app.core.config import ACCESS_TOKEN_EXPIRE_MINUTES
-from app.utils.security import create_access_token
-from app.db.models.user import PortalRole, User
+from api.v1.schemas.user_schema import Token
+from api.v1.routes.actions.auth_actions import authenticate_user  
+from db.session import get_db
+from core.config import ACCESS_TOKEN_EXPIRE_MINUTES
+from utils.security import create_access_token
 
-login_router = APIRouter()
+auth_router = APIRouter()
 
-@login_router.post("/token", response_model=Token)
+@auth_router.post("/token", response_model=Token)
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), session: AsyncSession = Depends(get_db)):
-    user = await authenticate_user(form_data.username, form_data.password, session)
+    user = await authenticate_user(form_data.username.lower() , form_data.password, session)
     if not user:
         raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -35,3 +33,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
 
     return {"access_token": access_token, "token_type": "bearer"}
 
+@auth_router.post("/logout")
+async def logout_user(response: Response):
+    response.delete_cookie(key="access_token")
+    return {'message': 'Пользователь успешно вышел из системы'}

@@ -1,12 +1,12 @@
-from typing import Union
+from typing import List, Union
 from uuid import UUID
 from loguru import logger
 from fastapi import HTTPException
 
-from app.api.v1.schemas.user_schema import ShowUser, UserCreate, UpdateUserRequest
-from app.services.user_service import UserDAL
-from app.db.models.user import PortalRole, User
-from app.utils.hashing import Hasher
+from api.v1.schemas.user_schema import ShowUser, UserCreate, UpdateUserRequest
+from services.user_service import UserDAL
+from db.models.user import PortalRole, User
+from utils.hashing import Hasher
 
 async def _get_user_by_id(user_id, session) -> Union[User, None]:
     logger.info(f"Получение пользователя {user_id} по id")
@@ -18,6 +18,23 @@ async def _get_user_by_id(user_id, session) -> Union[User, None]:
         if user is not None:
             return user
 
+async def _get_user_all(session) -> List[User]:
+    logger.info(f"Получение пользователей")
+    async with session.begin():
+        user_dal = UserDAL(session)
+        user = await user_dal.get_user_all()
+        return list(user)
+
+
+async def _get_user_by_email(email, session) -> Union[User, None]:
+    logger.info(f"Получение пользователя {email} по email")
+    async with session.begin():
+        user_dal = UserDAL(session)
+        user = await user_dal.get_user_by_email(
+            email=email,
+        )
+        if user is not None:
+            return user
 
 async def _create_new_user(body: UserCreate, session) -> ShowUser:
     async with session.begin():
@@ -46,6 +63,7 @@ async def _create_new_user(body: UserCreate, session) -> ShowUser:
             telegram=user.telegram,
             email=user.email,
             phone=user.phone,
+            roles=user.roles,
             gender=user.gender,
             date_of_birth=user.date_of_birth,
             balance=user.balance,
@@ -93,4 +111,12 @@ def check_user_permissions(target_user: User, current_user: User) -> bool:
             and PortalRole.ROLE_PORTAL_ADMIN in current_user.roles
         ):
             return False
+        if (
+            PortalRole.ROLE_PORTAL_MODERATOR in target_user.roles
+            and PortalRole.ROLE_PORTAL_MODERATOR in current_user.roles
+        ):
+            return False
     return True
+
+
+

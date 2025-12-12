@@ -10,7 +10,8 @@ from sqlalchemy import String
 from sqlalchemy import Date
 from sqlalchemy import DECIMAL
 
-from app.db.base import Base
+from sqlalchemy.orm import relationship
+from db.base import Base
 
 class PortalRole(str, Enum):
     ROLE_PORTAL_USER = "ROLE_PORTAL_USER"
@@ -41,4 +42,8 @@ class User(Base):
     balance = Column(DECIMAL(precision=10, scale=2), nullable=False, default=0)
     is_active = Column(Boolean, default=True)
     hashed_password = Column(String, nullable=False)
+
+    teacher_courses = relationship("Course", secondary="teacher_courses", back_populates='teachers')
+    student_courses = relationship("Course", secondary="student_courses", back_populates='students')
+
 

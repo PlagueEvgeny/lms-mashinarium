@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from app.tests.conftest import get_user_from_database
+from tests.conftest import get_user_from_database
 
 async def test_create_user(client, get_user_from_database):
     user_data = {

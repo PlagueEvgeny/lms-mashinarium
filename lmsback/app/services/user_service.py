@@ -11,12 +11,18 @@ from sqlalchemy import and_, extract
 from sqlalchemy import select
 from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.db.models.user import User, PortalRole, Gender
+from db.models.user import User, PortalRole, Gender
 
 class UserDAL:
     def __init__(self, db_session: AsyncSession):
         self.db_session = db_session
     
+    async def get_user_all(self) -> List[User]:
+        query = select(User)
+        result = await self.db_session.execute(query)
+        user_row = result.scalars().all()
+        return list(user_row)
+
     async def get_user_by_id(self, user_id:UUID) -> Union[User, None]:
         query = select(User).where(User.user_id == user_id)
         result = await self.db_session.execute(query)

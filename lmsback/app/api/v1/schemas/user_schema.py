@@ -14,8 +14,8 @@ from decimal import Decimal
 
 from datetime import date
 
-from app.utils.letter_pattern import LETTER_MATCH_PATTERN
-from app.utils.letter_pattern import PHONE_MATCH_PATTERN
+from utils.letter_pattern import LETTER_MATCH_PATTERN
+from utils.letter_pattern import PHONE_MATCH_PATTERN
 
 
 class TunedModel(BaseModel):
@@ -33,6 +33,7 @@ class ShowUser(TunedModel):
     email: EmailStr
     phone: Optional[str] = None
     gender: List[str]
+    roles: List[str]
     date_of_birth: Optional[date] = None
     balance: Decimal
     is_active: bool
@@ -75,6 +76,10 @@ class UserCreate(BaseModel):
                     status_code=422, detail="Patronymic should contains only letters"
                     )
         return value
+
+    @validator('email')
+    def email_to_lowercase(cls, v: str):
+        return v.lower()
 
 
 class DeleteUserResponse(BaseModel):

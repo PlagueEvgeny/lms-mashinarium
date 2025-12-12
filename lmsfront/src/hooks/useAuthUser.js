@@ -23,7 +23,7 @@ export const useAuthUser = () => {
 
       if (!response.ok) {
         if (response.status === 401) {
-          localStorage.removeItem('access');
+          localStorage.removeItem('access_token');
           localStorage.removeItem('refresh');
           throw new Error('Сессия истекла');
         }
@@ -43,7 +43,7 @@ export const useAuthUser = () => {
   };
 
   useEffect(() => {
-    const token = localStorage.getItem('access');
+    const token = localStorage.getItem('access_token');
     
     if (!token) {
       setLoading(false);
@@ -73,7 +73,7 @@ export const useAuthUser = () => {
       }
     }
 
-    localStorage.removeItem('access');
+    localStorage.removeItem('access_token');
     localStorage.removeItem('refresh');
     setUser(null);
     toast.success('Вы успешно вышли из системы');
@@ -86,7 +86,7 @@ export const useAuthUser = () => {
     error, 
     setUser,
     refetch: () => {
-      const token = localStorage.getItem('access');
+      const token = localStorage.getItem('access_token');
       return token ? fetchUser(token) : Promise.reject('No token');
     },
     logout 

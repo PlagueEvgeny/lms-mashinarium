@@ -11,9 +11,9 @@ from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.orm import sessionmaker
 from starlette.testclient import TestClient 
 
-from app.core.config import TEST_DATABASE_URL
-from app.db.session import get_db
-from app.main import app
+from core.config import TEST_DATABASE_URL
+from db.session import get_db
+from main import app
 
 
 @pytest.fixture(scope="session")

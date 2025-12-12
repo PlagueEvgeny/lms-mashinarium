@@ -1,22 +1,15 @@
 FROM python:3.12-alpine
 
-# Устанавливаем uv
+WORKDIR /app
+
 RUN pip install uv
 
 
-WORKDIR /docker_lmsback 
+COPY .python-version pyproject.toml ./  
+COPY uv.lock* ./  
 
-# Copy dependency files
-COPY .python-version pyproject.toml uv.lock* alembic.ini ./
+RUN uv sync
 
-# Copy application code
-COPY . .
+COPY ./app .
 
-# Создаём __init__.py, если нет (иногда помогает при сборке)
-RUN touch app/__init__.py
-
-# Expose port
-EXPOSE 8000
-
-# Command to run the application
-CMD ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+CMD ["uv", "run", "python", "main.py"]

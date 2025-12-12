@@ -1,7 +1,9 @@
+import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
-from app.api.router import main_api_router
+from api.router import main_api_router
+from core.config import APP_PORT
 
 app = FastAPI(
         title="LMS Mashinarium",
@@ -17,14 +19,15 @@ logger.add("info.log", format="Log: {time} -- {level} -- {message} -- {file}:{li
 # Настройка CORS
 origins = [
     "localhost:3000",
-    "localhost:5000"
+    "localhost:5000",
+    "localhost:8081"
 ]
 
 app.add_middleware(
     # Запрещаем сначала все 
     CORSMiddleware,
     # Разрешаем необходимое
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -33,6 +36,5 @@ app.add_middleware(
 # Router`s
 app.include_router(main_api_router)
 
-@app.get("/")
-async def root():
-    return {"message": "Hello World_111"}
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=APP_PORT)

@@ -11,6 +11,15 @@ const Header = () => {
   const menuRef = useRef(null);
   const { user, loading, logout } = useAuthUser();
 
+    const roleMapping = {
+  'ROLE_PORTAL_USER': 'Ученик',
+  'ROLE_PORTAL_TEACHER': 'Преподаватель',
+  'ROLE_PORTAL_ADMIN': 'Администратор',
+  'ROLE_PORTAL_MODERATOR': 'Модератор'
+};
+
+    const getRoleName = (role) => roleMapping[role] || 'Пользователь';
+
   // Закрытие меню при клике вне
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -38,14 +47,7 @@ const Header = () => {
     navigate(path);
   }, [navigate]);
 
-  const getRoleText = (role) => {
-    const roles = {
-      't': 'Преподаватель',
-      's': 'Ученик',
-      'a': 'Администратор'
-    };
-    return roles[role] || '';
-  };
+
 
   if (loading && !user) {
     return (
@@ -130,7 +132,7 @@ const Header = () => {
                           {`${user.first_name} ${user.last_name}`}
                         </p>
                         <p className="text-xs text-gray-500 mt-1">
-                          {getRoleText(user?.role)}
+                          {getRoleName(user.roles)}
                         </p>
                       </div>
 
