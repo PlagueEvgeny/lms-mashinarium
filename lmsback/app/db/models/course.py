@@ -1,6 +1,5 @@
 from enum import Enum
 from datetime import datetime
-from os import wait
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy import Column
 from sqlalchemy import Text
@@ -42,7 +41,9 @@ class Category(Base):
     slug = Column(String, nullable=True)
     description = Column(Text, nullable=True)
     image = Column(String, nullable=True)
+    display_order = Column(Integer, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)     
     is_active = Column(Boolean, default=True)
 
     courses = relationship("Course", secondary="category_courses", back_populates="categories")
@@ -59,7 +60,10 @@ class Course(Base):
     image = Column(String, nullable=True)
     price = Column(DECIMAL(precision=10, scale=2), nullable=False, default=0)
     status = Column(ARRAY(String), nullable=False)
+    display_order = Column(Integer, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)     
+    is_active = Column(Boolean, default=True)
 
     categories = relationship("Category", secondary="category_courses", back_populates="courses")
     teachers = relationship("User", secondary="teacher_courses", back_populates='teacher_courses')

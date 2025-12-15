@@ -1,4 +1,7 @@
-# # Environments
+# Python
+__pycache__/
+
+# Environments
 .env
 
 # uv
@@ -8,5 +11,5 @@
 
 # alembic
 alembic.ini
-
+versions/
 
