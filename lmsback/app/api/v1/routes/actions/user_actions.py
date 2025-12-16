@@ -119,4 +119,13 @@ def check_user_permissions(target_user: User, current_user: User) -> bool:
     return True
 
 
-
+def check_user_permissions_teahers(current_user: User) -> bool:
+    logger.info(f"Проверка пользовательских ({current_user.last_name} {current_user.first_name}) расрешений")
+    # check admin role
+    if not {
+        PortalRole.ROLE_PORTAL_ADMIN,
+        PortalRole.ROLE_PORTAL_TEACHER,
+        PortalRole.ROLE_PORTAL_MODERATOR
+    }.intersection(current_user.roles):
+        return False
+    return True

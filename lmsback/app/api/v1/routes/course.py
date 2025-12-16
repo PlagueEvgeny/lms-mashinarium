@@ -9,93 +9,94 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.v1.routes.actions.auth_actions import get_current_user_from_token
-from api.v1.schemas.course_schema import ShowCategory, CategoryCreate, DeleteCategoryResponse, UpdateCategoryRequest, UpdatedCategoryResponse
-from api.v1.routes.actions.course_actions import _create_new_category, _get_category_by_id, _delete_category, _update_category
+from api.v1.routes.actions.user_actions import check_user_permissions_teahers
+from api.v1.schemas.course_schema import ShowCourse, CourseCreate, DeleteCourseResponse, UpdatedCourseResponse, UpdateCourseRequest 
+from api.v1.routes.actions.course_actions import _get_course_by_id, _create_new_course, _delete_course, _update_course
 from db.models.user import User, PortalRole
-from db.models.course import Category
+from db.models.course import Course
 from db.session import get_db
   
 
-category_router = APIRouter()
 course_router = APIRouter()
 
-
-@category_router.post("/", response_model=ShowCategory)
-async def create_category(body: CategoryCreate, 
+@course_router.post("/", response_model=ShowCourse)
+async def create_course(body: CourseCreate, 
                           session: AsyncSession = Depends(get_db),
                           current_user: User = Depends(get_current_user_from_token),
-                          ) -> ShowCategory:
+                          ) -> ShowCourse:
     
     if not PortalRole.ROLE_PORTAL_ADMIN in current_user.roles:
-        logger.error(f"У прльзователя {current_user.email} не хватает прав")
+        logger.error(f"У пользователя {current_user.email} не хватает прав")
         raise HTTPException(status_code=403, detail=f"Forbiden.")
     
-    logger.info(f"Категория создана")
-    return await _create_new_category(body, session)
+    logger.info(f"Курс создан")
+    return await _create_new_course(body, session)
 
-@category_router.get("/{id}", response_model=ShowCategory)
+@course_router.get("/{id}", response_model=ShowCourse)
 async def get_category_by_id(id: int, 
                          session: AsyncSession = Depends(get_db),
-) -> Union[Category, None]:
+) -> Union[Course, None]:
     logger.info("Получение категории по id")
-    category = await _get_category_by_id(id, session)
-    if category is None:
-        logger.error(f"Категория {id} не найден.")
-        raise HTTPException(status_code=404, detail=f"Category with id {id} not found")
-    return category
+    course = await _get_course_by_id(id, session)
+    if course is None:
+        logger.error(f"Курс {id} не найден.")
+        raise HTTPException(status_code=404, detail=f"Course with id {id} not found")
+    return course
 
 
-@category_router.delete("/", response_model=DeleteCategoryResponse)
-async def delete_category(id: int,
+@course_router.delete("/", response_model=DeleteCourseResponse)
+async def delete_course(id: int,
                           session: AsyncSession = Depends(get_db),
                           current_user: User = Depends(get_current_user_from_token),
-) -> DeleteCategoryResponse:
+) -> DeleteCourseResponse:
     
-    if not PortalRole.ROLE_PORTAL_ADMIN in current_user.roles:
+    if not check_user_permissions_teahers(
+            current_user=current_user,
+            ):
         logger.error(f"У пользователя {current_user.email} не хватает прав")
         raise HTTPException(status_code=403, detail=f"Forbiden.")
     
-    category_for_deletion = await _get_category_by_id(id, session)
+    course_for_deletion = await _get_course_by_id(id, session)
     
-    if category_for_deletion is None:
-        logger.error(f"Категория {id} не найден.")
-        raise HTTPException(status_code=404, detail=f"Category with id {id} not found")
+    if course_for_deletion is None:
+        logger.error(f"Курс {id} не найден.")
+        raise HTTPException(status_code=404, detail=f"Course with id {id} not found")
 
-    logger.info(f"Происходит удаление категории {category_for_deletion.name}.")
-    deleted_category_id = await _delete_category(id, session)
-    if deleted_category_id is None:
-        logger.error(f"Категория {id} не найден.")
-        raise HTTPException(status_code=404, detail=f"Category with id {id} not found")
-    return DeleteCategoryResponse(deleted_category_id=deleted_category_id)
+    logger.info(f"Происходит удаление курса {course_for_deletion.name}.")
+    deleted_course_id = await _delete_course(id, session)
+    if deleted_course_id is None:
+        logger.error(f"Курса {id} не найден.")
+        raise HTTPException(status_code=404, detail=f"Course with id {id} not found")
+    return DeleteCourseResponse(deleted_course_id=deleted_course_id)
 
 
-@category_router.patch("/", response_model=UpdatedCategoryResponse)
-async def update_category_by_id(id: int, 
-                            body: UpdateCategoryRequest, 
+@course_router.patch("/", response_model=UpdatedCourseResponse)
+async def update_course_by_id(id: int, 
+                            body: UpdateCourseRequest, 
                             session: AsyncSession = Depends(get_db),
                             current_user: User = Depends(get_current_user_from_token),
-) -> UpdatedCategoryResponse:
+) -> UpdatedCourseResponse:
     
-    if not PortalRole.ROLE_PORTAL_ADMIN in current_user.roles:
+    if not check_user_permissions_teahers(
+            current_user=current_user,
+            ):
         logger.error(f"У пользователя {current_user.email} не хватает прав")
         raise HTTPException(status_code=403, detail=f"Forbiden.")
     
-    updated_category_params = body.dict(exclude_none=True)
-    if updated_category_params == {}:
+    updated_course_params = body.dict(exclude_none=True)
+    if updated_course_params == {}:
         logger.error("Обновление не может быть пустым")
         raise HTTPException(status_code=422, detail="At least one parametr for user update info should be provided")
 
-    category_for_update = await _get_category_by_id(id, session)
-    if category_for_update is None:
-        logger.error(f"Категория {id} не найден.")
-        raise HTTPException(status_code=404, detail=f"Category with id {id} not found")
+    course_for_update = await _get_course_by_id(id, session)
+    if course_for_update is None:
+        logger.error(f"Курс {id} не найден.")
+        raise HTTPException(status_code=404, detail=f"Course with id {id} not found")
     
     try: 
-        update_category_id = await _update_category(updated_category_params=updated_category_params, session=session, id=id)
+        update_course_id = await _update_course(updated_course_params=updated_course_params, session=session, id=id)
     except IntegrityError as err:
         logger.error(err)
         raise HTTPException(status_code=503, detail=f"Database error: {err}")
 
-    return UpdatedCategoryResponse(updated_category_id=update_category_id)
-
-
+    return UpdatedCourseResponse(updated_course_id=update_course_id)

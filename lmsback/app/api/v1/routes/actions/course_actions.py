@@ -3,51 +3,46 @@ from uuid import UUID
 from loguru import logger
 from fastapi import HTTPException
 
-from api.v1.schemas.course_schema import ShowCategory
-from api.v1.schemas.course_schema import CategoryCreate
-from services.course_service import CategoryDAL
-from db.models.course import Category
+from api.v1.schemas.course_schema import ShowCourse
+from api.v1.schemas.course_schema import CourseCreate
+from services.course_service import CourseDAL 
+from db.models.course import Course
 
-async def _get_category_by_id(id, session) -> Union[Category, None]:
+async def _get_course_by_id(id, session) -> Union[Course, None]:
     logger.info(f"Получение категории {id} по id")
     async with session.begin():
-        category_dal = CategoryDAL(session)
-        category = await category_dal.get_category_by_id(id=id)
-        if category is not None:
-            return category
+        course_dal = CourseDAL(session)
+        course = await course_dal.get_course_by_id(id=id)
+        if course is not None:
+            return course
 
-
-async def _create_new_category(body: CategoryCreate, session) -> ShowCategory:
+async def _create_new_course(body: CourseCreate, session) -> ShowCourse:
     async with session.begin():
-        category_dal = CategoryDAL(session)
-        category = await category_dal.create_category(
+        course_dal = CourseDAL(session)
+        course = await course_dal.create_course(
             name=body.name,
             slug=body.slug,
+            short_description=body.short_description,
             description=body.description,
             image=body.image,
+            price=body.price,
+            status=body.status,
+            display_order=body.display_order
         )
 
-        return ShowCategory(
-                id=category.id,
-                name=category.name,
-                slug=category.slug,
-                description=category.description,
-                image=category.image,
-                created_at=category.created_at,
-                is_active=category.is_active
-        )
+        return ShowCourse.model_validate(course)
 
 
-async def _delete_category(id, session) -> Union[int, None]:
+async def _delete_course(id, session) -> Union[int, None]:
     async with session.begin():
-        category_dal = CategoryDAL(session)
-        deleted_category_id = await category_dal.delete_category(id=id)
-        return deleted_category_id
+        course_dal = CourseDAL(session)
+        deleted_course_id = await course_dal.delete_course(id=id)
+        return deleted_course_id
 
-async def _update_category(updated_category_params: dict, id: int, session) -> Union[int, None]:
+async def _update_course(updated_course_params: dict, id: int, session) -> Union[int, None]:
     async with session.begin():
-        category_dal = CategoryDAL(session)
-        updated_category_id = await category_dal.update_category(
-            id=id, **updated_category_params,
+        course_dal = CourseDAL(session)
+        updated_course_id = await course_dal.update_course(
+            id=id, **updated_course_params,
         )
-        return updated_category_id
+        return updated_course_id

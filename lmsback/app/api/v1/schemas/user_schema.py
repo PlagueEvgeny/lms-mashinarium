@@ -1,5 +1,4 @@
 import uuid
-
 from pydantic import BaseModel
 from pydantic import EmailStr
 from pydantic import validator
@@ -14,13 +13,10 @@ from decimal import Decimal
 
 from datetime import date
 
+from api.v1.schemas.base_schema import TunedModel
+
 from utils.letter_pattern import LETTER_MATCH_PATTERN
 from utils.letter_pattern import PHONE_MATCH_PATTERN
-
-
-class TunedModel(BaseModel):
-    class Config:
-        from_attributes = True
 
 
 class ShowUser(TunedModel):

@@ -33,22 +33,6 @@ class Status(str, Enum):
     TRASH = "TRASH"
 
 
-class Category(Base):
-    __tablename__ = "categories"
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String, nullable=False)
-    slug = Column(String, nullable=True)
-    description = Column(Text, nullable=True)
-    image = Column(String, nullable=True)
-    display_order = Column(Integer, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)     
-    is_active = Column(Boolean, default=True)
-
-    courses = relationship("Course", secondary="category_courses", back_populates="categories")
-
-
 class Course(Base):
     __tablename__ = "courses"
 

@@ -20,7 +20,8 @@ if config.config_file_name is not None:
 from db.base import Base
 
 from db.models.user import User 
-from db.models.course import Category 
+from db.models.category import Category 
+from db.models.course import Course 
 
 target_metadata = Base.metadata
 

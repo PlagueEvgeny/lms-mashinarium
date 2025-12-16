@@ -11,32 +11,35 @@ from decimal import Decimal
 
 from datetime import datetime
 
+from api.v1.schemas.base_schema import TunedModel
+
 from utils.letter_pattern import LETTER_MATCH_PATTERN
-from utils.letter_pattern import PHONE_MATCH_PATTERN
 
 
-class TunedModel(BaseModel):
-    class Config:
-        from_attributes = True
-
-
-class ShowCategory(TunedModel):
+class ShowCourse(TunedModel):
     id: int
     name: str
     slug: Optional[str] = None
+    short_description: Optional[str] = None
     description: Optional[str] = None
     image: Optional[str] = None
+    price: Decimal
+    status: List[str]
+    display_order: int
     created_at: Optional[datetime] 
+    updated_at: Optional[datetime]
     is_active: bool
 
 
-
-class CategoryCreate(BaseModel):
+class CourseCreate(BaseModel):
     name: str
     slug: Optional[str] = None
+    short_description: Optional[str] = None
     description: Optional[str] = None
     image: Optional[str] = None
-
+    price: Decimal
+    status: List[str]
+    display_order: int
 
     @validator("name")
     def validate_last_name(cls, value):
@@ -46,15 +49,25 @@ class CategoryCreate(BaseModel):
                     )
         return value
 
-class DeleteCategoryResponse(BaseModel):
-    deleted_category_id: int
 
-class UpdatedCategoryResponse(BaseModel):
-    updated_category_id: int
+class DeleteCourseResponse(BaseModel):
+    deleted_course_id: int
 
 
-class UpdateCategoryRequest(BaseModel):
+class UpdatedCourseResponse(BaseModel):
+    updated_course_id: int | None
+
+
+class UpdateCourseRequest(BaseModel):
     name: Optional[str] = None
     slug: Optional[str] = None
+    short_description: Optional[str] = None
     description: Optional[str] = None
     image: Optional[str] = None
+    price: Optional[Decimal] = None
+    status: Optional[List[str]] = None
+    display_order: Optional[int] = None
+
+
+
+
