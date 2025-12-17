@@ -20,16 +20,17 @@ from db.session import get_db
 course_router = APIRouter()
 
 @course_router.post("/", response_model=ShowCourse)
-async def create_course(body: CourseCreate, 
-                          session: AsyncSession = Depends(get_db),
-                          current_user: User = Depends(get_current_user_from_token),
-                          ) -> ShowCourse:
-    
-    if not PortalRole.ROLE_PORTAL_ADMIN in current_user.roles:
+async def create_course(
+    body: CourseCreate,
+    session: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user_from_token),
+) -> ShowCourse:
+
+    if PortalRole.ROLE_PORTAL_ADMIN not in current_user.roles:
         logger.error(f"У пользователя {current_user.email} не хватает прав")
-        raise HTTPException(status_code=403, detail=f"Forbiden.")
+        raise HTTPException(status_code=403, detail="Forbidden.")
     
-    logger.info(f"Курс создан")
+    logger.info(f"Создание курса пользователем {current_user.email}")
     return await _create_new_course(body, session)
 
 @course_router.get("/{id}", response_model=ShowCourse)

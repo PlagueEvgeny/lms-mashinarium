@@ -1,4 +1,4 @@
-from typing import Union
+from typing import List, Union
 from typing import Optional
 
 from sqlalchemy import and_
@@ -13,17 +13,25 @@ class CategoryDAL:
     def __init__(self, db_session: AsyncSession):
         self.db_session = db_session
     
-    async def get_category_by_id(self, id : int) -> Union[Category, None]:
+    async def get_category_by_id(self, id: int) -> Union[Category, None]:
+        """Получить категорию по ID"""
         query = select(Category).where(Category.id == id)
         result = await self.db_session.execute(query)
         category_row = result.fetchone()
         if category_row is not None:
             return category_row[0]
-
+        return None
+    
+    async def get_categories_by_ids(self, ids: List[int]) -> List[Category]:
+        query = select(Category).where(Category.id.in_(ids))
+        result = await self.db_session.execute(query)
+        categories = result.scalars().all()
+        return list(categories)
 
     async def create_category(
             self,
             name: str,
+            display_order: int,
             slug: Optional[str] = None,
             description: Optional[str] = None,
             image: Optional[str] = None,
@@ -31,6 +39,7 @@ class CategoryDAL:
     
         new_category = Category(
             name=name,
+            display_order=display_order,
             slug=slug,
             description=description,
             image=image

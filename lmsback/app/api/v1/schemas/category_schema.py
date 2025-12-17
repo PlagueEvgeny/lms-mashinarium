@@ -19,6 +19,7 @@ class ShowCategory(TunedModel):
     image: Optional[str] = None
     created_at: Optional[datetime] 
     is_active: bool
+    display_order: int
 
 
 class CategoryCreate(BaseModel):
@@ -26,6 +27,7 @@ class CategoryCreate(BaseModel):
     slug: Optional[str] = None
     description: Optional[str] = None
     image: Optional[str] = None
+    display_order: int
 
 
     @validator("name")
@@ -50,5 +52,5 @@ class UpdateCategoryRequest(BaseModel):
     slug: Optional[str] = None
     description: Optional[str] = None
     image: Optional[str] = None
-
+    display_order: Optional[str] = None
 

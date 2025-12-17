@@ -25,6 +25,7 @@ async def _create_new_category(body: CategoryCreate, session) -> ShowCategory:
             slug=body.slug,
             description=body.description,
             image=body.image,
+            display_order=body.display_order
         )
 
         return ShowCategory.model_validate(category)

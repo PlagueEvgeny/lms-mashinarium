@@ -12,6 +12,7 @@ from decimal import Decimal
 from datetime import datetime
 
 from api.v1.schemas.base_schema import TunedModel
+from api.v1.schemas.category_schema import ShowCategory
 
 from utils.letter_pattern import LETTER_MATCH_PATTERN
 
@@ -26,9 +27,10 @@ class ShowCourse(TunedModel):
     price: Decimal
     status: List[str]
     display_order: int
-    created_at: Optional[datetime] 
+    created_at: Optional[datetime]
     updated_at: Optional[datetime]
     is_active: bool
+    categories: List[ShowCategory] 
 
 
 class CourseCreate(BaseModel):
@@ -40,16 +42,8 @@ class CourseCreate(BaseModel):
     price: Decimal
     status: List[str]
     display_order: int
-
-    @validator("name")
-    def validate_last_name(cls, value):
-        if not LETTER_MATCH_PATTERN.match(value):
-            raise HTTPException(
-                    status_code=422, detail="Name should contains only letters"
-                    )
-        return value
-
-
+    category_ids: List[int]
+    
 class DeleteCourseResponse(BaseModel):
     deleted_course_id: int
 
@@ -67,6 +61,7 @@ class UpdateCourseRequest(BaseModel):
     price: Optional[Decimal] = None
     status: Optional[List[str]] = None
     display_order: Optional[int] = None
+    category_ids: Optional[List[int]] = None
 
 
 
