@@ -7,10 +7,11 @@ from uuid import UUID
 
 from decimal import Decimal
 
-from sqlalchemy import and_
+from sqlalchemy import SelectLabelStyle, and_
 from sqlalchemy import select
 from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import query
 from db.models.user import User, PortalRole, Gender
 
 class UserDAL:
@@ -90,6 +91,45 @@ class UserDAL:
         query = update(User).\
                 where(and_(User.user_id == user_id, User.is_active == True)).\
                 values(kwargs).\
+                returning(User.user_id)
+        result = await self.db_session.execute(query)
+        updated_user_id_row = result.fetchone()
+        if updated_user_id_row is not None:
+            return updated_user_id_row[0]
+
+    async def add_role_to_user(self, user_id: UUID, role: PortalRole) -> Union[User, None]:
+        query = select(User).\
+                where(and_(User.user_id == user_id, User.is_active == True))
+        result = await self.db_session.execute(query)
+        user_row = result.fetchone()
+
+        if user_row is not None:
+            user = user_row[0]
+            if role not in user.roles:
+                user.roles = user.roles + [role]
+                await self.db_session.flush()
+            return user
+        return None
+
+    async def remove_role_from_user(self, user_id: UUID, role: PortalRole) -> Union[User, None]:
+        query = select(User).where(
+            and_(User.user_id == user_id, User.is_active == True)
+        )
+        result = await self.db_session.execute(query)
+        user_row = result.fetchone()
+        
+        if user_row is not None:
+            user = user_row[0]
+            if role in user.roles:
+                user.roles = [r for r in user.roles if r != role]
+                await self.db_session.flush()
+            return user
+        return None
+
+    async def set_user_roles(self, user_id: UUID, roles: List[PortalRole]) -> Union[UUID, None]:
+        query = update(User).\
+                where(and_(User.user_id == user_id, User.is_active == True)).\
+                values(roles=roles).\
                 returning(User.user_id)
         result = await self.db_session.execute(query)
         updated_user_id_row = result.fetchone()

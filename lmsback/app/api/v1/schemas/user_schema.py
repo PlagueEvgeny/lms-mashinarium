@@ -15,6 +15,7 @@ from datetime import date
 
 from api.v1.schemas.base_schema import TunedModel
 
+from db.models.user import PortalRole
 from utils.letter_pattern import LETTER_MATCH_PATTERN
 from utils.letter_pattern import PHONE_MATCH_PATTERN
 
@@ -123,3 +124,25 @@ class UpdateUserRequest(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+
+
+
+class AddRoleRequest(BaseModel):
+    role: PortalRole
+
+
+class RemoveRoleRequest(BaseModel):
+    role: PortalRole
+
+
+class SetRolesRequest(BaseModel):
+    roles: List[PortalRole]
+    
+    @validator('roles')
+    def validate_roles(cls, v):
+        if not v or len(v) == 0:
+            raise HTTPException(
+                status_code=400, 
+                detail="User must have at least one role."
+            )
+        return v

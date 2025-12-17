@@ -24,7 +24,7 @@ async def create_category(body: CategoryCreate,
                           ) -> ShowCategory:
     
     if not PortalRole.ROLE_PORTAL_ADMIN in current_user.roles:
-        logger.error(f"У прльзователя {current_user.email} не хватает прав")
+        logger.error(f"У пользователя {current_user.email} не хватает прав")
         raise HTTPException(status_code=403, detail=f"Forbiden.")
     
     logger.info(f"Категория создана")

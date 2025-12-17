@@ -9,8 +9,12 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.v1.routes.actions.auth_actions import get_current_user_from_token
-from api.v1.schemas.user_schema import ShowUser, UserCreate, DeleteUserResponse, UpdatedUserResponse, UpdateUserRequest
-from api.v1.routes.actions.user_actions import _create_new_user, _delete_user, _get_user_by_id, _update_user, check_user_permissions, _get_user_by_email, _get_user_all
+from api.v1.schemas.user_schema import (ShowUser, UserCreate, DeleteUserResponse, UpdatedUserResponse, 
+                                        UpdateUserRequest, AddRoleRequest, RemoveRoleRequest, SetRolesRequest)
+from api.v1.routes.actions.user_actions import (_create_new_user, _delete_user, _get_user_by_id, 
+                                                _update_user, check_user_permissions, _get_user_by_email, 
+                                                _get_user_all, _add_role_to_user, _remove_role_from_user,
+                                                _set_user_roles, check_role_change_permissions)
 from db.models.user import User
 from db.session import get_db
   
@@ -130,4 +134,89 @@ async def update_current_user(body: UpdateUserRequest,
 
     return UpdatedUserResponse(updated_user_id=update_user_id)
 
+
+@user_router.post("/roles/add", response_model=UpdatedUserResponse)
+async def add_role_to_user(user_id: UUID,
+                           role_request: AddRoleRequest,
+                           session: AsyncSession = Depends(get_db),
+                           current_user: User = Depends(get_current_user_from_token),
+) -> UpdatedUserResponse:
+    target_user = await _get_user_by_id(user_id, session)
+    if target_user is None:
+        logger.error(f"Пользователь {user_id} не найден.")
+        raise HTTPException(status_code=404, detail=f"User with id {user_id} not found.")
+
+    current_roles = target_user.roles.copy()
+
+    if role_request.role not in current_roles:
+        new_roles = current_roles + [role_request.role]
+    else:
+        new_roles = current_roles
+    
+    # Проверяем права
+    check_role_change_permissions(target_user, current_user, new_roles)
+    
+    user = await _add_role_to_user(user_id, role_request.role, session)
+    if user is None:
+        raise HTTPException(
+            status_code=404, 
+            detail=f"User with id {user_id} not found."
+        )
+    
+    return UpdatedUserResponse(updated_user_id=user.user_id)
+
+
+@user_router.delete("/roles/remove", response_model=UpdatedUserResponse)
+async def remove_role_from_user(user_id: UUID,
+                           role_request: RemoveRoleRequest,
+                           session: AsyncSession = Depends(get_db),
+                           current_user: User = Depends(get_current_user_from_token),
+) -> UpdatedUserResponse:
+    target_user = await _get_user_by_id(user_id, session)
+    if target_user is None:
+        logger.error(f"Пользователь {user_id} не найден.")
+        raise HTTPException(status_code=404, detail=f"User with id {user_id} not found.")
+    
+    # Проверяем, что после удаления останется хотя бы одна роль
+    remaining_roles = [r for r in target_user.roles if r != role_request.role]
+    if len(remaining_roles) == 0:
+        raise HTTPException(
+            status_code=400, 
+            detail="Cannot remove last role. User must have at least one role."
+        )
+    
+    # Проверяем права
+    check_role_change_permissions(target_user, current_user, remaining_roles)
+    
+    # Удаляем роль
+    user = await _remove_role_from_user(user_id, role_request.role, session)
+    if user is None:
+        raise HTTPException(
+            status_code=404, 
+            detail=f"User with id {user_id} not found."
+        )
+
+    return UpdatedUserResponse(updated_user_id=user.user_id)
+
+
+@user_router.put("/roles/set", response_model=UpdatedUserResponse)
+async def set_user_roles(
+    user_id: UUID,
+    roles_request: SetRolesRequest,
+    session: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+) -> UpdatedUserResponse:
+    # Получаем целевого пользователя
+    target_user = await _get_user_by_id(user_id, session)
+    if target_user is None:
+        logger.error(f"Пользователь {user_id} не найден.")
+        raise HTTPException(status_code=404, detail=f"User with id {user_id} not found.")
+    
+    # Проверяем права
+    check_role_change_permissions(target_user, current_user, roles_request.roles)
+    
+    # Устанавливаем роли
+    updated_user_id = await _set_user_roles(user_id, roles_request.roles, session)
+    
+    return UpdatedUserResponse(updated_user_id=updated_user_id)
 
