@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from pydantic import validator
 from pydantic import constr
-
+from uuid import UUID
 from fastapi import HTTPException
 
 from typing import Optional
@@ -13,6 +13,7 @@ from datetime import datetime
 
 from api.v1.schemas.base_schema import TunedModel
 from api.v1.schemas.category_schema import ShowCategory
+from api.v1.schemas.user_schema import ShowUserShort
 
 from utils.letter_pattern import LETTER_MATCH_PATTERN
 
@@ -30,7 +31,9 @@ class ShowCourse(TunedModel):
     created_at: Optional[datetime]
     updated_at: Optional[datetime]
     is_active: bool
-    categories: List[ShowCategory] 
+    categories: List[ShowCategory]
+    teachers: List[ShowUserShort]
+    students: List[ShowUserShort] = []
 
 
 class CourseCreate(BaseModel):
@@ -43,6 +46,7 @@ class CourseCreate(BaseModel):
     status: List[str]
     display_order: int
     category_ids: List[int]
+    teacher_ids: List[UUID]
     
 class DeleteCourseResponse(BaseModel):
     deleted_course_id: int
@@ -64,5 +68,15 @@ class UpdateCourseRequest(BaseModel):
     category_ids: Optional[List[int]] = None
 
 
+class AddTeachersToCourse(BaseModel):
+    teacher_ids: List[UUID]
 
+class AddStudentsToCourse(BaseModel):
+    student_ids: List[UUID]
+
+class RemoveTeachersFromCourse(BaseModel):
+    teacher_ids: List[UUID]
+
+class RemoveStudentsFromCourse(BaseModel):
+    student_ids: List[UUID]
 

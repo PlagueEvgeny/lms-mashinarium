@@ -7,11 +7,10 @@ from uuid import UUID
 
 from decimal import Decimal
 
-from sqlalchemy import SelectLabelStyle, and_
+from sqlalchemy import and_
 from sqlalchemy import select
 from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import query
 from db.models.user import User, PortalRole, Gender
 
 class UserDAL:
@@ -30,6 +29,12 @@ class UserDAL:
         user_row = result.fetchone()
         if user_row is not None:
             return user_row[0]
+
+    async def get_user_by_ids(self, user_ids: List[UUID]) -> List[User]:
+        query = select(User).where(User.user_id.in_(user_ids))
+        result = await self.db_session.execute(query)
+        user_row = result.scalars().all()
+        return list(user_row)
     
     async def get_user_by_email(self, email: str) -> Union[User, None]:
         query = select(User).where(User.email == email)

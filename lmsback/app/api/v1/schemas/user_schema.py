@@ -35,7 +35,15 @@ class ShowUser(TunedModel):
     balance: Decimal
     is_active: bool
 
-
+class ShowUserShort(TunedModel):
+    user_id: uuid.UUID
+    last_name: str
+    first_name: str
+    patronymic: Optional[str] = None
+    avatar: Optional[str] = None
+    telegram: Optional[str] = None
+    email: EmailStr
+    roles: List[str]
 
 class UserCreate(BaseModel):
     last_name: str

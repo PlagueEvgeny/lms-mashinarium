@@ -1,4 +1,4 @@
-from typing import Union
+from typing import List, Union
 from uuid import UUID
 from loguru import logger
 from fastapi import HTTPException
@@ -9,7 +9,7 @@ from api.v1.schemas.course_schema import CourseCreate
 from services.course_service import CourseDAL 
 from db.models.course import Course
 
-async def _get_course_by_id(id, session) -> Union[Course, None]:
+async def _get_course_by_id(id: int, session) -> Union[Course, None]:
     logger.info(f"Получение категории {id} по id")
     async with session.begin():
         course_dal = CourseDAL(session)
@@ -19,7 +19,7 @@ async def _get_course_by_id(id, session) -> Union[Course, None]:
 
 
 async def _create_new_course(body: CourseCreate, session) -> ShowCourse:
-    """Создать новый курс с категориями"""
+    logger.info(f"Создание курса")
     async with session.begin():
         course_dal = CourseDAL(session)
         course = await course_dal.create_course(
@@ -32,6 +32,7 @@ async def _create_new_course(body: CourseCreate, session) -> ShowCourse:
             status=body.status,
             display_order=body.display_order,
             category_ids=body.category_ids,
+            teachers_ids=body.teacher_ids,
         )
         
         # Возвращаем модель с категориями
@@ -49,16 +50,19 @@ async def _create_new_course(body: CourseCreate, session) -> ShowCourse:
             updated_at=course.updated_at,
             is_active=course.is_active,
             categories=course.categories,
+            teachers=course.teachers
         )
 
 
-async def _delete_course(id, session) -> Union[int, None]:
+async def _delete_course(id: int, session) -> Union[int, None]:
+    logger.info(f"Удаление курса")
     async with session.begin():
         course_dal = CourseDAL(session)
         deleted_course_id = await course_dal.delete_course(id=id)
         return deleted_course_id
 
 async def _update_course(updated_course_params: dict, id: int, session) -> Union[int, None]:
+    logger.info(f"Обновление курса")
     async with session.begin():
         course_dal = CourseDAL(session)
 
@@ -72,3 +76,34 @@ async def _update_course(updated_course_params: dict, id: int, session) -> Union
             await course_dal.update_course_categories(course_id=id, category_ids=category_ids)
 
         return updated_course_id
+
+
+async def _add_teachers_to_course(course_id: int, teacher_ids: List[UUID], session) -> Union[Course, None]:
+    logger.info(f"Добавление преподавателей {teacher_ids} к курсу {course_id}")
+    async with session.begin():
+        course_dal = CourseDAL(session)
+        course = await course_dal.add_teachers_to_course(course_id=course_id, teacher_ids=teacher_ids)
+        return course
+
+async def _add_students_to_course(course_id: int, student_ids: List[UUID], session) -> Union[Course, None]:
+    logger.info(f"Добавление преподавателей {student_ids} к курсу {course_id}")
+    async with session.begin():
+        course_dal = CourseDAL(session)
+        course = await course_dal.add_students_to_course(course_id=course_id, student_ids=student_ids)
+        return course
+
+async def _remove_teachers_from_course(course_id: int, teacher_ids: List[UUID],session) -> Union[Course, None]:
+    logger.info(f"Удаление преподавателей {teacher_ids} с курса {course_id}")
+    async with session.begin():
+        course_dal = CourseDAL(session)
+        course = await course_dal.remove_teachers_from_course(course_id, teacher_ids)
+        return course
+
+
+async def _remove_students_from_course(course_id: int, student_ids: List[UUID], session) -> Union[Course, None]:
+    logger.info(f"Удаление студентов {student_ids} с курса {course_id}")
+    async with session.begin():
+        course_dal = CourseDAL(session)
+        course = await course_dal.remove_students_from_course(course_id, student_ids)
+        return course
+

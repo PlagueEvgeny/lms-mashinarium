@@ -14,7 +14,6 @@ class CategoryDAL:
         self.db_session = db_session
     
     async def get_category_by_id(self, id: int) -> Union[Category, None]:
-        """Получить категорию по ID"""
         query = select(Category).where(Category.id == id)
         result = await self.db_session.execute(query)
         category_row = result.fetchone()
