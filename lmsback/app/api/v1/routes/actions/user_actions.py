@@ -3,7 +3,7 @@ from uuid import UUID
 from loguru import logger
 from fastapi import HTTPException
 
-from api.v1.schemas.user_schema import ShowUser, UserCreate, UpdateUserRequest
+from api.v1.schemas.user_schema import ShowUser, UserCreate 
 from services.user_service import UserDAL
 from db.models.user import PortalRole, User
 from utils.hashing import Hasher
@@ -19,7 +19,7 @@ async def _get_user_by_id(user_id, session) -> Union[User, None]:
             return user
 
 async def _get_user_all(session) -> List[User]:
-    logger.info(f"Получение пользователей")
+    logger.info("Получение пользователей")
     async with session.begin():
         user_dal = UserDAL(session)
         user = await user_dal.get_user_all()

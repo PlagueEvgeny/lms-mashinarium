@@ -1,0 +1,464 @@
+E713 [*] Test for membership should be `not in`
+  --> app/api/v1/routes/category.py:26:12
+   |
+24 |                           ) -> ShowCategory:
+25 |     
+26 |     if not PortalRole.ROLE_PORTAL_ADMIN in current_user.roles:
+   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+27 |         logger.error(f"У пользователя {current_user.email} не хватает прав")
+28 |         raise HTTPException(status_code=403, detail=f"Forbiden.")
+   |
+help: Convert to `not in`
+
+F541 [*] f-string without any placeholders
+  --> app/api/v1/routes/category.py:28:53
+   |
+26 |     if not PortalRole.ROLE_PORTAL_ADMIN in current_user.roles:
+27 |         logger.error(f"У пользователя {current_user.email} не хватает прав")
+28 |         raise HTTPException(status_code=403, detail=f"Forbiden.")
+   |                                                     ^^^^^^^^^^^^
+29 |     
+30 |     logger.info(f"Категория создана")
+   |
+help: Remove extraneous `f` prefix
+
+F541 [*] f-string without any placeholders
+  --> app/api/v1/routes/category.py:30:17
+   |
+28 |         raise HTTPException(status_code=403, detail=f"Forbiden.")
+29 |     
+30 |     logger.info(f"Категория создана")
+   |                 ^^^^^^^^^^^^^^^^^^^^
+31 |     return await _create_new_category(body, session)
+   |
+help: Remove extraneous `f` prefix
+
+E713 [*] Test for membership should be `not in`
+  --> app/api/v1/routes/category.py:51:12
+   |
+49 | ) -> DeleteCategoryResponse:
+50 |     
+51 |     if not PortalRole.ROLE_PORTAL_ADMIN in current_user.roles:
+   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+52 |         logger.error(f"У пользователя {current_user.email} не хватает прав")
+53 |         raise HTTPException(status_code=403, detail=f"Forbiden.")
+   |
+help: Convert to `not in`
+
+F541 [*] f-string without any placeholders
+  --> app/api/v1/routes/category.py:53:53
+   |
+51 |     if not PortalRole.ROLE_PORTAL_ADMIN in current_user.roles:
+52 |         logger.error(f"У пользователя {current_user.email} не хватает прав")
+53 |         raise HTTPException(status_code=403, detail=f"Forbiden.")
+   |                                                     ^^^^^^^^^^^^
+54 |     
+55 |     category_for_deletion = await _get_category_by_id(id, session)
+   |
+help: Remove extraneous `f` prefix
+
+E713 [*] Test for membership should be `not in`
+  --> app/api/v1/routes/category.py:76:12
+   |
+74 | ) -> UpdatedCategoryResponse:
+75 |     
+76 |     if not PortalRole.ROLE_PORTAL_ADMIN in current_user.roles:
+   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+77 |         logger.error(f"У пользователя {current_user.email} не хватает прав")
+78 |         raise HTTPException(status_code=403, detail=f"Forbiden.")
+   |
+help: Convert to `not in`
+
+F541 [*] f-string without any placeholders
+  --> app/api/v1/routes/category.py:78:53
+   |
+76 |     if not PortalRole.ROLE_PORTAL_ADMIN in current_user.roles:
+77 |         logger.error(f"У пользователя {current_user.email} не хватает прав")
+78 |         raise HTTPException(status_code=403, detail=f"Forbiden.")
+   |                                                     ^^^^^^^^^^^^
+79 |     
+80 |     updated_category_params = body.dict(exclude_none=True)
+   |
+help: Remove extraneous `f` prefix
+
+F541 [*] f-string without any placeholders
+  --> app/api/v1/routes/course.py:55:53
+   |
+53 |     if not check_user_permissions_admin(current_user=current_user):
+54 |         logger.error(f"У пользователя {current_user.email} не хватает прав")
+55 |         raise HTTPException(status_code=403, detail=f"Forbiden.")
+   |                                                     ^^^^^^^^^^^^
+56 |     
+57 |     course_for_deletion = await _get_course_by_id(id, session)
+   |
+help: Remove extraneous `f` prefix
+
+F541 [*] f-string without any placeholders
+  --> app/api/v1/routes/course.py:80:53
+   |
+78 |     if not check_user_permissions_teahers(current_user=current_user):
+79 |         logger.error(f"У пользователя {current_user.email} не хватает прав")
+80 |         raise HTTPException(status_code=403, detail=f"Forbiden.")
+   |                                                     ^^^^^^^^^^^^
+81 |     
+82 |     updated_course_params = body.dict(exclude_none=True)
+   |
+help: Remove extraneous `f` prefix
+
+F541 [*] f-string without any placeholders
+   --> app/api/v1/routes/course.py:110:53
+    |
+108 |     if not check_user_permissions_moderator(current_user=current_user):
+109 |         logger.error(f"У пользователя {current_user.email} не хватает прав")
+110 |         raise HTTPException(status_code=403, detail=f"Forbiden.")
+    |                                                     ^^^^^^^^^^^^
+111 |
+112 |     course = await _add_teachers_to_course(course_id=course_id, teacher_ids=teacher_ids.teacher_ids, session=session)
+    |
+help: Remove extraneous `f` prefix
+
+F541 [*] f-string without any placeholders
+   --> app/api/v1/routes/course.py:130:53
+    |
+128 |     if not check_user_permissions_moderator(current_user=current_user):
+129 |         logger.error(f"У пользователя {current_user.email} не хватает прав")
+130 |         raise HTTPException(status_code=403, detail=f"Forbiden.")
+    |                                                     ^^^^^^^^^^^^
+131 |
+132 |     course = await _remove_teachers_from_course(course_id=course_id, teacher_ids=teacher_ids.teacher_ids, session=session)
+    |
+help: Remove extraneous `f` prefix
+
+F541 [*] f-string without any placeholders
+   --> app/api/v1/routes/course.py:150:53
+    |
+148 |     if not check_user_permissions_moderator(current_user=current_user):
+149 |         logger.error(f"У пользователя {current_user.email} не хватает прав")
+150 |         raise HTTPException(status_code=403, detail=f"Forbiden.")
+    |                                                     ^^^^^^^^^^^^
+151 |
+152 |     course = await _add_students_to_course(course_id=course_id, student_ids=student_ids.student_ids, session=session)
+    |
+help: Remove extraneous `f` prefix
+
+F541 [*] f-string without any placeholders
+   --> app/api/v1/routes/course.py:170:53
+    |
+168 |     if not check_user_permissions_moderator(current_user=current_user):
+169 |         logger.error(f"У пользователя {current_user.email} не хватает прав")
+170 |         raise HTTPException(status_code=403, detail=f"Forbiden.")
+    |                                                     ^^^^^^^^^^^^
+171 |
+172 |     course = await _remove_students_from_course(course_id=course_id, student_ids=student_ids.student_ids, session=session)
+    |
+help: Remove extraneous `f` prefix
+
+F401 [*] `loguru.logger` imported but unused
+ --> app/api/v1/routes/login.py:4:20
+  |
+3 | from fastapi.security import OAuth2PasswordRequestForm
+4 | from loguru import logger
+  |                    ^^^^^^
+5 |
+6 | from fastapi import APIRouter, Depends, HTTPException, Response
+  |
+help: Remove unused import: `loguru.logger`
+
+F541 [*] f-string without any placeholders
+  --> app/api/v1/routes/users.py:61:17
+   |
+59 |         )
+60 |     
+61 |     logger.info(f"Пользователь зарегистрировался")
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+62 |     return await _create_new_user(body, session)
+   |
+help: Remove extraneous `f` prefix
+
+F541 [*] f-string without any placeholders
+  --> app/api/v1/routes/users.py:79:53
+   |
+77 |             ):
+78 |         logger.error(f"У прльзователя {current_user.email} не хватает прав")
+79 |         raise HTTPException(status_code=403, detail=f"Forbiden.")
+   |                                                     ^^^^^^^^^^^^
+   |
+help: Remove extraneous `f` prefix
+
+F841 Local variable `user_for_update` is assigned to but never used
+   --> app/api/v1/routes/users.py:127:5
+    |
+125 |         logger.error("Обновление не может быть пустым")
+126 |         raise HTTPException(status_code=422, detail="At least one parametr for user update info should be provided")
+127 |     user_for_update = await _get_user_by_id(current_user.user_id, session)
+    |     ^^^^^^^^^^^^^^^
+128 |     
+129 |     try:
+    |
+help: Remove assignment to unused variable `user_for_update`
+
+F401 [*] `pydantic.validator` imported but unused
+ --> app/api/v1/schemas/course_schema.py:2:22
+  |
+1 | from pydantic import BaseModel
+2 | from pydantic import validator
+  |                      ^^^^^^^^^
+3 | from pydantic import constr
+4 | from uuid import UUID
+  |
+help: Remove unused import: `pydantic.validator`
+
+F401 [*] `pydantic.constr` imported but unused
+ --> app/api/v1/schemas/course_schema.py:3:22
+  |
+1 | from pydantic import BaseModel
+2 | from pydantic import validator
+3 | from pydantic import constr
+  |                      ^^^^^^
+4 | from uuid import UUID
+5 | from fastapi import HTTPException
+  |
+help: Remove unused import: `pydantic.constr`
+
+F401 [*] `fastapi.HTTPException` imported but unused
+ --> app/api/v1/schemas/course_schema.py:5:21
+  |
+3 | from pydantic import constr
+4 | from uuid import UUID
+5 | from fastapi import HTTPException
+  |                     ^^^^^^^^^^^^^
+6 |
+7 | from typing import Optional
+  |
+help: Remove unused import: `fastapi.HTTPException`
+
+F401 [*] `utils.letter_pattern.LETTER_MATCH_PATTERN` imported but unused
+  --> app/api/v1/schemas/course_schema.py:18:34
+   |
+16 | from api.v1.schemas.user_schema import ShowUserShort
+17 |
+18 | from utils.letter_pattern import LETTER_MATCH_PATTERN
+   |                                  ^^^^^^^^^^^^^^^^^^^^
+   |
+help: Remove unused import: `utils.letter_pattern.LETTER_MATCH_PATTERN`
+
+F401 [*] `pydantic.constr` imported but unused
+ --> app/api/v1/schemas/user_schema.py:5:22
+  |
+3 | from pydantic import EmailStr
+4 | from pydantic import validator
+5 | from pydantic import constr
+  |                      ^^^^^^
+6 |
+7 | from fastapi import HTTPException
+  |
+help: Remove unused import: `pydantic.constr`
+
+F401 [*] `utils.letter_pattern.PHONE_MATCH_PATTERN` imported but unused
+  --> app/api/v1/schemas/user_schema.py:20:34
+   |
+18 | from db.models.user import PortalRole
+19 | from utils.letter_pattern import LETTER_MATCH_PATTERN
+20 | from utils.letter_pattern import PHONE_MATCH_PATTERN
+   |                                  ^^^^^^^^^^^^^^^^^^^
+   |
+help: Remove unused import: `utils.letter_pattern.PHONE_MATCH_PATTERN`
+
+E402 Module level import not at top of file
+  --> app/db/migrations/env.py:20:1
+   |
+18 | # add your model's MetaData object here
+19 | # for 'autogenerate' support
+20 | from db.base import Base
+   | ^^^^^^^^^^^^^^^^^^^^^^^^
+21 |
+22 | from db.models.user import User 
+   |
+
+E402 Module level import not at top of file
+  --> app/db/migrations/env.py:22:1
+   |
+20 | from db.base import Base
+21 |
+22 | from db.models.user import User 
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+23 | from db.models.category import Category 
+24 | from db.models.course import Course 
+   |
+
+F401 [*] `db.models.user.User` imported but unused
+  --> app/db/migrations/env.py:22:28
+   |
+20 | from db.base import Base
+21 |
+22 | from db.models.user import User 
+   |                            ^^^^
+23 | from db.models.category import Category 
+24 | from db.models.course import Course 
+   |
+help: Remove unused import: `db.models.user.User`
+
+E402 Module level import not at top of file
+  --> app/db/migrations/env.py:23:1
+   |
+22 | from db.models.user import User 
+23 | from db.models.category import Category 
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+24 | from db.models.course import Course 
+   |
+
+F401 [*] `db.models.category.Category` imported but unused
+  --> app/db/migrations/env.py:23:32
+   |
+22 | from db.models.user import User 
+23 | from db.models.category import Category 
+   |                                ^^^^^^^^
+24 | from db.models.course import Course 
+   |
+help: Remove unused import: `db.models.category.Category`
+
+E402 Module level import not at top of file
+  --> app/db/migrations/env.py:24:1
+   |
+22 | from db.models.user import User 
+23 | from db.models.category import Category 
+24 | from db.models.course import Course 
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+25 |
+26 | target_metadata = Base.metadata
+   |
+
+F401 [*] `db.models.course.Course` imported but unused
+  --> app/db/migrations/env.py:24:30
+   |
+22 | from db.models.user import User 
+23 | from db.models.category import Category 
+24 | from db.models.course import Course 
+   |                              ^^^^^^
+25 |
+26 | target_metadata = Base.metadata
+   |
+help: Remove unused import: `db.models.course.Course`
+
+E712 Avoid equality comparisons to `True`; use `Category.is_active:` for truth checks
+  --> app/services/category_service.py:52:47
+   |
+50 |     async def delete_category(self, id: int) -> Union[int, None]:
+51 |         query = update(Category).\
+52 |                 where(and_(Category.id == id, Category.is_active == True)).\
+   |                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+53 |                 values(is_active=False).\
+54 |                 returning(Category.id)
+   |
+help: Replace with `Category.is_active`
+
+E712 Avoid equality comparisons to `True`; use `Category.is_active:` for truth checks
+  --> app/services/category_service.py:63:47
+   |
+61 |     async def update_category(self, id: int, **kwargs) -> Union[int, None]:
+62 |         query = update(Category).\
+63 |                 where(and_(Category.id == id, Category.is_active == True)).\
+   |                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+64 |                 values(kwargs).\
+65 |                 returning(Category.id)
+   |
+help: Replace with `Category.is_active`
+
+E712 Avoid equality comparisons to `True`; use `Course.is_active:` for truth checks
+  --> app/services/course_service.py:90:45
+   |
+88 |     async def delete_course(self, id: int) -> Union[int, None]:
+89 |         query = update(Course).\
+90 |                 where(and_(Course.id == id, Course.is_active == True)).\
+   |                                             ^^^^^^^^^^^^^^^^^^^^^^^^
+91 |                 values(is_active=False).\
+92 |                 returning(Course.id)
+   |
+help: Replace with `Course.is_active`
+
+E712 Avoid equality comparisons to `True`; use `Course.is_active:` for truth checks
+   --> app/services/course_service.py:101:45
+    |
+ 99 |     async def update_course(self, id: int, **kwargs) -> Union[int, None]:
+100 |         query = update(Course).\
+101 |                 where(and_(Course.id == id, Course.is_active == True)).\
+    |                                             ^^^^^^^^^^^^^^^^^^^^^^^^
+102 |                 values(kwargs).\
+103 |                 returning(Course.id)
+    |
+help: Replace with `Course.is_active`
+
+E712 Avoid equality comparisons to `True`; use `Course.is_active:` for truth checks
+   --> app/services/course_service.py:111:52
+    |
+109 |     async def update_course_categories(self, course_id: int, category_ids: List[int]) -> bool:
+110 |         query = select(Course).\
+111 |                 where(and_(Course.id == course_id, Course.is_active == True)).\
+    |                                                    ^^^^^^^^^^^^^^^^^^^^^^^^
+112 |                 options(selectinload(Course.categories))
+113 |         result = await self.db_session.execute(query)
+    |
+help: Replace with `Course.is_active`
+
+E712 Avoid equality comparisons to `True`; use `User.is_active:` for truth checks
+  --> app/services/user_service.py:86:53
+   |
+84 |     async def delete_user(self, user_id: UUID) -> Union[UUID, None]:
+85 |         query = update(User).\
+86 |                 where(and_(User.user_id == user_id, User.is_active == True)).\
+   |                                                     ^^^^^^^^^^^^^^^^^^^^^^
+87 |                 values(is_active=False).\
+88 |                 returning(User.user_id)
+   |
+help: Replace with `User.is_active`
+
+E712 Avoid equality comparisons to `True`; use `User.is_active:` for truth checks
+  --> app/services/user_service.py:97:53
+   |
+95 |     async def update_user(self, user_id: UUID, **kwargs) -> Union[UUID, None]:
+96 |         query = update(User).\
+97 |                 where(and_(User.user_id == user_id, User.is_active == True)).\
+   |                                                     ^^^^^^^^^^^^^^^^^^^^^^
+98 |                 values(kwargs).\
+99 |                 returning(User.user_id)
+   |
+help: Replace with `User.is_active`
+
+E712 Avoid equality comparisons to `True`; use `User.is_active:` for truth checks
+   --> app/services/user_service.py:107:53
+    |
+105 |     async def add_role_to_user(self, user_id: UUID, role: PortalRole) -> Union[User, None]:
+106 |         query = select(User).\
+107 |                 where(and_(User.user_id == user_id, User.is_active == True))
+    |                                                     ^^^^^^^^^^^^^^^^^^^^^^
+108 |         result = await self.db_session.execute(query)
+109 |         user_row = result.fetchone()
+    |
+help: Replace with `User.is_active`
+
+E712 Avoid equality comparisons to `True`; use `User.is_active:` for truth checks
+   --> app/services/user_service.py:121:43
+    |
+119 |     async def remove_role_from_user(self, user_id: UUID, role: PortalRole) -> Union[User, None]:
+120 |         query = select(User).where(
+121 |             and_(User.user_id == user_id, User.is_active == True)
+    |                                           ^^^^^^^^^^^^^^^^^^^^^^
+122 |         )
+123 |         result = await self.db_session.execute(query)
+    |
+help: Replace with `User.is_active`
+
+E712 Avoid equality comparisons to `True`; use `User.is_active:` for truth checks
+   --> app/services/user_service.py:136:53
+    |
+134 |     async def set_user_roles(self, user_id: UUID, roles: List[PortalRole]) -> Union[UUID, None]:
+135 |         query = update(User).\
+136 |                 where(and_(User.user_id == user_id, User.is_active == True)).\
+    |                                                     ^^^^^^^^^^^^^^^^^^^^^^
+137 |                 values(roles=roles).\
+138 |                 returning(User.user_id)
+    |
+help: Replace with `User.is_active`
+
+Found 49 errors.
+[*] 34 fixable with the `--fix` option (11 hidden fixes can be enabled with the `--unsafe-fixes` option).

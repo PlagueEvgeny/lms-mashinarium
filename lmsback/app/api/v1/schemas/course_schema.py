@@ -1,8 +1,5 @@
 from pydantic import BaseModel
-from pydantic import validator
-from pydantic import constr
 from uuid import UUID
-from fastapi import HTTPException
 
 from typing import Optional
 from typing import List
@@ -14,8 +11,6 @@ from datetime import datetime
 from api.v1.schemas.base_schema import TunedModel
 from api.v1.schemas.category_schema import ShowCategory
 from api.v1.schemas.user_schema import ShowUserShort
-
-from utils.letter_pattern import LETTER_MATCH_PATTERN
 
 
 class ShowCourse(TunedModel):

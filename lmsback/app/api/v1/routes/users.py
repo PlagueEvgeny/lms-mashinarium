@@ -58,7 +58,7 @@ async def create_user(body: UserCreate, session: AsyncSession = Depends(get_db))
             detail={"name": f"Почта {body.email} уже используется."}
         )
     
-    logger.info(f"Пользователь зарегистрировался")
+    logger.info("Пользователь зарегистрировался")
     return await _create_new_user(body, session)
 
 
@@ -75,8 +75,8 @@ async def delete_user(user_id: UUID,
             target_user=user_for_deletion,
             current_user=current_user,
             ):
-        logger.error(f"У прльзователя {current_user.email} не хватает прав")
-        raise HTTPException(status_code=403, detail=f"Forbiden.")
+        logger.error(f"У пользователя {current_user.email} не хватает прав")
+        raise HTTPException(status_code=403, detail="Forbiden.")
 
 
     logger.info(f"Происходит удаление пользователя {user_id}.")
@@ -124,8 +124,6 @@ async def update_current_user(body: UpdateUserRequest,
     if updated_user_params == {}:
         logger.error("Обновление не может быть пустым")
         raise HTTPException(status_code=422, detail="At least one parametr for user update info should be provided")
-    user_for_update = await _get_user_by_id(current_user.user_id, session)
-    
     try:
         update_user_id = await _update_user(updated_user_params=updated_user_params, session=session, user_id=current_user.user_id)
     except IntegrityError as err:
@@ -177,7 +175,6 @@ async def remove_role_from_user(user_id: UUID,
         logger.error(f"Пользователь {user_id} не найден.")
         raise HTTPException(status_code=404, detail=f"User with id {user_id} not found.")
     
-    # Проверяем, что после удаления останется хотя бы одна роль
     remaining_roles = [r for r in target_user.roles if r != role_request.role]
     if len(remaining_roles) == 0:
         raise HTTPException(
@@ -185,10 +182,8 @@ async def remove_role_from_user(user_id: UUID,
             detail="Cannot remove last role. User must have at least one role."
         )
     
-    # Проверяем права
     check_role_change_permissions(target_user, current_user, remaining_roles)
     
-    # Удаляем роль
     user = await _remove_role_from_user(user_id, role_request.role, session)
     if user is None:
         raise HTTPException(

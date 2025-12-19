@@ -23,3 +23,8 @@ dependencies = [
     "python-jose>=3.5.0",
     "python-multipart>=0.0.20",
 ]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.14.9",
+]

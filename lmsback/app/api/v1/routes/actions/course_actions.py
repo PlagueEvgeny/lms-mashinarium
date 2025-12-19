@@ -1,10 +1,8 @@
 from typing import List, Union
 from uuid import UUID
 from loguru import logger
-from fastapi import HTTPException
 
 from api.v1.schemas.course_schema import ShowCourse
-from api.v1.schemas.category_schema import ShowCategory
 from api.v1.schemas.course_schema import CourseCreate
 from services.course_service import CourseDAL 
 from db.models.course import Course
@@ -19,7 +17,7 @@ async def _get_course_by_id(id: int, session) -> Union[Course, None]:
 
 
 async def _create_new_course(body: CourseCreate, session) -> ShowCourse:
-    logger.info(f"Создание курса")
+    logger.info("Создание курса")
     async with session.begin():
         course_dal = CourseDAL(session)
         course = await course_dal.create_course(
@@ -55,14 +53,14 @@ async def _create_new_course(body: CourseCreate, session) -> ShowCourse:
 
 
 async def _delete_course(id: int, session) -> Union[int, None]:
-    logger.info(f"Удаление курса")
+    logger.info("Удаление курса")
     async with session.begin():
         course_dal = CourseDAL(session)
         deleted_course_id = await course_dal.delete_course(id=id)
         return deleted_course_id
 
 async def _update_course(updated_course_params: dict, id: int, session) -> Union[int, None]:
-    logger.info(f"Обновление курса")
+    logger.info("Обновление курса")
     async with session.begin():
         course_dal = CourseDAL(session)
 

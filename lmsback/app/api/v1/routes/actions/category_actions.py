@@ -1,8 +1,5 @@
 from typing import Union
-from uuid import UUID
 from loguru import logger
-from fastapi import HTTPException
-
 from api.v1.schemas.category_schema import ShowCategory
 from api.v1.schemas.category_schema import CategoryCreate
 from services.category_service import CategoryDAL

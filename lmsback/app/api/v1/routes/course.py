@@ -52,7 +52,7 @@ async def delete_course(id: int,
     
     if not check_user_permissions_admin(current_user=current_user):
         logger.error(f"У пользователя {current_user.email} не хватает прав")
-        raise HTTPException(status_code=403, detail=f"Forbiden.")
+        raise HTTPException(status_code=403, detail="Forbiden.")
     
     course_for_deletion = await _get_course_by_id(id, session)
     
@@ -77,7 +77,7 @@ async def update_course_by_id(id: int,
     
     if not check_user_permissions_teahers(current_user=current_user):
         logger.error(f"У пользователя {current_user.email} не хватает прав")
-        raise HTTPException(status_code=403, detail=f"Forbiden.")
+        raise HTTPException(status_code=403, detail="Forbiden.")
     
     updated_course_params = body.dict(exclude_none=True)
     if updated_course_params == {}:
@@ -107,7 +107,7 @@ async def add_teachers_to_course(course_id: int,
     
     if not check_user_permissions_moderator(current_user=current_user):
         logger.error(f"У пользователя {current_user.email} не хватает прав")
-        raise HTTPException(status_code=403, detail=f"Forbiden.")
+        raise HTTPException(status_code=403, detail="Forbiden.")
 
     course = await _add_teachers_to_course(course_id=course_id, teacher_ids=teacher_ids.teacher_ids, session=session)
     
@@ -127,7 +127,7 @@ async def remove_teachers_from_course(course_id: int,
     
     if not check_user_permissions_moderator(current_user=current_user):
         logger.error(f"У пользователя {current_user.email} не хватает прав")
-        raise HTTPException(status_code=403, detail=f"Forbiden.")
+        raise HTTPException(status_code=403, detail="Forbiden.")
 
     course = await _remove_teachers_from_course(course_id=course_id, teacher_ids=teacher_ids.teacher_ids, session=session)
     
@@ -147,7 +147,7 @@ async def add_students_to_course(course_id: int,
     
     if not check_user_permissions_moderator(current_user=current_user):
         logger.error(f"У пользователя {current_user.email} не хватает прав")
-        raise HTTPException(status_code=403, detail=f"Forbiden.")
+        raise HTTPException(status_code=403, detail="Forbiden.")
 
     course = await _add_students_to_course(course_id=course_id, student_ids=student_ids.student_ids, session=session)
     
@@ -167,7 +167,7 @@ async def remove_students_from_course(course_id: int,
     
     if not check_user_permissions_moderator(current_user=current_user):
         logger.error(f"У пользователя {current_user.email} не хватает прав")
-        raise HTTPException(status_code=403, detail=f"Forbiden.")
+        raise HTTPException(status_code=403, detail="Forbiden.")
 
     course = await _remove_students_from_course(course_id=course_id, student_ids=student_ids.student_ids, session=session)
     

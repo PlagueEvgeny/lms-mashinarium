@@ -8,9 +8,10 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.v1.routes.actions.auth_actions import get_current_user_from_token
+from api.v1.routes.actions.user_actions import check_user_permissions_admin
 from api.v1.schemas.category_schema import ShowCategory, CategoryCreate, DeleteCategoryResponse, UpdateCategoryRequest, UpdatedCategoryResponse
 from api.v1.routes.actions.category_actions import _create_new_category, _get_category_by_id, _delete_category, _update_category
-from db.models.user import User, PortalRole
+from db.models.user import User 
 from db.models.category import Category
 from db.session import get_db
   
@@ -23,11 +24,11 @@ async def create_category(body: CategoryCreate,
                           current_user: User = Depends(get_current_user_from_token),
                           ) -> ShowCategory:
     
-    if not PortalRole.ROLE_PORTAL_ADMIN in current_user.roles:
+    if not check_user_permissions_admin(current_user=current_user):
         logger.error(f"У пользователя {current_user.email} не хватает прав")
-        raise HTTPException(status_code=403, detail=f"Forbiden.")
+        raise HTTPException(status_code=403, detail="Forbiden.")
     
-    logger.info(f"Категория создана")
+    logger.info("Категория создана")
     return await _create_new_category(body, session)
 
 @category_router.get("/{id}", response_model=ShowCategory)
@@ -48,9 +49,9 @@ async def delete_category(id: int,
                           current_user: User = Depends(get_current_user_from_token),
 ) -> DeleteCategoryResponse:
     
-    if not PortalRole.ROLE_PORTAL_ADMIN in current_user.roles:
+    if not check_user_permissions_admin(current_user=current_user):
         logger.error(f"У пользователя {current_user.email} не хватает прав")
-        raise HTTPException(status_code=403, detail=f"Forbiden.")
+        raise HTTPException(status_code=403, detail="Forbiden.")
     
     category_for_deletion = await _get_category_by_id(id, session)
     
@@ -73,9 +74,9 @@ async def update_category_by_id(id: int,
                             current_user: User = Depends(get_current_user_from_token),
 ) -> UpdatedCategoryResponse:
     
-    if not PortalRole.ROLE_PORTAL_ADMIN in current_user.roles:
+    if not check_user_permissions_admin(current_user=current_user):
         logger.error(f"У пользователя {current_user.email} не хватает прав")
-        raise HTTPException(status_code=403, detail=f"Forbiden.")
+        raise HTTPException(status_code=403, detail="Forbiden.")
     
     updated_category_params = body.dict(exclude_none=True)
     if updated_category_params == {}:

@@ -2,7 +2,6 @@ import uuid
 from pydantic import BaseModel
 from pydantic import EmailStr
 from pydantic import validator
-from pydantic import constr
 
 from fastapi import HTTPException
 
@@ -85,6 +84,14 @@ class UserCreate(BaseModel):
     @validator('email')
     def email_to_lowercase(cls, v: str):
         return v.lower()
+
+    @validator("phone")
+    def validate_phone(cls, value):
+        if not PHONE_MATCH_PATTERN.match(value):
+            raise HTTPException(
+                status_code=422, detail="The number must consist of ten digits"
+            )
+        return value
 
 
 class DeleteUserResponse(BaseModel):
