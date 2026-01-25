@@ -2,19 +2,40 @@ from typing import List, Union
 from uuid import UUID
 from loguru import logger
 
-from api.v1.schemas.course_schema import ShowCourse
+from api.v1.schemas.course_schema import ListCourse, ShowCourse
 from api.v1.schemas.course_schema import CourseCreate
 from services.course_service import CourseDAL 
 from db.models.course import Course
 
 async def _get_course_by_id(id: int, session) -> Union[Course, None]:
-    logger.info(f"Получение категории {id} по id")
+    logger.info("Получение категории по id")
     async with session.begin():
         course_dal = CourseDAL(session)
         course = await course_dal.get_course_by_id(id=id)
         if course is not None:
             return course
 
+async def _get_course_by_slug(slug: str, session) -> Union[Course, None]:
+    logger.info("Получение курса по slug")
+    async with session.begin():
+        course_dal = CourseDAL(session)
+        course = await course_dal.get_course_by_slug(slug=slug)
+        if course is not None:
+            return course
+
+async def _get_course_all(session) -> List[ListCourse]:
+    logger.info("Получение курсов")
+    async with session.begin():
+        course_dal = CourseDAL(session)
+        course = await course_dal.get_course_all()
+        return list(course)
+
+async def _get_course_by_categories(categories_slug: str, session) -> List[ListCourse]:
+    logger.info("Получение курсов по категориям")
+    async with session.begin():
+        course_dal = CourseDAL(session)
+        course = await course_dal.get_course_by_categories(categories_slug=categories_slug)
+        return list(course)
 
 async def _create_new_course(body: CourseCreate, session) -> ShowCourse:
     logger.info("Создание курса")

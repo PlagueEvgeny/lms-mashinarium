@@ -14,7 +14,7 @@ class CategoryDAL:
         self.db_session = db_session
     
     async def get_category_by_id(self, id: int) -> Union[Category, None]:
-        query = select(Category).where(Category.id == id)
+        query = select(Category).where(and_(Category.id == id, Category.is_active))
         result = await self.db_session.execute(query)
         category_row = result.fetchone()
         if category_row is not None:
@@ -22,7 +22,7 @@ class CategoryDAL:
         return None
     
     async def get_categories_by_ids(self, ids: List[int]) -> List[Category]:
-        query = select(Category).where(Category.id.in_(ids))
+        query = select(Category).where(and_(Category.id.in_(ids), Category.is_active))
         result = await self.db_session.execute(query)
         categories = result.scalars().all()
         return list(categories)
@@ -49,7 +49,7 @@ class CategoryDAL:
     
     async def delete_category(self, id: int) -> Union[int, None]:
         query = update(Category).\
-                where(and_(Category.id == id, Category.is_active == True)).\
+                where(and_(Category.id == id, Category.is_active)).\
                 values(is_active=False).\
                 returning(Category.id)
 
@@ -60,7 +60,7 @@ class CategoryDAL:
 
     async def update_category(self, id: int, **kwargs) -> Union[int, None]:
         query = update(Category).\
-                where(and_(Category.id == id, Category.is_active == True)).\
+                where(and_(Category.id == id, Category.is_active)).\
                 values(kwargs).\
                 returning(Category.id)
         result = await self.db_session.execute(query)

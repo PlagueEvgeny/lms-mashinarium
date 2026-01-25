@@ -18,26 +18,26 @@ class UserDAL:
         self.db_session = db_session
     
     async def get_user_all(self) -> List[User]:
-        query = select(User)
+        query = select(User).where(User.is_active)
         result = await self.db_session.execute(query)
         user_row = result.scalars().all()
         return list(user_row)
 
     async def get_user_by_id(self, user_id:UUID) -> Union[User, None]:
-        query = select(User).where(User.user_id == user_id)
+        query = select(User).where(and_(User.user_id == user_id, User.is_active))
         result = await self.db_session.execute(query)
         user_row = result.fetchone()
         if user_row is not None:
             return user_row[0]
 
     async def get_user_by_ids(self, user_ids: List[UUID]) -> List[User]:
-        query = select(User).where(User.user_id.in_(user_ids))
+        query = select(User).where(and_(User.user_id.in_(user_ids), User.is_active))
         result = await self.db_session.execute(query)
         user_row = result.scalars().all()
         return list(user_row)
     
     async def get_user_by_email(self, email: str) -> Union[User, None]:
-        query = select(User).where(User.email == email)
+        query = select(User).where(and_(User.email == email, User.is_active))
         results = await self.db_session.execute(query)
         user_row = results.fetchone()
         if user_row is not None:
@@ -83,7 +83,7 @@ class UserDAL:
 
     async def delete_user(self, user_id: UUID) -> Union[UUID, None]:
         query = update(User).\
-                where(and_(User.user_id == user_id, User.is_active == True)).\
+                where(and_(User.user_id == user_id, User.is_active)).\
                 values(is_active=False).\
                 returning(User.user_id)
 
@@ -94,7 +94,7 @@ class UserDAL:
 
     async def update_user(self, user_id: UUID, **kwargs) -> Union[UUID, None]:
         query = update(User).\
-                where(and_(User.user_id == user_id, User.is_active == True)).\
+                where(and_(User.user_id == user_id, User.is_active)).\
                 values(kwargs).\
                 returning(User.user_id)
         result = await self.db_session.execute(query)
@@ -104,7 +104,7 @@ class UserDAL:
 
     async def add_role_to_user(self, user_id: UUID, role: PortalRole) -> Union[User, None]:
         query = select(User).\
-                where(and_(User.user_id == user_id, User.is_active == True))
+                where(and_(User.user_id == user_id, User.is_active))
         result = await self.db_session.execute(query)
         user_row = result.fetchone()
 
@@ -118,7 +118,7 @@ class UserDAL:
 
     async def remove_role_from_user(self, user_id: UUID, role: PortalRole) -> Union[User, None]:
         query = select(User).where(
-            and_(User.user_id == user_id, User.is_active == True)
+            and_(User.user_id == user_id, User.is_active)
         )
         result = await self.db_session.execute(query)
         user_row = result.fetchone()
@@ -133,7 +133,7 @@ class UserDAL:
 
     async def set_user_roles(self, user_id: UUID, roles: List[PortalRole]) -> Union[UUID, None]:
         query = update(User).\
-                where(and_(User.user_id == user_id, User.is_active == True)).\
+                where(and_(User.user_id == user_id, User.is_active)).\
                 values(roles=roles).\
                 returning(User.user_id)
         result = await self.db_session.execute(query)

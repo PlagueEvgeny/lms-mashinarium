@@ -38,7 +38,7 @@ class Course(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String, nullable=False)
-    slug = Column(String, nullable=True)
+    slug = Column(String, nullable=False, unique=True)
     short_description = Column(String, nullable=True)
     description = Column(Text, nullable=True) 
     image = Column(String, nullable=True)
@@ -51,4 +51,6 @@ class Course(Base):
 
     categories = relationship("Category", secondary="category_courses", back_populates="courses")
     teachers = relationship("User", secondary="teacher_courses", back_populates='teacher_courses')
-    students = relationship("User", secondary="student_courses", back_populates='student_courses') 
+    students = relationship("User", secondary="student_courses", back_populates='student_courses')
+
+    modules = relationship("Module", back_populates="course", cascade="all, delete-orphan")

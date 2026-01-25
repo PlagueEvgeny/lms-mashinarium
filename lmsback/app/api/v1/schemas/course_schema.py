@@ -16,7 +16,7 @@ from api.v1.schemas.user_schema import ShowUserShort
 class ShowCourse(TunedModel):
     id: int
     name: str
-    slug: Optional[str] = None
+    slug: str
     short_description: Optional[str] = None
     description: Optional[str] = None
     image: Optional[str] = None
@@ -30,10 +30,19 @@ class ShowCourse(TunedModel):
     teachers: List[ShowUserShort]
     students: List[ShowUserShort] = []
 
+class ListCourse(TunedModel):
+    id: int
+    name: str
+    slug: str
+    short_description: str
+    image: str
+    price: Decimal
+    display_order: int
+    categories: List[ShowCategory]
 
 class CourseCreate(BaseModel):
     name: str
-    slug: Optional[str] = None
+    slug: str
     short_description: Optional[str] = None
     description: Optional[str] = None
     image: Optional[str] = None
@@ -53,7 +62,6 @@ class UpdatedCourseResponse(BaseModel):
 
 class UpdateCourseRequest(BaseModel):
     name: Optional[str] = None
-    slug: Optional[str] = None
     short_description: Optional[str] = None
     description: Optional[str] = None
     image: Optional[str] = None

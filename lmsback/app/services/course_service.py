@@ -13,6 +13,7 @@ from services.category_service import CategoryDAL
 from services.user_service import UserDAL
 from db.models.course import Course, Status
 from db.models.user import User
+from db.models.category import Category
 
 
 class CourseDAL:
@@ -21,11 +22,11 @@ class CourseDAL:
     
     async def get_course_by_id(self, id: int) -> Union[Course, None]:
         query = (
-            select(Course)
-            .options(selectinload(Course.categories))
-            .options(selectinload(Course.teachers))
-            .options(selectinload(Course.students))
-            .where(Course.id == id)
+            select(Course).\
+            options(selectinload(Course.categories)).\
+            options(selectinload(Course.teachers)).\
+            options(selectinload(Course.students)).\
+            where(and_(Course.id == id, Course.is_active))
         )
         result = await self.db_session.execute(query)
         course_row = result.fetchone()
@@ -34,11 +35,32 @@ class CourseDAL:
         return None
 
     async def get_course_by_slug(self, slug: str) -> Union[Course, None]:
-        query = select(Course).where(Course.slug == slug)
+        query = select(Course).\
+                options(selectinload(Course.categories)).\
+                options(selectinload(Course.teachers)).\
+                options(selectinload(Course.students)).\
+                where(and_(Course.slug == slug, Course.is_active))
         result = await self.db_session.execute(query)
         course_row = result.fetchone()
         if course_row is not None:
             return course_row[0]
+
+    async def get_course_all(self) -> List[Course]:
+        query = select(Course).\
+                options(selectinload(Course.categories)).\
+                where(Course.is_active)
+        result = await self.db_session.execute(query)
+        course = result.scalars().all()
+        return list(course)
+
+    async def get_course_by_categories(self, categories_slug) -> List[Course]:
+        query = select(Course).\
+                options(selectinload(Course.categories)).\
+                where(and_(Course.categories.any(Category.slug == categories_slug), Course.is_active))
+
+        result = await self.db_session.execute(query)
+        course = result.scalars().all()
+        return list(course)
 
     async def create_course(
             self,
@@ -87,7 +109,7 @@ class CourseDAL:
 
     async def delete_course(self, id: int) -> Union[int, None]:
         query = update(Course).\
-                where(and_(Course.id == id, Course.is_active == True)).\
+                where(and_(Course.id == id, Course.is_active)).\
                 values(is_active=False).\
                 returning(Course.id)
 
@@ -98,7 +120,7 @@ class CourseDAL:
 
     async def update_course(self, id: int, **kwargs) -> Union[int, None]:
         query = update(Course).\
-                where(and_(Course.id == id, Course.is_active == True)).\
+                where(and_(Course.id == id, Course.is_active)).\
                 values(kwargs).\
                 returning(Course.id)
         result = await self.db_session.execute(query)
@@ -108,7 +130,7 @@ class CourseDAL:
 
     async def update_course_categories(self, course_id: int, category_ids: List[int]) -> bool:
         query = select(Course).\
-                where(and_(Course.id == course_id, Course.is_active == True)).\
+                where(and_(Course.id == course_id, Course.is_active)).\
                 options(selectinload(Course.categories))
         result = await self.db_session.execute(query)
         course = result.scalar_one_or_none()
@@ -153,14 +175,10 @@ class CourseDAL:
         if course is None:
             return None
 
-        remaining_teachers = [
-            teacher for teacher in course.teachers
-            if teacher.user_id not in teacher_ids
-        ]
+        remaining_teachers = [teacher for teacher in course.teachers if teacher.user_id not in teacher_ids]
         
         if len(remaining_teachers) == 0:
-            raise HTTPException(
-                status_code=400,
+            raise HTTPException(status_code=400,
                 detail="Cannot remove all teachers. Course must have at least one teacher."
             )
         
@@ -168,70 +186,60 @@ class CourseDAL:
         await self.db_session.flush()
         return course
 
-    async def add_students_to_course(self, 
-                                     course_id: int, 
-                                     student_ids: List[UUID]
-    ) -> Union[Course, None]:
-            course = await self.get_course_by_id(course_id)
-            if course is None:
-                return None
+    async def add_students_to_course(self, course_id: int, student_ids: List[UUID]) -> Union[Course, None]:
+        course = await self.get_course_by_id(course_id)
+        if course is None:
+            return None
 
-            user_dal = UserDAL(self.db_session)
-            students = await user_dal.get_user_by_ids(student_ids)
+        user_dal = UserDAL(self.db_session)
+        students = await user_dal.get_user_by_ids(student_ids)
 
-            if len(students) != len(student_ids):
-                raise ValueError("Some users not found")
+        if len(students) != len(student_ids):
+            raise ValueError("Some users not found")
 
-            existing_ids = {student.user_id for student in course.students}
-            for student in students:
-                if student.user_id not in existing_ids:
-                    course.students.append(student)
-            
-            await self.db_session.flush()
-            return course
+        existing_ids = {student.user_id for student in course.students}
+        for student in students:
+            if student.user_id not in existing_ids:
+                course.students.append(student)
+        
+        await self.db_session.flush()
+        return course
 
 
-    async def remove_students_from_course(self, 
-                                     course_id: int, 
-                                     student_ids: List[UUID]
-    ) -> Union[Course, None]:
-            course = await self.get_course_by_id(course_id)
-            if course is None:
-                return None
+    async def remove_students_from_course(self, course_id: int, student_ids: List[UUID]) -> Union[Course, None]:
+        course = await self.get_course_by_id(course_id)
+        if course is None:
+            return None
 
-            remaining_students = [
-                student for student in course.students 
-                if student.user_id not in student_ids
-            ]
-                        
-            course.students = remaining_students
-            await self.db_session.flush()
-            return course
+        remaining_students = [
+            student for student in course.students 
+            if student.user_id not in student_ids
+        ]
+                    
+        course.students = remaining_students
+        await self.db_session.flush()
+        return course
 
 
     async def get_course_students(self, course_id: int) -> List[User]:
-        """Получить список студентов курса"""
         course = await self.get_course_by_id(course_id)
         if course is None:
             return []
         return course.students
     
     async def get_course_teachers(self, course_id: int) -> List[User]:
-        """Получить список преподавателей курса"""
         course = await self.get_course_by_id(course_id)
         if course is None:
             return []
         return course.teachers
     
     async def is_user_enrolled(self, course_id: int, user_id: UUID) -> bool:
-        """Проверить, записан ли студент на курс"""
         course = await self.get_course_by_id(course_id)
         if course is None:
             return False
         return any(student.user_id == user_id for student in course.students)
     
     async def is_user_teacher(self, course_id: int, user_id: UUID) -> bool:
-        """Проверить, является ли пользователь преподавателем курса"""
         course = await self.get_course_by_id(course_id)
         if course is None:
             return False

@@ -22,6 +22,7 @@ from db.base import Base
 from db.models.user import User 
 from db.models.category import Category 
 from db.models.course import Course 
+from db.models.module import Module  
 
 target_metadata = Base.metadata
 

@@ -1,4 +1,4 @@
-from typing import Union
+from typing import List, Union
 
 from loguru import logger
 
@@ -9,8 +9,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.v1.routes.actions.auth_actions import get_current_user_from_token
 from api.v1.routes.actions.user_actions import check_user_permissions_moderator, check_user_permissions_teahers, check_user_permissions_admin
-from api.v1.schemas.course_schema import AddStudentsToCourse, AddTeachersToCourse, RemoveStudentsFromCourse, RemoveTeachersFromCourse, ShowCourse, CourseCreate, DeleteCourseResponse, UpdatedCourseResponse, UpdateCourseRequest 
-from api.v1.routes.actions.course_actions import _get_course_by_id, _create_new_course, _delete_course, _update_course, _add_students_to_course, _add_teachers_to_course, _remove_students_from_course, _remove_teachers_from_course
+from api.v1.schemas.course_schema import (AddStudentsToCourse, AddTeachersToCourse, ListCourse, RemoveStudentsFromCourse, 
+                                          RemoveTeachersFromCourse, ShowCourse, CourseCreate, 
+                                          DeleteCourseResponse, UpdatedCourseResponse, UpdateCourseRequest)
+from api.v1.routes.actions.course_actions import (_get_course_by_id, _create_new_course, _delete_course,
+                                                  _update_course, _add_students_to_course, _add_teachers_to_course, 
+                                                  _remove_students_from_course, _remove_teachers_from_course, 
+                                                  _get_course_by_slug, _get_course_all, _get_course_by_categories)
 from db.models.user import User 
 from db.models.course import Course
 from db.session import get_db
@@ -31,18 +36,33 @@ async def create_course(body: CourseCreate,
     logger.info(f"Создание курса пользователем {current_user.email}")
     return await _create_new_course(body, session)
 
-@course_router.get("/{id}", response_model=ShowCourse)
-async def get_category_by_id(id: int, 
+@course_router.get("/", response_model=ShowCourse)
+async def get_course_by_slug(slug: str, 
                              session: AsyncSession = Depends(get_db),
 ) -> Union[Course, None]:
 
-    logger.info("Получение категории по id")
-    course = await _get_course_by_id(id, session)
+    logger.info("Получение категории по slug")
+    course = await _get_course_by_slug(slug, session)
     if course is None:
-        logger.error(f"Курс {id} не найден.")
-        raise HTTPException(status_code=404, detail=f"Course with id {id} not found")
+        logger.error(f"Курс {slug} не найден.")
+        raise HTTPException(status_code=404, detail=f"Course with slug {slug} not found")
     return course
 
+@course_router.get("/list", response_model=List[ListCourse])
+async def get_course_all(session: AsyncSession = Depends(get_db)) -> List[ListCourse]:
+    logger.info("Получение курсов")
+    course = await _get_course_all(session)
+    if course is None:
+        course = []
+    return course
+
+@course_router.get("/list/{categories_slug}", response_model=List[ListCourse])
+async def get_course_by_categories(categories_slug: str, session: AsyncSession = Depends(get_db)) -> List[ListCourse]:
+    logger.info(f"Получение курсов по категории {categories_slug}")
+    course = await _get_course_by_categories(categories_slug=categories_slug, session=session)
+    if course is None:
+        course = []
+    return course
 
 @course_router.delete("/", response_model=DeleteCourseResponse)
 async def delete_course(id: int,
