@@ -4,7 +4,7 @@ from loguru import logger
 
 from api.v1.schemas.course_schema import ListCourse, ShowCourse
 from api.v1.schemas.course_schema import CourseCreate
-from services.course_service import CourseDAL 
+from services.course_service import CourseDAL
 from db.models.course import Course
 
 async def _get_course_by_id(id: int, session) -> Union[Course, None]:
@@ -30,6 +30,20 @@ async def _get_course_all(session) -> List[ListCourse]:
         course = await course_dal.get_course_all()
         return list(course)
 
+async def _get_user_courses_as_student(user_id: UUID, session) -> List[ListCourse]:
+    logger.info("Получение курсов студента")
+    async with session.begin():
+        course_dal = CourseDAL(session)
+        course = await course_dal.get_user_courses_as_student(user_id=user_id)
+        return list(course)
+
+async def _get_user_courses_as_teacher(user_id: UUID, session) -> List[ListCourse]:
+    logger.info("Получение курсов преподавателя")
+    async with session.begin():
+        course_dal = CourseDAL(session)
+        course = await course_dal.get_user_courses_as_teacher(user_id=user_id)
+        return list(course)
+
 async def _get_course_by_categories(categories_slug: str, session) -> List[ListCourse]:
     logger.info("Получение курсов по категориям")
     async with session.begin():
@@ -53,7 +67,7 @@ async def _create_new_course(body: CourseCreate, session) -> ShowCourse:
             category_ids=body.category_ids,
             teachers_ids=body.teacher_ids,
         )
-        
+
         # Возвращаем модель с категориями
         return ShowCourse(
             id=course.id,
@@ -90,7 +104,7 @@ async def _update_course(updated_course_params: dict, id: int, session) -> Union
         updated_course_id = await course_dal.update_course(
             id=id, **updated_course_params,
         )
-        
+
         if category_ids is not None:
             await course_dal.update_course_categories(course_id=id, category_ids=category_ids)
 
@@ -125,4 +139,3 @@ async def _remove_students_from_course(course_id: int, student_ids: List[UUID], 
         course_dal = CourseDAL(session)
         course = await course_dal.remove_students_from_course(course_id, student_ids)
         return course
-

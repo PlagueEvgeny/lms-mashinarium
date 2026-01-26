@@ -1,7 +1,5 @@
 import uuid
-
 from enum import Enum
-
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy import Column
@@ -45,5 +43,3 @@ class User(Base):
 
     teacher_courses = relationship("Course", secondary="teacher_courses", back_populates='teachers')
     student_courses = relationship("Course", secondary="student_courses", back_populates='students')
-
-

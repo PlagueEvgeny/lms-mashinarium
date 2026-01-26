@@ -17,10 +17,10 @@ class Module(Base):
     course_id = Column(Integer, ForeignKey("courses.id"))
     name = Column(String, nullable=False)
     slug = Column(String, nullable=False, unique=True)
-    description = Column(Text, nullable=True) 
+    description = Column(Text, nullable=True)
     display_order = Column(Integer, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)     
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     is_active = Column(Boolean, default=True)
 
-    course = relationship("Course", back_populates="modules")
+    course = relationship("db.models.course.Course", back_populates="modules")

@@ -1,7 +1,7 @@
 from decimal import Decimal
 from typing import Union
 from typing import Optional
-from typing import List 
+from typing import List
 from uuid import UUID
 from fastapi import HTTPException
 from sqlalchemy import and_
@@ -19,7 +19,7 @@ from db.models.category import Category
 class CourseDAL:
     def __init__(self, db_session: AsyncSession):
         self.db_session = db_session
-    
+
     async def get_course_by_id(self, id: int) -> Union[Course, None]:
         query = (
             select(Course).\
@@ -44,6 +44,26 @@ class CourseDAL:
         course_row = result.fetchone()
         if course_row is not None:
             return course_row[0]
+
+    async def get_user_courses_as_student(self, user_id:UUID) -> List[Course]:
+        query = select(Course).\
+                options(selectinload(Course.categories)).\
+                options(selectinload(Course.teachers)).\
+                options(selectinload(Course.students)).\
+                where(and_(Course.students.any(User.user_id == user_id), Course.is_active))
+        result = await self.db_session.execute(query)
+        course = result.scalars().all()
+        return list(course)
+
+    async def get_user_courses_as_teacher(self, user_id:UUID) -> List[Course]:
+        query = select(Course).\
+                options(selectinload(Course.categories)).\
+                options(selectinload(Course.teachers)).\
+                options(selectinload(Course.students)).\
+                where(and_(Course.teachers.any(User.user_id == user_id), Course.is_active))
+        result = await self.db_session.execute(query)
+        course = result.scalars().all()
+        return list(course)
 
     async def get_course_all(self) -> List[Course]:
         query = select(Course).\
@@ -75,7 +95,7 @@ class CourseDAL:
             image: Optional[str] = None,
             price: Optional[Decimal] = None
     ) -> Course:
-        
+
         category_dal = CategoryDAL(self.db_session)
         categories = await category_dal.get_categories_by_ids(category_ids)
 
@@ -103,8 +123,8 @@ class CourseDAL:
         )
         self.db_session.add(new_course)
         await self.db_session.flush()
-        
-        
+
+
         return new_course
 
     async def delete_course(self, id: int) -> Union[int, None]:
@@ -165,7 +185,7 @@ class CourseDAL:
         for teacher in teachers:
             if teacher.user_id not in existing_ids:
                 course.teachers.append(teacher)
-        
+
         await self.db_session.flush()
         return course
 
@@ -176,12 +196,12 @@ class CourseDAL:
             return None
 
         remaining_teachers = [teacher for teacher in course.teachers if teacher.user_id not in teacher_ids]
-        
+
         if len(remaining_teachers) == 0:
             raise HTTPException(status_code=400,
                 detail="Cannot remove all teachers. Course must have at least one teacher."
             )
-        
+
         course.teachers = remaining_teachers
         await self.db_session.flush()
         return course
@@ -201,7 +221,7 @@ class CourseDAL:
         for student in students:
             if student.user_id not in existing_ids:
                 course.students.append(student)
-        
+
         await self.db_session.flush()
         return course
 
@@ -212,10 +232,10 @@ class CourseDAL:
             return None
 
         remaining_students = [
-            student for student in course.students 
+            student for student in course.students
             if student.user_id not in student_ids
         ]
-                    
+
         course.students = remaining_students
         await self.db_session.flush()
         return course
@@ -226,19 +246,19 @@ class CourseDAL:
         if course is None:
             return []
         return course.students
-    
+
     async def get_course_teachers(self, course_id: int) -> List[User]:
         course = await self.get_course_by_id(course_id)
         if course is None:
             return []
         return course.teachers
-    
+
     async def is_user_enrolled(self, course_id: int, user_id: UUID) -> bool:
         course = await self.get_course_by_id(course_id)
         if course is None:
             return False
         return any(student.user_id == user_id for student in course.students)
-    
+
     async def is_user_teacher(self, course_id: int, user_id: UUID) -> bool:
         course = await self.get_course_by_id(course_id)
         if course is None:

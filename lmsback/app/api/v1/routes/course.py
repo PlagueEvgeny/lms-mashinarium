@@ -9,17 +9,19 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.v1.routes.actions.auth_actions import get_current_user_from_token
 from api.v1.routes.actions.user_actions import check_user_permissions_moderator, check_user_permissions_teahers, check_user_permissions_admin
-from api.v1.schemas.course_schema import (AddStudentsToCourse, AddTeachersToCourse, ListCourse, RemoveStudentsFromCourse, 
-                                          RemoveTeachersFromCourse, ShowCourse, CourseCreate, 
+from api.v1.schemas.course_schema import (AddStudentsToCourse, AddTeachersToCourse, ListCourse, RemoveStudentsFromCourse,
+                                          RemoveTeachersFromCourse, ShowCourse, CourseCreate,
                                           DeleteCourseResponse, UpdatedCourseResponse, UpdateCourseRequest)
 from api.v1.routes.actions.course_actions import (_get_course_by_id, _create_new_course, _delete_course,
-                                                  _update_course, _add_students_to_course, _add_teachers_to_course, 
-                                                  _remove_students_from_course, _remove_teachers_from_course, 
-                                                  _get_course_by_slug, _get_course_all, _get_course_by_categories)
-from db.models.user import User 
+                                                  _update_course, _add_students_to_course, _add_teachers_to_course,
+                                                  _remove_students_from_course, _remove_teachers_from_course,
+                                                  _get_course_by_slug, _get_course_all, _get_course_by_categories,
+                                                  _get_user_courses_as_student,
+                                                  _get_user_courses_as_teacher)
+from db.models.user import User
 from db.models.course import Course
 from db.session import get_db
-  
+
 
 course_router = APIRouter()
 
@@ -32,12 +34,12 @@ async def create_course(body: CourseCreate,
     if not check_user_permissions_teahers(current_user=current_user):
         logger.error(f"У пользователя {current_user.email} не хватает прав")
         raise HTTPException(status_code=403, detail="Forbidden.")
-    
+
     logger.info(f"Создание курса пользователем {current_user.email}")
     return await _create_new_course(body, session)
 
 @course_router.get("/", response_model=ShowCourse)
-async def get_course_by_slug(slug: str, 
+async def get_course_by_slug(slug: str,
                              session: AsyncSession = Depends(get_db),
 ) -> Union[Course, None]:
 
@@ -64,18 +66,40 @@ async def get_course_by_categories(categories_slug: str, session: AsyncSession =
         course = []
     return course
 
+@course_router.get("/educations", response_model=List[ListCourse])
+async def get_user_courses_as_student(
+                        session: AsyncSession = Depends(get_db),
+                        current_user: User = Depends(get_current_user_from_token)
+) -> List[ListCourse]:
+    logger.info("Получение курсов, на которые подписаны пользователи")
+    course = await _get_user_courses_as_student(session=session, user_id=current_user.user_id)
+    if course is None:
+        course = []
+    return course
+
+@course_router.get("/teachers", response_model=List[ListCourse])
+async def get_user_courses_as_teacher(
+                        session: AsyncSession = Depends(get_db),
+                        current_user: User = Depends(get_current_user_from_token)
+) -> List[ListCourse]:
+    logger.info("Получение курсов, на которые подписаны пользователи")
+    course = await _get_user_courses_as_teacher(session=session, user_id=current_user.user_id)
+    if course is None:
+        course = []
+    return course
+
 @course_router.delete("/", response_model=DeleteCourseResponse)
 async def delete_course(id: int,
                         session: AsyncSession = Depends(get_db),
                         current_user: User = Depends(get_current_user_from_token),
 ) -> DeleteCourseResponse:
-    
+
     if not check_user_permissions_admin(current_user=current_user):
         logger.error(f"У пользователя {current_user.email} не хватает прав")
         raise HTTPException(status_code=403, detail="Forbiden.")
-    
+
     course_for_deletion = await _get_course_by_id(id, session)
-    
+
     if course_for_deletion is None:
         logger.error(f"Курс {id} не найден.")
         raise HTTPException(status_code=404, detail=f"Course with id {id} not found")
@@ -89,16 +113,16 @@ async def delete_course(id: int,
 
 
 @course_router.patch("/", response_model=UpdatedCourseResponse)
-async def update_course_by_id(id: int, 
-                              body: UpdateCourseRequest, 
+async def update_course_by_id(id: int,
+                              body: UpdateCourseRequest,
                               session: AsyncSession = Depends(get_db),
                               current_user: User = Depends(get_current_user_from_token),
 ) -> UpdatedCourseResponse:
-    
+
     if not check_user_permissions_teahers(current_user=current_user):
         logger.error(f"У пользователя {current_user.email} не хватает прав")
         raise HTTPException(status_code=403, detail="Forbiden.")
-    
+
     updated_course_params = body.dict(exclude_none=True)
     if updated_course_params == {}:
         logger.error("Обновление не может быть пустым")
@@ -108,8 +132,8 @@ async def update_course_by_id(id: int,
     if course_for_update is None:
         logger.error(f"Курс {id} не найден.")
         raise HTTPException(status_code=404, detail=f"Course with id {id} not found")
-    
-    try: 
+
+    try:
         update_course_id = await _update_course(updated_course_params=updated_course_params, session=session, id=id)
     except IntegrityError as err:
         logger.error(err)
@@ -124,13 +148,13 @@ async def add_teachers_to_course(course_id: int,
                                  session: AsyncSession = Depends(get_db),
                                  current_user: User = Depends(get_current_user_from_token),
 ) -> ShowCourse:
-    
+
     if not check_user_permissions_moderator(current_user=current_user):
         logger.error(f"У пользователя {current_user.email} не хватает прав")
         raise HTTPException(status_code=403, detail="Forbiden.")
 
     course = await _add_teachers_to_course(course_id=course_id, teacher_ids=teacher_ids.teacher_ids, session=session)
-    
+
     if course is None:
         logger.error(f"Курс {id} не найден.")
         raise HTTPException(status_code=404, detail=f"Course with id {id} not found")
@@ -144,13 +168,13 @@ async def remove_teachers_from_course(course_id: int,
                                       session: AsyncSession = Depends(get_db),
                                       current_user: User = Depends(get_current_user_from_token),
 ) -> ShowCourse:
-    
+
     if not check_user_permissions_moderator(current_user=current_user):
         logger.error(f"У пользователя {current_user.email} не хватает прав")
         raise HTTPException(status_code=403, detail="Forbiden.")
 
     course = await _remove_teachers_from_course(course_id=course_id, teacher_ids=teacher_ids.teacher_ids, session=session)
-    
+
     if course is None:
         logger.error(f"Курс {id} не найден.")
         raise HTTPException(status_code=404, detail=f"Course with id {id} not found")
@@ -164,13 +188,13 @@ async def add_students_to_course(course_id: int,
                                  session: AsyncSession = Depends(get_db),
                                  current_user: User = Depends(get_current_user_from_token),
 ) -> ShowCourse:
-    
+
     if not check_user_permissions_moderator(current_user=current_user):
         logger.error(f"У пользователя {current_user.email} не хватает прав")
         raise HTTPException(status_code=403, detail="Forbiden.")
 
     course = await _add_students_to_course(course_id=course_id, student_ids=student_ids.student_ids, session=session)
-    
+
     if course is None:
         logger.error(f"Курс {id} не найден.")
         raise HTTPException(status_code=404, detail=f"Course with id {id} not found")
@@ -184,13 +208,13 @@ async def remove_students_from_course(course_id: int,
                                       session: AsyncSession = Depends(get_db),
                                       current_user: User = Depends(get_current_user_from_token),
 ) -> ShowCourse:
-    
+
     if not check_user_permissions_moderator(current_user=current_user):
         logger.error(f"У пользователя {current_user.email} не хватает прав")
         raise HTTPException(status_code=403, detail="Forbiden.")
 
     course = await _remove_students_from_course(course_id=course_id, student_ids=student_ids.student_ids, session=session)
-    
+
     if course is None:
         logger.error(f"Курс {id} не найден.")
         raise HTTPException(status_code=404, detail=f"Course with id {id} not found")
