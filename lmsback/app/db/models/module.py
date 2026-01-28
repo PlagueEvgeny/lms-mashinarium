@@ -23,4 +23,5 @@ class Module(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     is_active = Column(Boolean, default=True)
 
-    course = relationship("db.models.course.Course", back_populates="modules")
+    course = relationship("Course", back_populates="modules")
+    lessons = relationship("LessonBase", back_populates="modules")

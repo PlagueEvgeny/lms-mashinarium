@@ -1,4 +1,17 @@
-from db import Base
+from enum import Enum
+from datetime import datetime
+from sqlalchemy import Column
+from sqlalchemy import Text
+from sqlalchemy import Boolean
+from sqlalchemy import String
+from sqlalchemy import Integer
+from sqlalchemy import DateTime
+from sqlalchemy import ForeignKey
+from sqlalchemy import JSON
+from sqlalchemy.orm import relationship
+
+from db.base import Base
+
 
 class LessonType(str, Enum):
     LECTURE = "lecture"

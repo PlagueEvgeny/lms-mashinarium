@@ -23,6 +23,7 @@ from db.models.user import User
 from db.models.category import Category
 from db.models.course import Course
 from db.models.module import Module
+from db.models.lesson import LessonBase, Lecture
 
 target_metadata = Base.metadata
 

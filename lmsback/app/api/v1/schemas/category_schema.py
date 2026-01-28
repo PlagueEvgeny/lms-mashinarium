@@ -21,23 +21,12 @@ class ShowCategory(TunedModel):
     is_active: bool
     display_order: int
 
-
 class CategoryCreate(BaseModel):
     name: str
     slug: Optional[str] = None
     description: Optional[str] = None
     image: Optional[str] = None
     display_order: int
-
-
-    @validator("name")
-    def validate_last_name(cls, value):
-        if not LETTER_MATCH_PATTERN.match(value):
-            raise HTTPException(
-                    status_code=422, detail="Name should contains only letters"
-                    )
-        return value
-
 
 class DeleteCategoryResponse(BaseModel):
     deleted_category_id: int
