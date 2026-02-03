@@ -4,6 +4,7 @@ from typing import Optional
 from sqlalchemy import and_
 from sqlalchemy import select
 from sqlalchemy import update
+from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from db.models.module import Module
 
@@ -14,7 +15,7 @@ class ModuleDAL:
         self.db_session = db_session
     
     async def get_module_by_id(self, id: int) -> Union[Module, None]:
-        query = select(Module).where(and_(Module.id == id, Module.is_active))
+        query = select(Module).options(selectinload(Module.lessons)).where(and_(Module.id == id, Module.is_active))
         result = await self.db_session.execute(query)
         module_row = result.fetchone()
         if module_row is not None:

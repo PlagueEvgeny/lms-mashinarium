@@ -24,12 +24,14 @@ class ShowModule(TunedModel):
 
     lessons: List[ShortLesson] = []
 
+
 class ModuleCreate(BaseModel):
     course_id: int
     name: str
     slug: Optional[str] = None
     description: Optional[str] = None
     display_order: int
+
 
 class DeleteModuleResponse(BaseModel):
     deleted_module_id: int
