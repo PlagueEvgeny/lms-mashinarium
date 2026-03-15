@@ -22,11 +22,11 @@ class ModuleDAL:
             return module_row[0]
         return None
     
-    async def get_modules_by_ids(self, ids: List[int]) -> List[Module]:
-        query = select(Module).where(and_(Module.id.in_(ids), Module.is_active))
-        result = await self.db_session.execute(query)
-        modules = result.scalars().all()
-        return list(modules)
+#    async def get_module_list(self, ids: List[int]) -> List[Module]:
+#        query = select(Module).where(and_(Module.id.in_(ids), Module.is_active))
+#        result = await self.db_session.execute(query)
+#        modules = result.scalars().all()
+#        return list(modules)
 
     async def create_module(
             self,

@@ -1,4 +1,4 @@
-from typing import Union
+from typing import List, Union
 from loguru import logger
 from api.v1.schemas.module_schema import ShowModule, ModuleCreate
 from services.module_service import ModuleDAL
@@ -11,6 +11,13 @@ async def _get_module_by_id(id, session) -> Union[Module, None]:
         module = await module_dal.get_module_by_id(id=id)
         if module is not None:
             return module
+
+#async def _get_module_list(session) -> List[Module]:
+#    logger.info(f"Получение списка модулей")
+#    async with session.begin:
+#        module_dal = ModuleDAL(session)
+#        module = await module_dal.get_module_list()
+#        return list(module)
 
 async def _create_new_module(body: ModuleCreate, session) -> ShowModule:
     logger.info("Создание модуля")

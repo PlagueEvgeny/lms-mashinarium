@@ -11,6 +11,7 @@ from datetime import datetime
 from api.v1.schemas.base_schema import TunedModel
 from api.v1.schemas.category_schema import ShowCategory
 from api.v1.schemas.user_schema import ShowUserShort
+from api.v1.schemas.module_schema import ShortModule
 
 
 class ShowCourse(TunedModel):
@@ -28,6 +29,7 @@ class ShowCourse(TunedModel):
     is_active: bool
     categories: List[ShowCategory]
     teachers: List[ShowUserShort]
+    modules: List[ShortModule] = []
     students: List[ShowUserShort] = []
 
 class ListCourse(TunedModel):

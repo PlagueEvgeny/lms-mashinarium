@@ -62,17 +62,6 @@ services:
     networks:
       - custom
   
-  frontend:
-    image: node:22
-    container_name: react-app
-    working_dir: /docker_lmsfront
-    volumes:
-      - ./lmsfront:/docker_lmsfront
-    ports:
-      - "8081:3000"
-    command: npm start
-    restart: always
-
 networks:
   custom:
     driver: bridge

@@ -14,7 +14,7 @@ from services.user_service import UserDAL
 from db.models.course import Course, Status
 from db.models.user import User
 from db.models.category import Category
-
+from db.models.module import Module
 
 class CourseDAL:
     def __init__(self, db_session: AsyncSession):
@@ -24,6 +24,7 @@ class CourseDAL:
         query = (
             select(Course).\
             options(selectinload(Course.categories)).\
+            options(selectinload(Course.modules)).\
             options(selectinload(Course.teachers)).\
             options(selectinload(Course.students)).\
             where(and_(Course.id == id, Course.is_active))
@@ -37,6 +38,7 @@ class CourseDAL:
     async def get_course_by_slug(self, slug: str) -> Union[Course, None]:
         query = select(Course).\
                 options(selectinload(Course.categories)).\
+                options(selectinload(Course.modules)).\
                 options(selectinload(Course.teachers)).\
                 options(selectinload(Course.students)).\
                 where(and_(Course.slug == slug, Course.is_active))

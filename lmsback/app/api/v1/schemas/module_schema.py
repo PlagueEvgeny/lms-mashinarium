@@ -24,6 +24,12 @@ class ShowModule(TunedModel):
 
     lessons: List[ShortLesson] = []
 
+class ShortModule(TunedModel):
+    id: int
+    course_id: int 
+    name: str
+    slug: str
+    description: str
 
 class ModuleCreate(BaseModel):
     course_id: int
