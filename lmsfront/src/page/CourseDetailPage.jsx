@@ -40,7 +40,7 @@ return (
     <div className="min-h-screen bg-background">
       <Header />
       <Toaster position="top-right" />
-      <main className="max-w-5xl mx-auto px-4 py-8">
+      <main className="max-w-7xl mx-auto px-4 py-8">
 
         {/* Назад */}
         <button
@@ -71,7 +71,7 @@ return (
               ))}
             </div>
           </div>
-          <div>
+          <div className='bg-card mb-8 p-6 rounded-xl'>
             <h2 className='text-lg font-semibold mb-4'>Преподаватели</h2>
             <div className='space-y-4'>
               {course.teachers.map((teacher) => (
@@ -87,9 +87,7 @@ return (
               ))}
             </div>
           </div>
-
         </div>  
-
       </main>
     </div>
   );
