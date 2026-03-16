@@ -8,6 +8,7 @@ from jose import JWTError
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from api.v1.schemas.user_schema import TokenData
 from services.user_service import UserDAL
 from db.models.user import User
 
@@ -59,3 +60,21 @@ async def get_current_user_from_token(
         raise credentials_exception
     
     return user
+
+def verify_token(
+        token: str,
+        expected_token_type: str,
+        db: AsyncSession
+        ):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        token_type: str | None = payload.get("token_type")
+
+        if email is None or token_type != expected_token_type:
+            return None
+
+        return TokenData(email=email)
+
+    except JWTError:
+        return None

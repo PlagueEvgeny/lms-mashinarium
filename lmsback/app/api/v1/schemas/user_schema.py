@@ -140,7 +140,8 @@ class Token(BaseModel):
     access_token: str
     token_type: str
 
-
+class TokenData(BaseModel):
+    email: str
 
 class AddRoleRequest(BaseModel):
     role: PortalRole
