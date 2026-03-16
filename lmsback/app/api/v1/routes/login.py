@@ -44,7 +44,7 @@ async def login_for_access_token(
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@auth_router.post("refresh")
+@auth_router.post("/refresh")
 async def refresh_access_token(
         request: Request,
         db: AsyncSession = Depends(get_db)
