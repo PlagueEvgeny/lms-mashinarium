@@ -1,24 +1,26 @@
-import { API } from '../services/api';
+import { API } from '../../services/api';
+import { authFetch } from '../../services/authFetch';
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom';
 import toast, { Toaster } from 'react-hot-toast';
-import Header from '../components/Header';
+import Header from '../../components/Header';
+import { useAuthUser } from '../../hooks/useAuthUser';
 
-const CoursesPage = () => {
-  const [courses, setCourses] = useState([]);
+const DashboardPage = () => {
+  const { user } = useAuthUser();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
-
+  const [courses, setCourses] = useState([]); 
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const response = await fetch(API.list_course);
+        const response = await authFetch(API.dashboard);       
         if (!response.ok) throw new Error('Ошибка загрузки курсов');
         const data = await response.json();
         setCourses(data);
       } catch (err) {
-        setError(err.message);
+        setError(err);
         toast.error('Не удалось загрузить курсы');
       } finally {
         setLoading(false);
@@ -35,49 +37,29 @@ const CoursesPage = () => {
       <main className="max-w-7xl mx-auto px-4 py-10">
 
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">Курсы</h1>
-          <p className="text-muted-foreground mt-1">Выбери курс и начни обучение</p>
+          <h1 className="text-3xl font-bold text-foreground">{ user?.first_name }, добрый день</h1>
+          <p className="text-muted-foreground mt-1">Сегодня отличный день, что бы узнать новое или закрепить знание на практике</p>
         </div>
-
-        {loading && (
-          <div className="grid gap-6 sm:grid-cols-1 lg:grid-cols-2">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-36 rounded-2xl bg-muted animate-pulse" />
-            ))}
-          </div>
-        )}
-
-        {error && (
-          <div className="text-center py-20 text-muted-foreground">
-            <p className="text-lg">😕 {error}</p>
-            <button
-              onClick={() => window.location.reload()}
-              className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm hover:opacity-90 transition"
-            >
-              Попробовать снова
-            </button>
-          </div>
-        )}
-
         {!loading && !error && courses.length === 0 && (
           <div className="text-center py-20 text-muted-foreground">
-            <p className="text-lg">Курсы пока не добавлены</p>
+            <p className="text-lg"></p>
           </div>
         )}
 
         {!loading && !error && (
+          <section>
+          <h2 className="text-xl font-semibold text-foreground mb-4">Ваши курсы</h2>
           <div className="grid gap-6 sm:grid-cols-1 lg:grid-cols-2">
             {courses.map((course) => (
               <div
                 key={course.slug}
                 className="group flex items-center gap-5 bg-card border border-border rounded-2xl shadow-sm hover:shadow-md hover:border-primary transition-all duration-300 p-5 cursor-pointer"
-                onClick={() => navigate(`/courses/${course.slug}`)}
+                onClick={() => navigate(`/user/course/${course.slug}`)}
               >
                 <img
                   src={course.image}
                   alt={course.name}
                   className="w-24 h-24 object-cover rounded-xl flex-shrink-0 bg-muted"
-                  onError={(e) => { e.target.src = 'https://placehold.co/96x96?text=📚' }}
                 />
                 <div className="flex-1 min-w-0">
                   <h2 className="text-base font-semibold text-foreground leading-snug mb-1 group-hover:text-primary transition-colors">
@@ -86,18 +68,15 @@ const CoursesPage = () => {
                   <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
                     {course.short_description}
                   </p>
-                  <span className="inline-block text-sm font-bold text-primary">
-                    {Number(course.price) === 0 ? 'Бесплатно' : `${Number(course.price).toLocaleString('ru-RU')} ₽`}
-                  </span>
                 </div>
               </div>
             ))}
           </div>
+          </section>
         )}
-
       </main>
     </div>
   );
 };
 
-export default CoursesPage;
+export default DashboardPage;

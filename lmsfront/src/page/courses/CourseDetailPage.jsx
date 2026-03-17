@@ -1,8 +1,8 @@
-import { API } from '../services/api';
+import { API } from '../../services/api';
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom';
 import toast, { Toaster } from 'react-hot-toast';
-import Header from '../components/Header';
+import Header from '../../components/Header';
 
 const CourseDetailPage = () => {
   const { slug } = useParams();
@@ -71,9 +71,11 @@ return (
               ))}
             </div>
           </div>
-          <div className='bg-card mb-8 p-6 rounded-xl'>
-            <h2 className='text-lg font-semibold mb-4'>Преподаватели</h2>
-            <div className='space-y-4'>
+          <div>
+            <div className='bg-card p-6 mb-2 rounded-xl'>
+              <h2 className='text-lg font-semibold'>Преподаватели</h2>
+            </div>
+            <div className='space-y-4 bg-card p-6 rounded-xl'>
               {course.teachers.map((teacher) => (
                 <div key={teacher.user_id} className='flex items-start gap-3'>
                   <div className='w-10 h-10 rounded-full bg-muted flex items-center justify-center flex-shrink-0'>

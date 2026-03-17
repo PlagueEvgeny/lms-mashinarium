@@ -3,7 +3,12 @@ const API_URL = 'http://localhost:8000';
 export const API = {
   base: API_URL,
   list_course: `${API_URL}/course/list`,
+  dashboard: `${API_URL}/course/educations`,
+  teaching: `${API_URL}/course/teachers`,
+  user_course: (slug) => `${API_URL}/course/educations/${slug}`,
   detail_course: (slug) => `${API_URL}/course/?slug=${slug}`,
-  token: `${API_URL}/auth/token/`,
-  logout: `${API_URL}/auth/logout/`,
+  user: `${API_URL}/user/me`,        
+  token: `${API_URL}/auth/token`,   
+  refresh: `${API_URL}/auth/refresh`, 
+  logout: `${API_URL}/auth/logout`,   
 };

@@ -37,6 +37,14 @@ async def _get_user_courses_as_student(user_id: UUID, session) -> List[ListCours
         course = await course_dal.get_user_courses_as_student(user_id=user_id)
         return list(course)
 
+async def _get_user_course_by_slug(user_id: UUID, slug: str, session) -> Union[Course, None]:
+    logger.info("Получение курса пользователя по slug")
+    async with session.begin():
+        course_dal = CourseDAL(session)
+        course = await course_dal.get_user_course_by_slug(user_id=user_id, slug=slug)
+        if course is not None:
+            return course
+
 async def _get_user_courses_as_teacher(user_id: UUID, session) -> List[ListCourse]:
     logger.info("Получение курсов преподавателя")
     async with session.begin():

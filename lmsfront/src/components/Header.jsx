@@ -1,13 +1,22 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { MessageCircle, BookOpen, GraduationCap, Settings, LogOut } from 'lucide-react';
+import { useState, useCallback } from 'react';
+import { MessageCircle, BookOpen, GraduationCap, Settings, LogOut, ShieldCheck } from 'lucide-react';
+import { useAuthUser } from '../hooks/useAuthUser';
 import { useNavigate } from 'react-router-dom';
 import logo from '../assets/logo-gor.png';
 import avatar from '../assets/default-avatar.jpg';
+import { PORTAL_ROLES, roleHelpers, RoleGuard, useRole } from '../utility/roles'; 
 
 const Header = () => {
   const navigate = useNavigate();
-  const { user } = "";
+  const { user, logout } = useAuthUser();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const userRole = user?.roles || PORTAL_ROLES.user;
+  const role = useRole(userRole);
+
+  const handleLogout = useCallback(async () => {
+    await logout();
+  }, [logout]);
+  
   return (
     <header className="bg-card border-b border-border sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
@@ -50,16 +59,25 @@ const Header = () => {
                <>
                <div className='fixed inset-0 z-10' onClick={() => setDropdownOpen(false)} / >
                 <div className="absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-50 py-2" >
+                  {(role.isTeacherOrHigher || role.hasMinPriority(PORTAL_ROLES.moderator)) && (
                   <button
-                    onClick={() => navigate('/dasboard')}
+                    onClick={() => navigate('/admin')}
                     className="flex items-center w-full gap-3 p-1 px-4 text-sm hover:bg-muted transition-colors">
-                    <BookOpen className="w-4 h-4" /> Мое обучение
+                    <ShieldCheck className="w-4 h-4" /> Панель администратора
                   </button>
+                  )}
                   <button
-                    onClick={() => navigate('/teacher')}
+                    onClick={() => navigate('/dashboard')}
+                    className="flex items-center w-full gap-3 p-1 px-4 text-sm hover:bg-muted transition-colors">
+                    <BookOpen className="w-4 h-4" /> Мое обучение 
+                  </button>
+                  {(role.isTeacherOrHigher || role.hasMinPriority(PORTAL_ROLES.teacher)) && (
+                  <button
+                    onClick={() => navigate('/teaching')}
                     className="flex items-center w-full gap-3 p-1 px-4 text-sm hover:bg-muted transition-colors">
                     <GraduationCap className="w-4 h-4" /> Преподавание
                   </button>
+                  )}
                   <button
                     onClick={() => navigate('/profile')}
                     className="flex items-center w-full gap-3 p-1 px-4 text-sm hover:bg-muted transition-colors">
@@ -67,7 +85,7 @@ const Header = () => {
                   </button>
                   <hr className='my-2 border-border' />
                    <button
-                    onClick={() => navigate('/logout')}
+                    onClick={handleLogout}
                     className="flex items-center w-full gap-3 p-1 px-4 text-sm hover:bg-muted transition-colors">
                     <LogOut className="w-4 h-4" /> Выход
                   </button>

@@ -16,7 +16,7 @@ from api.v1.routes.actions.course_actions import (_get_course_by_id, _create_new
                                                   _update_course, _add_students_to_course, _add_teachers_to_course,
                                                   _remove_students_from_course, _remove_teachers_from_course,
                                                   _get_course_by_slug, _get_course_all, _get_course_by_categories,
-                                                  _get_user_courses_as_student,
+                                                  _get_user_courses_as_student, _get_user_course_by_slug,
                                                   _get_user_courses_as_teacher)
 from db.models.user import User
 from db.models.course import Course
@@ -75,6 +75,19 @@ async def get_user_courses_as_student(
     course = await _get_user_courses_as_student(session=session, user_id=current_user.user_id)
     if course is None:
         course = []
+    return course
+
+@course_router.get("/educations/{slug}", response_model=ShowCourse)
+async def get_user_course_by_slug(
+                        slug: str,
+                        session: AsyncSession = Depends(get_db),
+                        current_user: User = Depends(get_current_user_from_token)
+) -> Union[Course, None]:
+    logger.info("Получение курса по slug, на которые подписаны пользователи")
+    course = await _get_user_course_by_slug(session=session, user_id=current_user.user_id, slug=slug)
+    if course is None:
+        logger.error(f"Курс {slug} не найден.")
+        raise HTTPException(status_code=404, detail=f"Course with slug {slug} not found")
     return course
 
 @course_router.get("/teachers", response_model=List[ListCourse])

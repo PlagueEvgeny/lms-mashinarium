@@ -24,7 +24,7 @@ async def login_for_access_token(
     user = await authenticate_user(form_data.username.lower() , form_data.password, session)
     if not user:
         raise HTTPException(
-                status_code=status.http_401_unauthorized,
+                status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Incorrect email or password"
                 )
 
@@ -36,9 +36,10 @@ async def login_for_access_token(
     refresh_token = create_refresh_token(data={"sub": user.email})
     max_age = REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60
 
+    # secure потом заменить на True
     response.set_cookie(
             key="refresh_token", value=refresh_token, httponly=True,
-            secure=True, samesite="lax", max_age=max_age
+            secure=False, samesite="lax", max_age=max_age
     )
 
     return {"access_token": access_token, "token_type": "bearer"}
@@ -52,13 +53,13 @@ async def refresh_access_token(
     refresh_token = request.cookies.get("refresh_token")
     if not refresh_token:
         raise HTTPException(
-                status_code=status.http_401_unauthorized,
+                status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Refresh token missing."
                 )
-    user_data = verify_token(refresh_token, "refresh", db)
+    user_data = await verify_token(refresh_token, "refresh", db)
     if not user_data:
         raise HTTPException(
-                status_code=status.http_401_unauthorized,
+                status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid refresh token."
                 )
 
@@ -69,5 +70,5 @@ async def refresh_access_token(
 
 @auth_router.post("/logout")
 async def logout_user(response: Response):
-    response.delete_cookie(key="access_token")
+    response.delete_cookie(key="refresh_token")
     return {'message': 'Пользователь успешно вышел из системы'}

@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom';
-import toast, { Toaster } from 'react-hot-toast';
-import { API } from '../services/api';
-import logo from '../assets/logo.svg'
-import VKLogo from '../assets/vk-logo.png';
-import YandexLogo from '../assets/yandex-logo.png';
+import toast from 'react-hot-toast';
+import { API } from '../../services/api';
+import logo from '../../assets/logo.svg'
+import VKLogo from '../../assets/vk-logo.png';
+import YandexLogo from '../../assets/yandex-logo.png';
 
 function LoginPage() {
   const navigate = useNavigate();
@@ -22,6 +22,7 @@ function LoginPage() {
 
     try {
       const response = await fetch(API.token, {
+        credentials: 'include',
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: formData.toString(),
@@ -55,11 +56,11 @@ function LoginPage() {
       <div className="w-full max-w-md bg-card rounded-2xl shadow-sm p-8 border border-border">
         <div className="flex flex-col items-center mb-8">
           <img src={logo} alt="Mashinarium IT-School" className="w-[90px] mx-auto mb-3" />
-          <h1 className="text-xl font-semibold text-foregraund">Вход в профиль</h1>
+          <h1 className="text-xl font-semibold text-foreground">Вход в профиль</h1>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs text-muted-foregraund mb-1">Электронная почта</label>
+            <label className="block text-xs text-muted-foreground mb-1">Электронная почта</label>
             <input 
               name="email"
               type="email"
@@ -71,7 +72,7 @@ function LoginPage() {
             />
           </div>
           <div>
-            <label className="block text-xs text-muted-foregraund mb-1">Пароль</label>
+            <label className="block text-xs text-muted-foreground mb-1">Пароль</label>
             <input 
               name="password"
               type="password"
@@ -95,7 +96,7 @@ function LoginPage() {
 
           <button 
           type="button"
-          onClick=""
+          onClick={() => navigate('/register')}
           className="w-full border border-border py-3 rounded-lg font-medium hover:bg-muted transition-colors"  
           >
             Создать профиль
