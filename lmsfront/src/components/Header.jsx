@@ -49,9 +49,9 @@ const Header = () => {
               >
                 <div className="w-8 h-8 rounded-full bg-muted overflow-hidden">
                   {user?.avatar ? (
-                    <img src="{user.avatar}" alt="{user.first_name}" className='w-full h-full object-cover' />
+                    <img src={user.avatar} alt="{avatar}" className='w-full h-full object-cover' />
                   ) : (
-                    <img src={avatar} alt="default-avatar" className='w-full h-full object-cover' />
+                    <img src={avatar} alt="avatar" className='w-full h-full object-cover' />
                   )}
                 </div>
              </button>

@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from api.v1.routes.actions.auth_actions import get_current_user_from_token
 from api.v1.routes.actions.user_actions import check_user_permissions_moderator, check_user_permissions_teahers, check_user_permissions_admin
 from api.v1.schemas.course_schema import (AddStudentsToCourse, AddTeachersToCourse, ListCourse, RemoveStudentsFromCourse,
-                                          RemoveTeachersFromCourse, ShowCourse, CourseCreate,
+                                          RemoveTeachersFromCourse, ShowCourse, CourseCreate, ListTeacherCourse,
                                           DeleteCourseResponse, UpdatedCourseResponse, UpdateCourseRequest)
 from api.v1.routes.actions.course_actions import (_get_course_by_id, _create_new_course, _delete_course,
                                                   _update_course, _add_students_to_course, _add_teachers_to_course,
@@ -90,7 +90,7 @@ async def get_user_course_by_slug(
         raise HTTPException(status_code=404, detail=f"Course with slug {slug} not found")
     return course
 
-@course_router.get("/teachers", response_model=List[ListCourse])
+@course_router.get("/teachers", response_model=List[ListTeacherCourse])
 async def get_user_courses_as_teacher(
                         session: AsyncSession = Depends(get_db),
                         current_user: User = Depends(get_current_user_from_token)

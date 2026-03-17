@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import PrivateRoute from './components/PrivateRoute';
 import LoginPage from './page/auth/LoginPage';
+import ProfilePage from './page/profile/ProfilePage';
 import CoursesPage from './page/courses/CoursesPage';
 import CourseDetailPage from './page/courses/CourseDetailPage';
 import DashboardPage from './page/user_courses/DashboardPage';
@@ -16,7 +17,9 @@ function App() {
         <Route path="/dashboard" element={<PrivateRoute><DashboardPage /></PrivateRoute>} />
         <Route path="/teaching" element={<PrivateRoute><TeachingPage /></PrivateRoute>} />
         <Route path="/user/course/:slug" element={<PrivateRoute><UserCourse /></PrivateRoute>} />
+        <Route path="/profile" element={<PrivateRoute><ProfilePage / > </PrivateRoute>} / >
         <Route path="/login" element={<LoginPage />} />
+
       </Routes>
     </Router>
   );

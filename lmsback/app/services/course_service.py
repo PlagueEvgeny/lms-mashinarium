@@ -72,6 +72,7 @@ class CourseDAL:
     async def get_user_courses_as_teacher(self, user_id:UUID) -> List[Course]:
         query = select(Course).\
                 options(selectinload(Course.categories)).\
+                options(selectinload(Course.modules)).\
                 options(selectinload(Course.teachers)).\
                 options(selectinload(Course.students)).\
                 where(and_(Course.teachers.any(User.user_id == user_id), Course.is_active))

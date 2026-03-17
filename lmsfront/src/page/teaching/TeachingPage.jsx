@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import toast, { Toaster } from 'react-hot-toast';
 import Header from '../../components/Header';
 import { useAuthUser } from '../../hooks/useAuthUser';
-import { Plus, FileText } from 'lucide-react';
+import { Plus, FileText, Users } from 'lucide-react';
 
 const TeachingPage = () => {
   const { user } = useAuthUser();
@@ -50,6 +50,7 @@ const TeachingPage = () => {
         <div className='grid gap-4'>
           {courses.map(course => {
             const modulesCount = course.modules?.length || 0
+            const usersCount = course.students?.length || 0
             return (
               <div key={course.id} className='bg-card rounded-xl border border-border p-6'>
                 <div className='flex items-start gap-4'>
@@ -64,10 +65,34 @@ const TeachingPage = () => {
                       </div>
                     </div>
                     <div className='flex items-center gap-6 mt-4 text-sm text-muted-foreground'>
-                      <div className='flex items-center gap-4'>
+                      <div className='flex items-center gap-2'>
                         <FileText className='w-4 h-4' / >
                         <span>{modulesCount} модулей</span>
                       </div>
+                      <div className='flex items-center gap-2'>
+                        <Users className='w-4 h-4' / >
+                        <span>{usersCount} студентов</span>
+                      </div>
+                    </div>
+                    <div className='flex items-center gap-3 mt-4'>
+                      <button
+                        className="bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
+                        onClick={() => navigate(`/teaching/course/${course.slug}`)}
+                      >
+                        Управление курсом
+                      </button>
+                      <button
+                        className="bg-muted text-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-muted/80 transition-colors"
+                        onClick={() => navigate(`/teaching/course/${course.slug}`)}
+                      >
+                        Студенты
+                      </button>
+                      <button
+                        className="bg-muted text-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-muted/80 transition-colors"
+                        onClick={() => navigate(`/teaching/course/${course.slug}`)}
+                      >
+                        Работы на проверку(В разработке)
+                      </button>
                     </div>  
                   </div>  
                 </div>  

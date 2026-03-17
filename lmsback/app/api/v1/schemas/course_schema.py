@@ -42,6 +42,19 @@ class ListCourse(TunedModel):
     display_order: int
     categories: List[ShowCategory]
 
+class ListTeacherCourse(TunedModel):
+    id: int
+    name: str
+    slug: str
+    short_description: str
+    image: str
+    price: Decimal
+    display_order: int
+    modules: List[ShortModule] = []
+    students: List[ShowUserShort] = []
+    categories: List[ShowCategory]
+
+
 class CourseCreate(BaseModel):
     name: str
     slug: str
