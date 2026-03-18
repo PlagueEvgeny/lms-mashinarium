@@ -9,7 +9,7 @@ import PersonalInfoTab from './PersonalInfoTab';
 import AuthorizationTab from './AuthorizationTab';
 
 const ProfilePage = () => {
-  const { user } = useAuthUser();
+  const { user, updateUser, deleteUser } = useAuthUser();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
@@ -26,7 +26,7 @@ const ProfilePage = () => {
   return (
      <div className="min-h-screen bg-background">
       <Header />
-      
+      <Toaster position="top" />
       <main className="max-w-7xl mx-auto px-4 py-10">
         <div className="flex gap-6 border-b border-border mb-8">
           <button
@@ -51,7 +51,7 @@ const ProfilePage = () => {
           </button>
         </div>
 
-        {activeTab === 'personal' && <PersonalInfoTab user={user} />}
+        {activeTab === 'personal' && <PersonalInfoTab user={user} updateUser={updateUser} deleteUser={deleteUser} />}
         {activeTab === 'auth' && <AuthorizationTab user={user} />}
       </main>
     </div>

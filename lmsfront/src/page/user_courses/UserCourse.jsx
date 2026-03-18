@@ -41,7 +41,7 @@ const UserCourse = () => {
 return (
     <div className="min-h-screen bg-background">
       <Header />
-      <Toaster position="top-right" />
+      <Toaster position="top" />
       <main className="max-w-7xl mx-auto px-4 py-8">
 
         {/* Назад */}

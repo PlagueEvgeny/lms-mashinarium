@@ -131,12 +131,41 @@ export const useAuthUser = () => {
     navigate('/login');
   };
 
+  const updateUser = async (formData) => {
+  const token = localStorage.getItem('access_token');
+  const response = await fetch(API.user, {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(formData),
+  });
+  if (!response.ok) throw new Error('Ошибка сохранения');
+  setUser(prev => ({ ...prev, ...formData })); // ← мержим вместо замены
+  toast.success('Данные сохранены');
+};
+
+const deleteUser = async () => {
+  const token = localStorage.getItem('access_token');
+  const response = await fetch(API.user, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!response.ok) throw new Error('Ошибка удаления');
+  clearTokens();
+  toast.success('Аккаунт удалён');
+  navigate('/login');
+};
+
   return {
     user,
     loading,
     error,
     setUser,
     logout,
+    updateUser,
+    deleteUser,
     refetch: () => {
       const token = localStorage.getItem('access_token');
       return token ? fetchUser(token) : Promise.reject('Нет токена');

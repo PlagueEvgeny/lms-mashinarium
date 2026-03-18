@@ -87,6 +87,18 @@ async def delete_user(user_id: UUID,
     return DeleteUserResponse(deleted_user_id=deleted_user_id)
 
 
+@user_router.delete("/me", response_model=DeleteUserResponse)
+async def delete_current_user(session: AsyncSession = Depends(get_db),
+                              current_user: User = Depends(get_current_user_from_token),
+) -> DeleteUserResponse:
+    logger.info(f"Происходит удаление пользователя {current_user.user_id}.")
+    deleted_user_id = await _delete_user(current_user.user_id, session)
+    if deleted_user_id is None:
+        logger.error(f"Пользователь {current_user.user_id} не найден.")
+        raise HTTPException(status_code=404, detail=f"User with id {current_user.user_id} not found.")
+    return DeleteUserResponse(deleted_user_id=deleted_user_id)
+
+
 @user_router.patch("/", response_model=UpdatedUserResponse)
 async def update_user_by_id(user_id: UUID, 
                             body: UpdateUserRequest, 

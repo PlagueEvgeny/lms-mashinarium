@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom';
-import toast from 'react-hot-toast';
+import toast, { Toaster } from 'react-hot-toast';
 import { API } from '../../services/api';
 import logo from '../../assets/logo.svg'
 import VKLogo from '../../assets/vk-logo.png';
@@ -53,6 +53,7 @@ function LoginPage() {
   };
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
+      <Toaster position="top" />
       <div className="w-full max-w-md bg-card rounded-2xl shadow-sm p-8 border border-border">
         <div className="flex flex-col items-center mb-8">
           <img src={logo} alt="Mashinarium IT-School" className="w-[90px] mx-auto mb-3" />
