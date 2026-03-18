@@ -84,6 +84,22 @@ async def _update_user(updated_user_params: dict, user_id: UUID, session) -> Uni
         )
         return updated_user_id
 
+async def _change_user_password(
+        user_id: UUID,
+        hashed_password: str,
+        session
+) -> Union[UUID, None]:
+    async with session.begin():
+        user_dal = UserDAL(session)
+        
+
+        update_user_id = await user_dal.update_user_password(
+            user_id=user_id,
+            hashed_password=hashed_password
+        )
+
+        return update_user_id
+
 
 async def _add_role_to_user(user_id: UUID, role: PortalRole, session) -> Union[UUID, None]:
     logger.info(f"Добавление роли {role} пользователю {user_id}")

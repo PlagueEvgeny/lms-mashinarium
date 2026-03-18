@@ -9,7 +9,7 @@ import PersonalInfoTab from './PersonalInfoTab';
 import AuthorizationTab from './AuthorizationTab';
 
 const ProfilePage = () => {
-  const { user, updateUser, deleteUser } = useAuthUser();
+  const { user, updateUser, deleteUser, changePassword } = useAuthUser();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
@@ -52,7 +52,7 @@ const ProfilePage = () => {
         </div>
 
         {activeTab === 'personal' && <PersonalInfoTab user={user} updateUser={updateUser} deleteUser={deleteUser} />}
-        {activeTab === 'auth' && <AuthorizationTab user={user} />}
+        {activeTab === 'auth' && <AuthorizationTab user={user} changePassword={changePassword} />}
       </main>
     </div>
   );

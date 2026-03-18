@@ -102,6 +102,17 @@ class UserDAL:
         if updated_user_id_row is not None:
             return updated_user_id_row[0]
 
+    async def update_user_password(self, user_id: UUID, hashed_password: str) -> Union[UUID, None]:
+        query = update(User).\
+                where(and_(User.user_id == user_id, User.is_active)).\
+                values(hashed_password=hashed_password).\
+                returning(User.user_id)
+    
+        result = await self.db_session.execute(query)
+        updated_user_id_row = result.fetchone()
+        if updated_user_id_row is not None:
+            return updated_user_id_row[0]
+
     async def add_role_to_user(self, user_id: UUID, role: PortalRole) -> Union[User, None]:
         query = select(User).\
                 where(and_(User.user_id == user_id, User.is_active))

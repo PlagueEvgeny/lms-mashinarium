@@ -7,6 +7,7 @@ import CourseDetailPage from './page/courses/CourseDetailPage';
 import DashboardPage from './page/user_courses/DashboardPage';
 import UserCourse from './page/user_courses/UserCourse';
 import TeachingPage from './page/teaching/TeachingPage';
+import CreateCoursesPage from './page/teaching/CreateCoursesPage';
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
         <Route path="/courses/:slug" element={<PrivateRoute><CourseDetailPage /></PrivateRoute>} />
         <Route path="/dashboard" element={<PrivateRoute><DashboardPage /></PrivateRoute>} />
         <Route path="/teaching" element={<PrivateRoute><TeachingPage /></PrivateRoute>} />
+        <Route path="/teaching/curses/new" element={<PrivateRoute><CreateCoursesPage /></PrivateRoute>} />
         <Route path="/user/course/:slug" element={<PrivateRoute><UserCourse /></PrivateRoute>} />
         <Route path="/profile" element={<PrivateRoute><ProfilePage / > </PrivateRoute>} / >
         <Route path="/login" element={<LoginPage />} />

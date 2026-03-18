@@ -131,7 +131,7 @@ export const useAuthUser = () => {
     navigate('/login');
   };
 
-  const updateUser = async (formData) => {
+const updateUser = async (formData) => {
   const token = localStorage.getItem('access_token');
   const response = await fetch(API.user, {
     method: 'PATCH',
@@ -141,9 +141,33 @@ export const useAuthUser = () => {
     },
     body: JSON.stringify(formData),
   });
-  if (!response.ok) throw new Error('Ошибка сохранения');
+  if (!response.ok) {
+  const errorData = await response.json().catch(() => ({}));
+  throw new Error(errorData.detail || 'Ошибка сохранения');
+  }  
   setUser(prev => ({ ...prev, ...formData })); // ← мержим вместо замены
   toast.success('Данные сохранены');
+};
+
+const changePassword = async (current_password, new_password) => {
+  const token = localStorage.getItem('access_token');
+  
+  const url = `${API.user_change_password}?current_password=${encodeURIComponent(current_password)}&new_password=${encodeURIComponent(new_password)}`;
+  
+  const response = await fetch(url, {
+    method: 'PATCH',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'accept': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || 'Ошибка сохранения');
+  }
+  
+  toast.success('Пароль изменен');
 };
 
 const deleteUser = async () => {
@@ -166,6 +190,7 @@ const deleteUser = async () => {
     logout,
     updateUser,
     deleteUser,
+    changePassword,
     refetch: () => {
       const token = localStorage.getItem('access_token');
       return token ? fetchUser(token) : Promise.reject('Нет токена');

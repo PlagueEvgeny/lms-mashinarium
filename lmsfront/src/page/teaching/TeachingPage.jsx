@@ -42,7 +42,7 @@ const TeachingPage = () => {
             <p className='text-muted-foreground mt-1'>Управление курсами и материалами</p>
           </div>
           <button ttitle="Создать курс"
-                  onClick={() => navigate('/')}
+                  onClick={() => navigate('/teaching/curses/new')}
                   className='bg-primary text-primary-foreground px-4 py-2 rounded-lg font-medium hover:bg-primary transition-colors flex items-center gap-2'>
             <Plus className='w-5 h-5'  /> Создать курс 
           </button>

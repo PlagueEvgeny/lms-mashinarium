@@ -29,11 +29,9 @@ async def _get_user_by_email_for_auth(email: str, session: AsyncSession):
 
 async def authenticate_user(email: str, password: str, session: AsyncSession):
     user = await _get_user_by_email_for_auth(email=email, session=session)
-    print(f">>> user found: {user}")  # посмотрите что выводит
     if user is None:
         return
     if not Hasher.verify_password(password, user.hashed_password):
-        print(">>> password mismatch")
         return
     return user
 

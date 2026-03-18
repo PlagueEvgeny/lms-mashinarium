@@ -11,13 +11,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from api.v1.routes.actions.auth_actions import get_current_user_from_token
 from api.v1.schemas.user_schema import (ShowUser, UserCreate, DeleteUserResponse, UpdatedUserResponse, 
                                         UpdateUserRequest, AddRoleRequest, RemoveRoleRequest, SetRolesRequest)
-from api.v1.routes.actions.user_actions import (_create_new_user, _delete_user, _get_user_by_id, 
+from api.v1.routes.actions.user_actions import (_change_user_password, _create_new_user, _delete_user, _get_user_by_id, 
                                                 _update_user, check_user_permissions, _get_user_by_email, 
                                                 _get_user_all, _add_role_to_user, _remove_role_from_user,
                                                 _set_user_roles, check_role_change_permissions)
 from db.models.user import User
-from db.session import get_db
-  
+from db.session import get_db  
+from utils.hashing import Hasher
 
 user_router = APIRouter()
 
@@ -143,6 +143,68 @@ async def update_current_user(body: UpdateUserRequest,
         raise HTTPException(status_code=503, detail=f"Database error: {err}")
 
     return UpdatedUserResponse(updated_user_id=update_user_id)
+
+@user_router.patch("/me/change_password")
+async def change_password_current_user(
+        current_password: str,
+        new_password: str,
+        session: AsyncSession = Depends(get_db),
+        current_user: User = Depends(get_current_user_from_token)
+): 
+    logger.info(f"Пользователь {current_user.email} : Смена пароля")
+    # Проверка сложности пароля (опционально)
+    if len(new_password) < 8:
+        raise HTTPException(
+            status_code=400,
+            detail={"name": "Пароль должен содержать минимум 8 символов"}
+        )
+    # Проверяем текущий пароль (используем current_user из роутера)
+    if not Hasher.verify_password(current_password, current_user.hashed_password):
+        logger.error(f"Неверный текущий пароль для пользователя {current_user.user_id}")
+        raise HTTPException(
+            status_code=400,
+            detail={"name": "Неверный текущий пароль"}
+        )
+
+    # Проверяем, что новый пароль не совпадает со старым
+    if Hasher.verify_password(new_password, current_user.hashed_password):
+        logger.error(f"Новый пароль совпадает со старым для пользователя {current_user.user_id}")
+        raise HTTPException(
+            status_code=400,
+            detail={"name": "Новый пароль должен отличаться от текущего"}
+        )
+    
+    # Хешируем новый пароль
+    hashed_password = Hasher.get_password_hash(new_password)
+
+    try:
+        update_user_id = await _change_user_password(
+                    user_id=current_user.user_id,
+                    hashed_password=hashed_password,
+                    session=session
+                    )
+
+        if not update_user_id:
+            raise HTTPException(
+                status_code=500,
+                detail={"name": "Не удалось обновить пароль"}
+            )
+        
+        logger.info(f"Пароль успешно обновлен для пользователя {current_user.user_id}")
+        
+        return {
+            "status": 200,
+            "detail": {"name": "Пароль успешно обновлен"}
+        }
+        
+    except Exception as e:
+        logger.error(f"Ошибка сервера: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail={"name": "Ошибка сервера при обновлении пароля"}
+        )
+
+
 
 
 @user_router.post("/roles/add", response_model=UpdatedUserResponse)

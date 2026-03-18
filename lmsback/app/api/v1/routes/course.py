@@ -1,8 +1,8 @@
 from typing import List, Union
-
+from pathlib import Path
 from loguru import logger
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -21,9 +21,26 @@ from api.v1.routes.actions.course_actions import (_get_course_by_id, _create_new
 from db.models.user import User
 from db.models.course import Course
 from db.session import get_db
+from utils.images import save_upload_image
 
 
 course_router = APIRouter()
+
+COURSES_UPLOAD_DIR = Path("media/courses")
+
+@course_router.post("/upload-image/")
+async def upload_course_image(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user_from_token),
+) -> dict:
+    if not check_user_permissions_teahers(current_user=current_user):
+        logger.error(f"У пользователя {current_user.email} не хватает прав")
+        raise HTTPException(status_code=403, detail="Forbidden.")
+
+    image_url = await save_upload_image(file, COURSES_UPLOAD_DIR)
+    logger.info(f"Изображение загружено пользователем {current_user.email}: {image_url}")
+    return {"image_url": image_url}
+
 
 @course_router.post("/", response_model=ShowCourse)
 async def create_course(body: CourseCreate,

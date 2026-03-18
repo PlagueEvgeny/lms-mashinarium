@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
 from api.router import main_api_router
 from core.config import APP_PORT
+from fastapi.staticfiles import StaticFiles
 
 app = FastAPI(
         title="LMS Mashinarium",
@@ -32,6 +33,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Media
+app.mount("/media", StaticFiles(directory="media"), name="media")
 
 # Router`s
 app.include_router(main_api_router)
