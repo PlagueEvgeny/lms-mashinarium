@@ -29,5 +29,5 @@ export const useTeacher = () => {
 
   return {
     createCourse
-    },
+  };
 };
