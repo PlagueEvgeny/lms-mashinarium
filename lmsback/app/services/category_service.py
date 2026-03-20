@@ -13,6 +13,12 @@ class CategoryDAL:
     def __init__(self, db_session: AsyncSession):
         self.db_session = db_session
     
+    async def get_categories_all(self) -> List[Category]:
+        query = select(Category).where(Category.is_active)
+        result = await self.db_session.execute(query)
+        categories = result.scalars().all()
+        return list(categories)
+
     async def get_category_by_id(self, id: int) -> Union[Category, None]:
         query = select(Category).where(and_(Category.id == id, Category.is_active))
         result = await self.db_session.execute(query)

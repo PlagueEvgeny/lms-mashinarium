@@ -17,10 +17,9 @@ def get_upload_config(upload_dir: Path) -> dict:
     }
 
 
-async def save_upload_image(file: UploadFile, upload_dir: Path) -> str:
+async def save_upload_image(file: UploadFile, upload_dir: Path, base_url: str) -> str:
     """
     Валидирует и сохраняет изображение.
-    Возвращает URL вида /media/{папка}/{uuid}.{ext}
     """
     config = get_upload_config(upload_dir)
 
@@ -45,4 +44,4 @@ async def save_upload_image(file: UploadFile, upload_dir: Path) -> str:
     async with aiofiles.open(filepath, "wb") as f:
         await f.write(content)
 
-    return f"/media/{upload_dir.name}/{filename}"
+    return f"{base_url}/media/{upload_dir.name}/{filename}"

@@ -1,4 +1,4 @@
-from typing import Union
+from typing import List, Union
 
 from loguru import logger
 
@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from api.v1.routes.actions.auth_actions import get_current_user_from_token
 from api.v1.routes.actions.user_actions import check_user_permissions_admin
 from api.v1.schemas.category_schema import ShowCategory, CategoryCreate, DeleteCategoryResponse, UpdateCategoryRequest, UpdatedCategoryResponse
-from api.v1.routes.actions.category_actions import _create_new_category, _get_category_by_id, _delete_category, _update_category
+from api.v1.routes.actions.category_actions import _create_new_category, _get_category_by_id, _delete_category, _update_category, _get_categories_all
 from db.models.user import User 
 from db.models.category import Category
 from db.session import get_db
@@ -42,6 +42,11 @@ async def get_category_by_id(id: int,
         raise HTTPException(status_code=404, detail=f"Category with id {id} not found")
     return category
 
+@category_router.get("/all/", response_model=List[ShowCategory])
+async def get_user_all(session: AsyncSession = Depends(get_db)):
+    logger.info("Получение категорий")
+    category = await _get_categories_all(session)
+    return category
 
 @category_router.delete("/", response_model=DeleteCategoryResponse)
 async def delete_category(id: int,
