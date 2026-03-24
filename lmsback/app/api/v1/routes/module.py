@@ -8,7 +8,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.v1.routes.actions.auth_actions import get_current_user_from_token
-from api.v1.routes.actions.user_actions import check_user_permissions_admin
+from api.v1.routes.actions.user_actions import check_user_permissions_admin, check_user_permissions_teahers
 from api.v1.schemas.module_schema import ShowModule, ModuleCreate, DeleteModuleResponse, UpdateModuleRequest, UpdatedModuleResponse
 from api.v1.routes.actions.module_actions import _create_new_module, _get_module_by_id, _delete_module_by_id
 from db.models.user import User 
@@ -24,7 +24,7 @@ async def create_module(body: ModuleCreate,
                           current_user: User = Depends(get_current_user_from_token),
                           ) -> ShowModule:
     
-    if not check_user_permissions_admin(current_user=current_user):
+    if not check_user_permissions_teahers(current_user=current_user):
         logger.error(f"У пользователя {current_user.email} не хватает прав")
         raise HTTPException(status_code=403, detail="Forbiden.")
     
@@ -48,7 +48,7 @@ async def delete_category(id: int,
                           current_user: User = Depends(get_current_user_from_token),
 ) -> DeleteModuleResponse:
     
-    if not check_user_permissions_admin(current_user=current_user):
+    if not check_user_permissions_teahers(current_user=current_user):
         logger.error(f"У пользователя {current_user.email} не хватает прав")
         raise HTTPException(status_code=403, detail="Forbiden.")
     

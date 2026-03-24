@@ -24,4 +24,4 @@ class Module(Base):
     is_active = Column(Boolean, default=True)
 
     course = relationship("Course", back_populates="modules")
-    lessons = relationship("LessonBase", back_populates="modules")
+    lessons = relationship("LessonBase", back_populates="modules", lazy="selectin")

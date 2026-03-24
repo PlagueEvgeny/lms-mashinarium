@@ -137,7 +137,7 @@ async def delete_course(id: int,
                         current_user: User = Depends(get_current_user_from_token),
 ) -> DeleteCourseResponse:
 
-    if not check_user_permissions_admin(current_user=current_user):
+    if not check_user_permissions_teahers(current_user=current_user):
         logger.error(f"У пользователя {current_user.email} не хватает прав")
         raise HTTPException(status_code=403, detail="Forbiden.")
 

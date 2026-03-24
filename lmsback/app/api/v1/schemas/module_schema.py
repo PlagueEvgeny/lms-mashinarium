@@ -9,7 +9,7 @@ from decimal import Decimal
 from datetime import datetime
 
 from api.v1.schemas.base_schema import TunedModel
-from api.v1.schemas.lesson_schema import ShortLesson
+from api.v1.schemas.lesson_schema import LessonResponse
 
 class ShowModule(TunedModel):
     id: int
@@ -22,7 +22,8 @@ class ShowModule(TunedModel):
     updated_at: Optional[datetime]
     is_active: bool
 
-    lessons: List[ShortLesson] = []
+    lessons: List[LessonResponse] = []
+
 
 class ShortModule(TunedModel):
     id: int

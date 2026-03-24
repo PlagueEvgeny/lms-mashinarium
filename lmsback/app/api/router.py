@@ -5,6 +5,7 @@ from api.v1.routes.login import auth_router
 from api.v1.routes.category import category_router
 from api.v1.routes.course import course_router
 from api.v1.routes.module import module_router
+from api.v1.routes.lesson import lesson_router
 
 main_api_router = APIRouter()
 
@@ -13,3 +14,4 @@ main_api_router.include_router(auth_router, prefix="/auth", tags=["auth"])
 main_api_router.include_router(category_router, prefix="/category", tags=["category"])
 main_api_router.include_router(course_router, prefix="/course", tags=["course"])
 main_api_router.include_router(module_router, prefix="/module", tags=["module"])
+main_api_router.include_router(lesson_router, prefix="/lesson", tags=["lesson"])

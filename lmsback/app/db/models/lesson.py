@@ -27,7 +27,6 @@ class LessonBase(Base):
     module_id = Column(Integer, ForeignKey("modules.id"))
     name = Column(String, nullable=False)
     slug = Column(String, nullable=False, unique=True)
-    description = Column(Text, nullable=True)
     display_order = Column(Integer, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -39,7 +38,7 @@ class LessonBase(Base):
         'polymorphic_identity': 'lesson'
     }
         
-    modules = relationship("Module", back_populates="lessons")
+    modules = relationship("Module", back_populates="lessons", lazy="selectin")
 
 
 class Lecture(LessonBase):
@@ -50,7 +49,7 @@ class Lecture(LessonBase):
     images = Column(JSON)
 
     __mapper_args__ = {
-        'polymorphic_identity': 'lecture'
+        'polymorphic_identity': 'lecture',
+        'polymorphic_load': 'selectin'      
     }
-
 

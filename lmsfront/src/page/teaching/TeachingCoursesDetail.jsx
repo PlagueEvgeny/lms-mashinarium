@@ -4,7 +4,7 @@ import toast, { Toaster } from 'react-hot-toast';
 import Header from '../../components/Header';
 import { useAuthUser } from '../../hooks/useAuthUser';
 import { useTeacher } from '../../hooks/useTeacher';
-import { Edit, FileText, GripVertical, MoreVertical, Plus, Trash2 } from 'lucide-react';
+import { Edit, FileText, GripVertical, MoreVertical, Plus, Trash2, ChevronUp, ChevronDown } from 'lucide-react';
 
 const TeachingCoursesDetail = () => {
   const { user } = useAuthUser();
@@ -13,6 +13,7 @@ const TeachingCoursesDetail = () => {
   const { slug } = useParams();
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [expandedModules, setExpandedModules] = useState({})
   const [showAddModule, setShowAddModule] = useState(false)
   const [menuOpen, setMenuOpen] = useState(null)
   const [newModule, setNewModule] = useState({
@@ -24,7 +25,12 @@ const TeachingCoursesDetail = () => {
 
   useEffect(() => {
     teachingCourseDetail(slug, { setCourse, setLoading, navigate, toast });
-  }, [slug, setCourse, setLoading, navigate, toast]);
+    if (course?.modules) {
+      const expanded = {}
+      course.modules.forEach(m => { expanded[m.id] = true })
+      setExpandedModules(expanded)
+    }
+  }, [slug, setCourse, setLoading, navigate, toast, course?.modules?.length]);
 
   const handleChangeModule = (e) => {
     const { name, value } = e.target;
@@ -56,6 +62,10 @@ const TeachingCoursesDetail = () => {
       await deleteModule(id)
       await teachingCourseDetail(slug, { setCourse, setLoading, navigate, toast })
     }
+  }
+
+  const toggleModule = (id) => {
+    setExpandedModules(prev => ({...prev, [id]: !prev[id]}))
   }
 
   if (loading) return (
@@ -175,13 +185,14 @@ const TeachingCoursesDetail = () => {
               <div key={module.id} className='bg-card rounded-xl border border-border overflow-hidden'>
                 <div
                    className='flex items-center gap-3 p-4 cursor-pointer hover:bg-muted/50 transition-colors'
-                   onClick=""     
+                   onClick={() => toggleModule(module.id)} 
                 >
                   <GripVertical className='w-5 h-5 text-muted-foreground' / >
                   <div className='w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-medium'>
                     {module.display_order}
                   </div>
                   <span className='flex-1 font-medium'>{module.name}</span>
+                  <span className='text-sm text-muted-foreground'>{module.lessons?.length || 0} уроков</span>
                   <div className='relative'>
                     <button onClick={(e) => { e.stopPropagation(); setMenuOpen(menuOpen == module.id ? null : module.id) }}
                             className='p-1 hover:bg-muted rounded transition-colors'
@@ -202,7 +213,27 @@ const TeachingCoursesDetail = () => {
                       </>
                     )}
                   </div>
+                  {expandedModules[module.id] ? (
+                    <ChevronUp className='w-5 h-5 text-muted-foreground' />
+                  ) : (
+                    <ChevronDown className='w-5 h-5 text-muted-foreground' />
+                  )}
                 </div>
+                
+                {expandedModules[module.id] && (
+                  <div className='border-t border-border'>
+                    {module.lessons?.length === 0 ? (
+                      <div className='p-4 text-center text-muted-foreground text-sm'>
+                        Нет уроков в этом модуле
+                      </div>
+                    ) : (
+                      <div className='divide-y divide-border'>
+                        
+                      </div>
+                    )
+                    }
+                  </div>
+                )}
               </div>
             ))} 
           </div>
