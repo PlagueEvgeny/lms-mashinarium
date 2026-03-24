@@ -54,7 +54,7 @@ const DashboardPage = () => {
               <div
                 key={course.slug}
                 className="group flex items-center gap-5 bg-card border border-border rounded-2xl shadow-sm hover:shadow-md hover:border-primary transition-all duration-300 p-5 cursor-pointer"
-                onClick={() => navigate(`/user/course/${course.slug}`)}
+                onClick={() => navigate(`/user/courses/${course.slug}`)}
               >
                 <img
                   src={course.image}

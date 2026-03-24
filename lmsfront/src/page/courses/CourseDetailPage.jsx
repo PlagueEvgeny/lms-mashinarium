@@ -61,10 +61,10 @@ return (
           <div className='bg-card mb-8 p-6 rounded-xl lg:col-span-2'>
             <h2 className='text-lg font-semibold mb-4'>Краткий план курса или с чем вам предстоит познакомится</h2>
             <div className='space-y-3'>
-              {course.modules.map((module, index) => (
-                <div key={index} className='flex gap-4'>
+              {course.modules.map((module) => (
+                <div key={module.display_order} className='flex gap-4'>
                   <div className='w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center flex-shrink-0 text-sm font-medium'>
-                    {index + 1}
+                    {module.display_order}
                   </div>
                 <p className='text-sm text-muted-foreground pt-1'>{module.name}</p>
                 </div>

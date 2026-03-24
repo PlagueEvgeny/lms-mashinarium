@@ -16,7 +16,7 @@ class ShowModule(TunedModel):
     course_id: int 
     name: str
     slug: str
-    description: str
+    description: Optional[str]
     display_order: int
     created_at: Optional[datetime]
     updated_at: Optional[datetime]
@@ -30,6 +30,7 @@ class ShortModule(TunedModel):
     name: str
     slug: str
     description: str
+    display_order: int
 
 class ModuleCreate(BaseModel):
     course_id: int

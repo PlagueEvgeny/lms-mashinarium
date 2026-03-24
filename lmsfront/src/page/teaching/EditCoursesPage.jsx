@@ -1,7 +1,9 @@
+// EditCoursePage.jsx
+
 import { API } from '../../services/api';
 import { authFetch } from '../../services/authFetch';
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom'; // [+] useParams
 import toast, { Toaster } from 'react-hot-toast';
 import Header from '../../components/Header';
 import { useAuthUser } from '../../hooks/useAuthUser';
@@ -14,15 +16,18 @@ const STATUSES = [
   { value: 'TRASH', label: 'Корзина' },
 ];
 
-const CreateCoursesPage = () => {
+// [~] CreateCoursesPage → EditCoursePage
+const EditCoursesPage = () => {
   const { user } = useAuthUser();
-  const { createCourse } = useTeacher();
+  const { updateCourse } = useTeacher(); // [~] createCourse → updateCourse
   const navigate = useNavigate();
-
+  const { slug } = useParams(); // [+] id курса из URL: /teaching/edit/:id
+  const [courseId, setCourseId] = useState(null); 
   const [categories, setCategories] = useState([]);
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [loading, setLoading] = useState(true); // [+] флаг загрузки данных курса
 
   const [formData, setFormData] = useState({
     name: '',
@@ -37,7 +42,7 @@ const CreateCoursesPage = () => {
     teacher_ids: [],
   });
 
-  // Загрузка категорий
+  // Загрузка категорий (без изменений)
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -51,26 +56,48 @@ const CreateCoursesPage = () => {
     fetchCategories();
   }, []);
 
-  // Подставляем себя как преподавателя
+  // [~] Вместо подстановки себя как преподавателя — загружаем данные курса
   useEffect(() => {
-    if (user?.user_id) {
-      setFormData((prev) => ({ ...prev, teacher_ids: [user.user_id] }));
-    }
-  }, [user]);
+    const fetchCourse = async () => {
+      try {
+        const res = await authFetch(API.teaching_course(slug));
+        if (!res.ok) throw new Error();
+        const course = await res.json();
+
+        setCourseId(course.id);
+
+        setFormData({
+          name:              course.name              ?? '',
+          slug:              course.slug              ?? '',
+          short_description: course.short_description ?? '',
+          description:       course.description       ?? '',
+          image:             course.image             ?? '',
+          price:             course.price             ?? '',
+          status:            course.status            ?? ['DRAFT'],
+          display_order:     course.display_order     ?? 0,
+          teacher_ids:       course.teacher_ids       ?? [],
+          category_ids: (course.category_ids ?? course.categories ?? []).map((c) =>
+    typeof c === 'object' ? c.id : c
+  ),
+        });
+
+        if (course.image) setImagePreview(course.image);
+      } catch {
+        toast.error('Не удалось загрузить курс');
+      } finally {
+        setLoading(false); // [+]
+      }
+    };
+    fetchCourse();
+  }, [slug]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Автогенерация slug из названия
   const handleNameChange = (e) => {
-    const name = e.target.value;
-    const slug = name
-      .toLowerCase()
-      .replace(/\s+/g, '-')
-      .replace(/[^\w-]/g, '');
-    setFormData((prev) => ({ ...prev, name, slug }));
+    setFormData((prev) => ({ ...prev, name: e.target.value }));
   };
 
   const handleCategoryToggle = (id) => {
@@ -95,18 +122,30 @@ const CreateCoursesPage = () => {
     setFormData((prev) => ({ ...prev, image: '' }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSubmitting(true);
-    try {
-      await createCourse(formData, imageFile);
-      navigate('/teaching');
-    } catch (err) {
-      toast.error(err.message);
-    } finally {
-      setSubmitting(false);
-    }
-  };
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setSubmitting(true);
+  try {
+    await updateCourse(courseId, formData, imageFile); 
+    navigate('/teaching');
+  } catch (err) {
+    toast.error(err.message);
+  } finally {
+    setSubmitting(false);
+  }
+};
+
+  // [+] Пока данные курса не пришли с сервера — не рендерим форму
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="flex items-center justify-center h-64 text-gray-400">
+          Загрузка...
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -121,11 +160,11 @@ const CreateCoursesPage = () => {
         </button>
 
         <div className="bg-card rounded-2xl border border-border p-8">
-          <h1 className="text-2xl font-bold text-foreground mb-6">Создание нового курса</h1>
+          {/* [~] Заголовок */}
+          <h1 className="text-2xl font-bold text-foreground mb-6">Редактирование курса</h1>
 
           <form onSubmit={handleSubmit} className="space-y-6">
 
-            {/* Название */}
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">
                 Название курса *
@@ -141,7 +180,6 @@ const CreateCoursesPage = () => {
               />
             </div>
 
-            {/* Slug */}
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">
                 Slug *
@@ -157,7 +195,6 @@ const CreateCoursesPage = () => {
               />
             </div>
 
-            {/* Краткое описание */}
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">
                 Краткое описание
@@ -172,7 +209,6 @@ const CreateCoursesPage = () => {
               />
             </div>
 
-            {/* Описание */}
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">
                 Описание
@@ -187,18 +223,13 @@ const CreateCoursesPage = () => {
               />
             </div>
 
-            {/* Изображение */}
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">
                 Обложка курса
               </label>
               {imagePreview ? (
                 <div className="relative w-full h-48 rounded-lg overflow-hidden border border-border">
-                  <img
-                    src={imagePreview}
-                    alt="preview"
-                    className="w-full h-full object-cover"
-                  />
+                  <img src={imagePreview} alt="preview" className="w-full h-full object-cover" />
                   <button
                     type="button"
                     onClick={handleRemoveImage}
@@ -222,12 +253,9 @@ const CreateCoursesPage = () => {
               )}
             </div>
 
-            {/* Цена и порядок */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Цена *
-                </label>
+                <label className="block text-sm font-medium text-foreground mb-2">Цена *</label>
                 <input
                   type="number"
                   name="price"
@@ -256,11 +284,8 @@ const CreateCoursesPage = () => {
               </div>
             </div>
 
-            {/* Статус */}
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Статус *
-              </label>
+              <label className="block text-sm font-medium text-foreground mb-2">Статус *</label>
               <select
                 name="status"
                 value={formData.status[0]}
@@ -274,11 +299,8 @@ const CreateCoursesPage = () => {
               </select>
             </div>
 
-            {/* Категории */}
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Категории *
-              </label>
+              <label className="block text-sm font-medium text-foreground mb-2">Категории *</label>
               <div className="flex flex-wrap gap-2">
                 {categories.map((cat) => {
                   const selected = formData.category_ids.includes(cat.id);
@@ -315,7 +337,6 @@ const CreateCoursesPage = () => {
               </div>
             )}
 
-            {/* Кнопки */}
             <div className="flex gap-3 pt-2">
               <button
                 type="button"
@@ -329,7 +350,8 @@ const CreateCoursesPage = () => {
                 disabled={submitting}
                 className="flex-1 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
               >
-                {submitting ? 'Создание...' : 'Создать курс'}
+                {/* [~] Текст кнопки */}
+                {submitting ? 'Сохранение...' : 'Сохранить изменения'}
               </button>
             </div>
 
@@ -340,4 +362,4 @@ const CreateCoursesPage = () => {
   );
 };
 
-export default CreateCoursesPage;
+export default EditCoursesPage; 

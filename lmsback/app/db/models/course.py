@@ -53,4 +53,4 @@ class Course(Base):
     teachers = relationship("User", secondary="teacher_courses", back_populates='teacher_courses')
     students = relationship("User", secondary="student_courses", back_populates='student_courses')
 
-    modules = relationship("Module", back_populates="course", cascade="all, delete-orphan")
+    modules = relationship("Module", back_populates="course", cascade="all, delete-orphan", order_by="Module.display_order")

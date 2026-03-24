@@ -5,14 +5,15 @@ import { useNavigate } from 'react-router-dom';
 import toast, { Toaster } from 'react-hot-toast';
 import Header from '../../components/Header';
 import { useAuthUser } from '../../hooks/useAuthUser';
-import { Plus, FileText, Users } from 'lucide-react';
+import { Plus, FileText, Users, MoreVertical, Edit } from 'lucide-react';
 
 const TeachingPage = () => {
   const { user } = useAuthUser();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
-  const [courses, setCourses] = useState([]); 
+  const [courses, setCourses] = useState([]);
+  const [menuOpen, setMenuOpen] = useState(null)
   useEffect(() => {
     const fetchCourses = async () => {
       try {
@@ -42,7 +43,7 @@ const TeachingPage = () => {
             <p className='text-muted-foreground mt-1'>Управление курсами и материалами</p>
           </div>
           <button ttitle="Создать курс"
-                  onClick={() => navigate('/teaching/curses/new')}
+                  onClick={() => navigate('/teaching/courses/new')}
                   className='bg-primary text-primary-foreground px-4 py-2 rounded-lg font-medium hover:bg-primary transition-colors flex items-center gap-2'>
             <Plus className='w-5 h-5'  /> Создать курс 
           </button>
@@ -63,6 +64,26 @@ const TeachingPage = () => {
                         <h3 className='text-lg font-semibold text-foreground'>{course.name}</h3>
                         <p className='text-sm text-muted-foreground mt-1 lime-clamp-2'>{course.short_description}</p>
                       </div>
+                      <div className='relative'>
+                        <button
+                          onClick={() => setMenuOpen(menuOpen === course.id ? null : course.id)}
+                          className='p-2 hover:bg-muted rounded-lg transition-colors'
+                        >
+                           <MoreVertical className='w-5 h-5 text-muted-foreground' / >
+                        </button>
+                        {menuOpen === course.id && (
+                          <>
+                            <div className='fixed inset-0 z-10' onClick={() => setMenuOpen(null)} />
+                            <div className='absolute right-0 top-full mt-1 w-48 bg-card border border-border rounded-lg shadow-lg z-20 py-1'>
+                              <button title="Редактировать"
+                                onClick={() => navigate(`/teaching/courses/${course.slug}/edit`)}
+                                className='flex items-center gap-3 px-4 py-2 text-sm hover:bg-muted transition-colors'>
+                                <Edit className='w-5 h-5'  /> Редактировать 
+                              </button> 
+                            </div>
+                          </>
+                        )}
+                      </div>
                     </div>
                     <div className='flex items-center gap-6 mt-4 text-sm text-muted-foreground'>
                       <div className='flex items-center gap-2'>
@@ -77,19 +98,19 @@ const TeachingPage = () => {
                     <div className='flex items-center gap-3 mt-4'>
                       <button
                         className="bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
-                        onClick={() => navigate(`/teaching/course/${course.slug}`)}
+                        onClick={() => navigate(`/teaching/courses/${course.slug}`)}
                       >
                         Управление курсом
                       </button>
                       <button
                         className="bg-muted text-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-muted/80 transition-colors"
-                        onClick={() => navigate(`/teaching/course/${course.slug}`)}
+                        onClick={() => navigate(`/teaching/courses/${course.slug}`)}
                       >
                         Студенты
                       </button>
                       <button
                         className="bg-muted text-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-muted/80 transition-colors"
-                        onClick={() => navigate(`/teaching/course/${course.slug}`)}
+                        onClick={() => navigate(`/teaching/courses/${course.slug}`)}
                       >
                         Работы на проверку(В разработке)
                       </button>

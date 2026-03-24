@@ -80,6 +80,18 @@ class CourseDAL:
         course = result.scalars().all()
         return list(course)
 
+    async def get_teacher_course_by_slug(self, user_id:UUID, slug: str) -> Union[Course, None]:
+        query = select(Course).\
+                options(selectinload(Course.categories)).\
+                options(selectinload(Course.modules)).\
+                options(selectinload(Course.teachers)).\
+                options(selectinload(Course.students)).\
+                where(and_(Course.teachers.any(User.user_id == user_id), Course.slug == slug, Course.is_active))
+        result = await self.db_session.execute(query)
+        course_row = result.fetchone()
+        if course_row is not None:
+            return course_row[0]
+
     async def get_course_all(self) -> List[Course]:
         query = select(Course).\
                 options(selectinload(Course.categories)).\

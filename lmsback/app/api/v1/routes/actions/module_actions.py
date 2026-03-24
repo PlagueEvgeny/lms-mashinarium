@@ -19,6 +19,13 @@ async def _get_module_by_id(id, session) -> Union[Module, None]:
 #        module = await module_dal.get_module_list()
 #        return list(module)
 
+async def _delete_module_by_id(id, session) -> Union[int, None]:
+    logger.info(f"Удаление модуля {id} по id")
+    async with session.begin():
+        module_dal = ModuleDAL(session)
+        module = await module_dal.delete_module(id=id)
+        return module
+
 async def _create_new_module(body: ModuleCreate, session) -> ShowModule:
     logger.info("Создание модуля")
     async with session.begin():

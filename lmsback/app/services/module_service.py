@@ -4,6 +4,7 @@ from typing import Optional
 from sqlalchemy import and_
 from sqlalchemy import select
 from sqlalchemy import update
+from sqlalchemy import delete
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from db.models.module import Module
@@ -15,7 +16,7 @@ class ModuleDAL:
         self.db_session = db_session
     
     async def get_module_by_id(self, id: int) -> Union[Module, None]:
-        query = select(Module).options(selectinload(Module.lessons)).where(and_(Module.id == id, Module.is_active))
+        query = select(Module).options(selectinload(Module.lessons)).where(and_(Module.id == id, Module.is_active)).order_by(Module.display_order)
         result = await self.db_session.execute(query)
         module_row = result.fetchone()
         if module_row is not None:
@@ -49,11 +50,10 @@ class ModuleDAL:
         return new_module
     
     async def delete_module(self, id: int) -> Union[int, None]:
-        query = update(Module).\
-                where(and_(Module.id == id, Module.is_active)).\
-                values(is_active=False).\
+        query = delete(Module).\
+                where(Module.id == id).\
                 returning(Module.id)
-
+        
         result = await self.db_session.execute(query)
         deleted_module_id_row = result.fetchone()
         if deleted_module_id_row is not None:
