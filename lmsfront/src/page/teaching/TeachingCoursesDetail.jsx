@@ -4,15 +4,31 @@ import toast, { Toaster } from 'react-hot-toast';
 import Header from '../../components/Header';
 import { useAuthUser } from '../../hooks/useAuthUser';
 import { useTeacher } from '../../hooks/useTeacher';
-import { Edit, FileText, GripVertical, MoreVertical, Plus, Trash2, ChevronUp, ChevronDown } from 'lucide-react';
+import { Edit, FileText, GripVertical, MoreVertical, Plus, Trash2, ChevronUp, ChevronDown, Video, ClipboardList, HelpCircle, Edit2 } from 'lucide-react';
+
+const lessonTypeIcons = {
+  lecture: FileText,
+  video: Video,
+  practica: ClipboardList,
+  quiz: HelpCircle
+}
+
+const lessonTypeLabels = {
+  lecture: "Лекция",
+  video: "Видео",
+  practica: "Практика",
+  quiz: "Тестирование"
+}
+
 
 const TeachingCoursesDetail = () => {
   const { user } = useAuthUser();
   const navigate = useNavigate();
-  const { teachingCourseDetail, createModule, deleteModule } = useTeacher();
+  const { teachingCourseDetail, createModule, getModule, deleteModule, deleteLesson } = useTeacher();
   const { slug } = useParams();
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [modulesData, setModulesData] = useState({});
   const [expandedModules, setExpandedModules] = useState({})
   const [showAddModule, setShowAddModule] = useState(false)
   const [menuOpen, setMenuOpen] = useState(null)
@@ -25,12 +41,15 @@ const TeachingCoursesDetail = () => {
 
   useEffect(() => {
     teachingCourseDetail(slug, { setCourse, setLoading, navigate, toast });
-    if (course?.modules) {
-      const expanded = {}
-      course.modules.forEach(m => { expanded[m.id] = true })
-      setExpandedModules(expanded)
-    }
-  }, [slug, setCourse, setLoading, navigate, toast, course?.modules?.length]);
+  }, [slug, setCourse, setLoading, navigate, toast]);
+  
+  const fetchModule = async (id, forceRefresh = false) => {
+    if (!forceRefresh && modulesData[id]) return;
+    
+    await getModule(id, {
+      setModule: (data) => setModulesData(prev => ({ ...prev, [id]: data }))
+    });
+  };
 
   const handleChangeModule = (e) => {
     const { name, value } = e.target;
@@ -43,6 +62,7 @@ const TeachingCoursesDetail = () => {
     try{
       await createModule(course.id, newModule)
       await teachingCourseDetail(slug, { setCourse, setLoading, navigate, toast })
+      setModulesData({})
       setNewModule({
         name: '',
         slug: '',
@@ -61,12 +81,27 @@ const TeachingCoursesDetail = () => {
     if (confirm("Удалить этот модуль")){
       await deleteModule(id)
       await teachingCourseDetail(slug, { setCourse, setLoading, navigate, toast })
+      setModulesData(prev => {
+        const newData = { ...prev };
+        delete newData[id];
+        return newData;
+      })
     }
   }
 
-  const toggleModule = (id) => {
-    setExpandedModules(prev => ({...prev, [id]: !prev[id]}))
-  }
+  const handleDeleteLesson = async (lesson_id, module_id) => {
+    if (confirm("Удалить этот урок")) {
+      await deleteLesson(lesson_id);
+      await fetchModule(module_id, true);
+    }
+  };
+
+  const toggleModule = async (id) => {
+    if (!expandedModules[id] && !modulesData[id]) {
+      await fetchModule(id);
+    }
+    setExpandedModules(prev => ({ ...prev, [id]: !prev[id] }));
+  };
 
   if (loading) return (
     <div className="min-h-screen bg-background flex items-center justify-center">
@@ -75,7 +110,6 @@ const TeachingCoursesDetail = () => {
   );
 
   if (!course) return null;
-
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -119,13 +153,13 @@ const TeachingCoursesDetail = () => {
         </div>
         {showAddModule && (
           <div className='bg-card rounded-xl border border-border p-4 mb-4'>
-            <form onSubmit={handleAddModule} className='flex items-center gap-3'>
+            <form onSubmit={handleAddModule} className='flex flex-col sm:flex-row items-stretch sm:items-center gap-3'>
               <input 
                 type="number"
                 name="display_order"
                 value={newModule.display_order}
                 onChange={handleChangeModule}
-                className='flex-1 px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary' 
+                className='w-full sm:flex-1 px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary' 
                 placeholder='Номер модуля'
                 autoFocus
                / >
@@ -134,7 +168,7 @@ const TeachingCoursesDetail = () => {
                 name="name"
                 value={newModule.name} 
                 onChange={handleChangeModule}
-                className='flex-1 px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary' 
+                className='w-full sm:flex-1 px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary' 
                 placeholder='Название модуля'
                 autoFocus
                / >
@@ -143,7 +177,7 @@ const TeachingCoursesDetail = () => {
                 name="slug"
                 value={newModule.slug}
                 onChange={handleChangeModule}
-                className='flex-1 px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary' 
+                className='w-full sm:flex-1 px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary' 
                 placeholder='Slug модуля'
                 autoFocus
                / >
@@ -152,20 +186,20 @@ const TeachingCoursesDetail = () => {
                 name="description"
                 value={newModule.description} 
                 onChange={handleChangeModule}
-                className='flex-2 px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary' 
+                className='w-full sm:flex-1 px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary' 
                 placeholder='Краткое описание модуля'
                 autoFocus
                / >
               <button 
                 type="submit"
-                className='bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors'  
+                className='flex-1 sm:flex-none bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors'  
               >
                 Добавить
               </button>
               <button 
                 type="button" 
                 onClick={() => {setShowAddModule(false)}}
-                className='px-4 py-2 text-muted-foreground hover:text-foreground transition-colors'
+                className='flex-1 sm:flex-none px-4 py-2 text-muted-foreground hover:text-foreground transition-colors'
               >
                 Отмена
               </button>
@@ -181,8 +215,11 @@ const TeachingCoursesDetail = () => {
           </div>
         ) : (
           <div className='space-y-4'>
-            {course.modules?.map((module) => (
-              <div key={module.id} className='bg-card rounded-xl border border-border overflow-hidden'>
+            {course.modules?.map((module) => {
+              const moduleDetails = modulesData[module.id];
+              
+              return (
+              <div key={module.id} className='bg-card rounded-xl border border-border '>
                 <div
                    className='flex items-center gap-3 p-4 cursor-pointer hover:bg-muted/50 transition-colors'
                    onClick={() => toggleModule(module.id)} 
@@ -192,8 +229,8 @@ const TeachingCoursesDetail = () => {
                     {module.display_order}
                   </div>
                   <span className='flex-1 font-medium'>{module.name}</span>
-                  <span className='text-sm text-muted-foreground'>{module.lessons?.length || 0} уроков</span>
-                  <div className='relative'>
+                  <span className='text-sm text-muted-foreground'>{moduleDetails?.lessons?.length || module.lessons?.length || 0} уроков</span>
+                  <div className='relative' onClick={(e) => e.stopPropagation()}>{}
                     <button onClick={(e) => { e.stopPropagation(); setMenuOpen(menuOpen == module.id ? null : module.id) }}
                             className='p-1 hover:bg-muted rounded transition-colors'
                     >
@@ -204,10 +241,16 @@ const TeachingCoursesDetail = () => {
                         <div className='fixed inset-0 z-10' onClick={() => setMenuOpen(null)} />
                         <div className='absolute right-0 top-full mt-1 w-40 bg-card border border-border rounded-lg shadow-lg z-20 py-1'>
                           <button 
-                            onClick={() => { handleDeleteModule(module.id); setMenuOpen(null)}}
+                            onClick={() => navigate(`/teaching/courses/${course.slug}/modules/${module.slug}/edit`)}
+                            className='flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted transition-colors w-full text-left'
+                          >
+                            <Edit2 className='w-4 h-4 text-muted-foreground' /> Редактировать
+                          </button>
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); handleDeleteModule(module.id); setMenuOpen(null)}}
                             className='flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted transition-colors w-full text-left text-destructive'
                           >
-                            <Trash2 className='w-4 h-4' />
+                            <Trash2 className='w-4 h-4' /> Удалить
                           </button>
                         </div>
                       </>
@@ -221,21 +264,56 @@ const TeachingCoursesDetail = () => {
                 </div>
                 
                 {expandedModules[module.id] && (
-                  <div className='border-t border-border'>
-                    {module.lessons?.length === 0 ? (
-                      <div className='p-4 text-center text-muted-foreground text-sm'>
-                        Нет уроков в этом модуле
-                      </div>
-                    ) : (
+                    <div className='border-t border-border'>
+                      {!moduleDetails ? (
+                        <div className='p-4 text-center text-muted-foreground text-sm'>
+                          Загрузка уроков...
+                        </div>
+                      ) : moduleDetails.lessons?.length === 0 ? (
+                        <div className='p-4 text-center text-muted-foreground text-sm'>
+                          Нет уроков в этом модуле
+                        </div>
+                      ) : (
                       <div className='divide-y divide-border'>
-                        
+                        {moduleDetails.lessons?.map((lesson) => {
+                          const LessonIcon = lessonTypeIcons[lesson.lesson_type] || FileText
+                          return(
+                            <div key={lesson.display_order} className='flex items-center gap-3 p-4 pl-16 hover:bg-muted/30 transition-colors'>
+                              <div className='w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center'>
+                                <LessonIcon className="w-4 h-4 text-accent" />
+                              </div>
+                              <div className='flex-1'>
+                                <div className='font-medium text-sm'>{lesson.name}</div>
+                                <div className='text-xs text-muted-foreground'>{lessonTypeLabels[lesson.lesson_type]}</div>
+                              </div>
+                              <button title="Редактировать"
+                                    onClick={() => navigate(`/teaching/courses/${course.slug}/modules/${module.slug}/lessons/${lesson.slug}/edit`)}
+                                    className='p-2 hover:bg-muted rounded transition-colors'>
+                                    <Edit className='w-4 h-4 text-muted-foreground'  />  
+                              </button>
+                              <button title="Удаление"
+                                      onClick={() => handleDeleteLesson(lesson.id, module.id)}
+                                      className='p-2 hover:bg-muted rounded transition-colors text-destructive'
+                              >
+                                <Trash2 className='w-4 h-4' />
+                              </button>
+                            </div>
+                        )})}
                       </div>
                     )
                     }
+                      <div onClick={() => {navigate(`/teaching/courses/${course.slug}/modules/${module.slug}/lessons/new`);}}
+                           className='flex items-center justify-center gap-3 p-4 border-t hover:bg-muted/30 transition-colors cursor-pointer' >
+                        <span className='flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors'>
+                          <Plus className='w-4 h-4' />
+                          Добавить урок
+                        </span>
+                      </div>
                   </div>
                 )}
               </div>
-            ))} 
+              );
+            })} 
           </div>
         )}
       </main>

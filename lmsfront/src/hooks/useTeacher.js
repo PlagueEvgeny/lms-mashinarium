@@ -115,6 +115,37 @@ export const useTeacher = () => {
     toast.success('Модуль создан');
     return await response.json();
   }
+  const getModule = async(module_id, {setModule}) => {
+    const response = await authFetch(API.get_module(module_id));
+    if (!response.ok) throw new Error('Ошибка получения');
+    const data = await response.json();
+    setModule(data); 
+  }
+
+  const getModuleSlug = async(module_slug, {setModule}) => {
+    const response = await authFetch(API.get_module_slug(module_slug));
+    if (!response.ok) throw new Error('Ошибка получения');
+    const data = await response.json();
+    setModule(data); 
+  }
+
+  const updateModule = async (module_id, formData) => {
+    const response = await authFetch(API.update_module(module_id), {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${getToken()}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formData),
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || 'Ошибка обновления');
+    }
+    toast.success('Модуль обновлён');
+    return await response.json();
+  };
+
   const deleteModule = async(module_id) => {
     const response = await authFetch(API.delete_module(module_id), {
       method:'DELETE',
@@ -131,6 +162,22 @@ export const useTeacher = () => {
     return await response.json();
   }
 
-  return { createCourse, updateCourse, teachingCourseDetail, createModule, deleteModule, uploadImage };
+  const deleteLesson = async(lesson_id) => {
+    const response = await authFetch(API.delete_lesson(lesson_id), {
+      method:'DELETE',
+      headers: {
+        Authorization: `Bearer ${getToken()}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || 'Ошибка удаление');
+    }
+    toast.success('Урок удален');
+    return await response.json();
+  }
+
+  return { createCourse, updateCourse, teachingCourseDetail, createModule, getModule, getModuleSlug, updateModule, deleteModule, deleteLesson, uploadImage };
 };
 

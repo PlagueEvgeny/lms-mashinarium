@@ -45,3 +45,46 @@ async def _create_new_lesson(
         return response_class.model_validate(lesson)
 
 
+async def _get_lesson(lesson_id: int, session: AsyncSession) -> Union[LectureResponse, VideoResponse]:
+    logger.info(f"Получение урока {lesson_id}")
+    async with session.begin():
+        lesson_dal = LessonDAL(session)
+        lesson = await lesson_dal.get_lesson_by_id(lesson_id)
+
+        if lesson is None:
+            raise ValueError(f"Урок {lesson_id} не найден")
+
+        response_class = LESSON_RESPONSE_MAP.get(LessonType(lesson.lesson_type))
+        if response_class is None:
+            raise ValueError(f"Неизвестный тип урока: {lesson.lesson_type}")
+
+        return response_class.model_validate(lesson)
+
+
+async def _get_lesson_by_slug(slug: str, session: AsyncSession) -> Union[LectureResponse, VideoResponse]:
+    logger.info(f"Получение урока по slug: {slug}")
+    async with session.begin():
+        lesson_dal = LessonDAL(session)
+        lesson = await lesson_dal.get_lesson_by_slug(slug)
+
+        if lesson is None:
+            raise ValueError(f"Урок с slug '{slug}' не найден")
+
+        response_class = LESSON_RESPONSE_MAP.get(LessonType(lesson.lesson_type))
+        if response_class is None:
+            raise ValueError(f"Неизвестный тип урока: {lesson.lesson_type}")
+
+        return response_class.model_validate(lesson)
+
+
+async def _delete_lesson(lesson_id: int, session: AsyncSession) -> int:
+    logger.info(f"Удаление урока {lesson_id}")
+    async with session.begin():
+        lesson_dal = LessonDAL(session)
+        deleted_id = await lesson_dal.delete_lesson(lesson_id)
+
+        if deleted_id is None:
+            raise ValueError(f"Урок {lesson_id} не найден или уже удалён")
+
+        logger.info(f"Урок {deleted_id} успешно удалён")
+        return deleted_id

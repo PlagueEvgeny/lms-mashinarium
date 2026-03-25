@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from api.v1.routes.actions.auth_actions import get_current_user_from_token
 from api.v1.routes.actions.user_actions import check_user_permissions_admin, check_user_permissions_teahers
 from api.v1.schemas.module_schema import ShowModule, ModuleCreate, DeleteModuleResponse, UpdateModuleRequest, UpdatedModuleResponse
-from api.v1.routes.actions.module_actions import _create_new_module, _get_module_by_id, _delete_module_by_id
+from api.v1.routes.actions.module_actions import _create_new_module, _get_module_by_id, _delete_module_by_id, _update_module, _get_module_by_slug
 from db.models.user import User 
 from db.models.module import Module
 from db.session import get_db
@@ -42,8 +42,19 @@ async def get_module_by_id(id: int,
         raise HTTPException(status_code=404, detail=f"Module with id {id} not found")
     return module
 
+@module_router.get("/by_slug/{slug}", response_model=ShowModule)
+async def get_module_by_slug(slug: str, 
+                         session: AsyncSession = Depends(get_db),
+) -> Union[Module, None]:
+    logger.info("Получение модуля по slug")
+    module = await _get_module_by_slug(slug, session)
+    if module is None:
+        logger.error(f"Модуль {slug} не найден.")
+        raise HTTPException(status_code=404, detail=f"Module with slug {slug} not found")
+    return module
+
 @module_router.delete("/", response_model=DeleteModuleResponse)
-async def delete_category(id: int,
+async def delete_module(id: int,
                           session: AsyncSession = Depends(get_db),
                           current_user: User = Depends(get_current_user_from_token),
 ) -> DeleteModuleResponse:
@@ -62,6 +73,36 @@ async def delete_category(id: int,
     deleted_module_id = await _delete_module_by_id(id, session)
 
     return DeleteModuleResponse(deleted_module_id=deleted_module_id)
+
+
+@module_router.patch("/", response_model=UpdatedModuleResponse)
+async def update_module(id: int, 
+                            body: UpdateModuleRequest, 
+                            session: AsyncSession = Depends(get_db),
+                            current_user: User = Depends(get_current_user_from_token),
+) -> UpdatedModuleResponse:
+    
+    if not check_user_permissions_admin(current_user=current_user):
+        logger.error(f"У пользователя {current_user.email} не хватает прав")
+        raise HTTPException(status_code=403, detail="Forbiden.")
+    
+    updated_module_params = body.dict(exclude_none=True)
+    if updated_module_params == {}:
+        logger.error("Обновление не может быть пустым")
+        raise HTTPException(status_code=422, detail="At least one parametr for user update info should be provided")
+
+    module_for_update = await _get_module_by_id(id, session)
+    if module_for_update is None:
+        logger.error(f"Модуль {id} не найден.")
+        raise HTTPException(status_code=404, detail=f"Module with id {id} not found")
+    
+    try: 
+        updated_module_id = await _update_module(updated_module_params=updated_module_params, session=session, id=id)
+    except IntegrityError as err:
+        logger.error(err)
+        raise HTTPException(status_code=503, detail=f"Database error: {err}")
+
+    return UpdatedModuleResponse(updated_module_id=updated_module_id)
 
 
 

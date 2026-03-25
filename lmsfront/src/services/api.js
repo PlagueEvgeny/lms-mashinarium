@@ -16,7 +16,15 @@ export const API = {
   detail_course: (slug) => `${API_URL}/course/?slug=${slug}`,
   
   create_module: `${API_URL}/module`,
+  get_module: (id) => `${API_URL}/module/?id=${id}`,
+  get_module_slug: (slug) => `${API_URL}/module/by_slug/${slug}`,
+  update_module: (id) => `${API_URL}/module/?id=${id}`,
   delete_module: (id) => `${API_URL}/module/?id=${id}`,
+
+  create_lesson: `${API_URL}/lesson`,
+  get_lesson_id: (id) => `${API_URL}/lesson/?lesson_id=${id}`,
+  get_lesson_slug: (slug) => `${API_URL}/lesson/by-slug/${slug}`,
+  delete_lesson: (id) => `${API_URL}/lesson/?lesson_id=${id}`,
   
   user: `${API_URL}/user/me`,
   user_change_password: `${API_URL}/user/me/change_password`,

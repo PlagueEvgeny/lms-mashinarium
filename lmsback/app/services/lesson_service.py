@@ -5,7 +5,7 @@ from sqlalchemy import and_
 from sqlalchemy import select
 from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession
-from db.models.lesson import LessonBase, Lecture, LessonType
+from db.models.lesson import LessonBase, Lecture, LessonType, VideoLesson, Practica
 
 T = TypeVar("T", bound=LessonBase)
 
@@ -25,6 +25,8 @@ class LessonDAL:
         
         lesson_class_map = {
             LessonType.LECTURE: Lecture,
+            LessonType.VIDEO: VideoLesson,
+            LessonType.PRACTICA: Practica,
         }
 
         lesson_class = lesson_class_map.get(lesson_type, LessonBase)
@@ -41,3 +43,37 @@ class LessonDAL:
         await self.db_session.flush()
         await self.db_session.refresh(new_lesson)
         return new_lesson
+
+
+    async def get_lesson_by_id(self, lesson_id: int) -> Optional[LessonBase]:
+        result = await self.db_session.execute(
+            select(LessonBase).where(
+                LessonBase.id == lesson_id,
+                LessonBase.is_active == True
+            )
+        )
+        return result.scalars().first()
+
+    async def get_lesson_by_slug(self, slug: str) -> Optional[LessonBase]:
+        result = await self.db_session.execute(
+            select(LessonBase).where(
+                LessonBase.slug == slug,
+                LessonBase.is_active == True
+            )
+        )
+        return result.scalars().first()
+
+    async def delete_lesson(self, lesson_id: int) -> Optional[int]:
+        result = await self.db_session.execute(
+            update(LessonBase)
+            .where(
+                LessonBase.id == lesson_id,
+                LessonBase.is_active == True
+            )
+            .values(is_active=False)
+            .returning(LessonBase.id)
+        )
+        deleted_id = result.scalars().first()
+        await self.db_session.flush()
+        return deleted_id
+

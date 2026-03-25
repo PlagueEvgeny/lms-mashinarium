@@ -1,5 +1,3 @@
-// EditCoursePage.jsx
-
 import { API } from '../../services/api';
 import { authFetch } from '../../services/authFetch';
 import { useState, useEffect } from 'react';
@@ -16,18 +14,17 @@ const STATUSES = [
   { value: 'TRASH', label: 'Корзина' },
 ];
 
-// [~] CreateCoursesPage → EditCoursePage
 const EditCoursesPage = () => {
   const { user } = useAuthUser();
-  const { updateCourse } = useTeacher(); // [~] createCourse → updateCourse
+  const { updateCourse } = useTeacher(); 
   const navigate = useNavigate();
-  const { slug } = useParams(); // [+] id курса из URL: /teaching/edit/:id
+  const { slug } = useParams(); 
   const [courseId, setCourseId] = useState(null); 
   const [categories, setCategories] = useState([]);
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [submitting, setSubmitting] = useState(false);
-  const [loading, setLoading] = useState(true); // [+] флаг загрузки данных курса
+  const [loading, setLoading] = useState(true); 
 
   const [formData, setFormData] = useState({
     name: '',
@@ -42,7 +39,6 @@ const EditCoursesPage = () => {
     teacher_ids: [],
   });
 
-  // Загрузка категорий (без изменений)
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -151,7 +147,7 @@ const handleSubmit = async (e) => {
     <div className="min-h-screen bg-background">
       <Header />
       <Toaster position="top-right" />
-      <main className="max-w-3xl mx-auto px-4 py-8">
+      <main className="max-w-7xl mx-auto px-4 py-8">
         <button
           onClick={() => navigate('/teaching')}
           className="flex items-center gap-1 text-sm text-gray-500 hover:text-primary transition-colors mb-8"

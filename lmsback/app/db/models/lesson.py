@@ -53,3 +53,27 @@ class Lecture(LessonBase):
         'polymorphic_load': 'selectin'      
     }
 
+class VideoLesson(LessonBase):
+    __tablename__ = "video_lessons"
+
+    id = Column(Integer, ForeignKey("lessons.id"), primary_key=True)
+    video_url = Column(String, nullable=False)
+    duration = Column(Integer)
+
+    __mapper_args__ = {
+        "polymorphic_identity": "video",
+        "polymorphic_load": "selectin",
+    }
+
+
+class Practica(LessonBase):
+    __tablename__ = "practicas"
+
+    id = Column(Integer, ForeignKey("lessons.id"), primary_key=True)
+    content = Column(Text, nullable=False)
+    attachments = Column(JSON, nullable=True) 
+
+    __mapper_args__ = {
+        "polymorphic_identity": "practica",
+        "polymorphic_load": "selectin",
+    }

@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from api.v1.routes.actions.auth_actions import get_current_user_from_token
 from api.v1.routes.actions.user_actions import check_user_permissions_moderator, check_user_permissions_teahers, check_user_permissions_admin
 from api.v1.schemas.course_schema import (AddStudentsToCourse, AddTeachersToCourse, ListCourse, RemoveStudentsFromCourse,
-                                          RemoveTeachersFromCourse, ShowCourse, CourseCreate, ListTeacherCourse,
+                                          RemoveTeachersFromCourse, ShowCourse, CourseCreate, ListTeacherCourse, ShowTeacherCourse,
                                           DeleteCourseResponse, UpdatedCourseResponse, UpdateCourseRequest)
 from api.v1.routes.actions.course_actions import (_get_course_by_id, _create_new_course, _delete_course,
                                                   _update_course, _add_students_to_course, _add_teachers_to_course,
@@ -118,8 +118,8 @@ async def get_user_courses_as_teacher(
         course = []
     return course
 
-@course_router.get("/teachers/{slug}", response_model=ShowCourse)
-async def get_user_course_by_slug(
+@course_router.get("/teachers/{slug}", response_model=ShowTeacherCourse)
+async def get_teachers_course_by_slug(
                         slug: str,
                         session: AsyncSession = Depends(get_db),
                         current_user: User = Depends(get_current_user_from_token)

@@ -11,7 +11,7 @@ from datetime import datetime
 from api.v1.schemas.base_schema import TunedModel
 from api.v1.schemas.category_schema import ShowCategory
 from api.v1.schemas.user_schema import ShowUserShort
-from api.v1.schemas.module_schema import ShortModule
+from api.v1.schemas.module_schema import ShowModule, ShortModule
 
 
 class ShowCourse(TunedModel):
@@ -50,10 +50,28 @@ class ListTeacherCourse(TunedModel):
     image: str
     price: Decimal
     display_order: int
-    modules: List[ShortModule] = []
+    modules: List[ShowModule] = []
     students: List[ShowUserShort] = []
     categories: List[ShowCategory]
 
+
+class ShowTeacherCourse(TunedModel):
+    id: int
+    name: str
+    slug: str
+    short_description: Optional[str] = None
+    description: Optional[str] = None
+    image: Optional[str] = None
+    price: Decimal
+    status: List[str]
+    display_order: int
+    created_at: Optional[datetime]
+    updated_at: Optional[datetime]
+    is_active: bool
+    categories: List[ShowCategory]
+    teachers: List[ShowUserShort]
+    modules: List[ShowModule] = []
+    students: List[ShowUserShort] = []
 
 class CourseCreate(BaseModel):
     name: str

@@ -15,6 +15,7 @@ from db.models.course import Course, Status
 from db.models.user import User
 from db.models.category import Category
 from db.models.module import Module
+from db.models.lesson import LessonBase
 
 class CourseDAL:
     def __init__(self, db_session: AsyncSession):
@@ -83,7 +84,7 @@ class CourseDAL:
     async def get_teacher_course_by_slug(self, user_id:UUID, slug: str) -> Union[Course, None]:
         query = select(Course).\
                 options(selectinload(Course.categories)).\
-                options(selectinload(Course.modules)).\
+                options(selectinload(Course.modules).selectinload(Module.lessons.and_(LessonBase.is_active == True))).\
                 options(selectinload(Course.teachers)).\
                 options(selectinload(Course.students)).\
                 where(and_(Course.teachers.any(User.user_id == user_id), Course.slug == slug, Course.is_active))

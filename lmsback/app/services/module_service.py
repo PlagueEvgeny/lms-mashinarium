@@ -1,4 +1,4 @@
-from typing import List, Union
+from typing import Union
 from typing import Optional
 
 from sqlalchemy import and_
@@ -8,6 +8,7 @@ from sqlalchemy import delete
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from db.models.module import Module
+from db.models.lesson import LessonBase
 
 
 
@@ -16,12 +17,26 @@ class ModuleDAL:
         self.db_session = db_session
     
     async def get_module_by_id(self, id: int) -> Union[Module, None]:
-        query = select(Module).options(selectinload(Module.lessons)).where(and_(Module.id == id, Module.is_active)).order_by(Module.display_order)
+        query = (
+            select(Module).\
+            options(selectinload(Module.lessons.and_(LessonBase.is_active == True))).\
+            where(and_(Module.id == id, Module.is_active == True)).\
+            order_by(Module.display_order)
+        )
+
         result = await self.db_session.execute(query)
-        module_row = result.fetchone()
-        if module_row is not None:
-            return module_row[0]
-        return None
+        return result.scalar_one_or_none()
+
+    async def get_module_by_slug(self, slug: str) -> Union[Module, None]:
+        query = (
+            select(Module).\
+            options(selectinload(Module.lessons.and_(LessonBase.is_active == True))).\
+            where(and_(Module.slug == slug, Module.is_active == True)).\
+            order_by(Module.display_order)
+        )
+
+        result = await self.db_session.execute(query)
+        return result.scalar_one_or_none()
     
 #    async def get_module_list(self, ids: List[int]) -> List[Module]:
 #        query = select(Module).where(and_(Module.id.in_(ids), Module.is_active))
@@ -42,7 +57,7 @@ class ModuleDAL:
             course_id=course_id,
             name=name,
             display_order=display_order,
-            slug=slug,
+    slug=slug,
             description=description,
         )
         self.db_session.add(new_module)
