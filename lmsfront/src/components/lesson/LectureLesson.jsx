@@ -41,9 +41,9 @@ const parseMarkdown = (md) => {
 
     // Таблицы
     .replace(/\|(.+)\|\n\|(?:[-\s|:]+)\|\n((?:\|.*\|\n?)*)/gm, (_, header, rows) => {
-      const headers = header.split('|').map(h => h.trim());
+      const headers = header.split('|').slice(1, -1).map(h => h.trim());
       const rowHtml = rows.trim().split('\n').map(r => {
-        const cells = r.split('|').map(c => c.trim());
+        const cells = r.split('|').slice(1, -1).map(c => c.trim());
         return `<tr>${cells.map(c => `<td>${c}</td>`).join('')}</tr>`;
       }).join('');
       return `<table class="lesson-table"><thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${rowHtml}</tbody></table>`;
