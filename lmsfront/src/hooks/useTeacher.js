@@ -161,6 +161,23 @@ export const useTeacher = () => {
     toast.success('Модуль удален');
     return await response.json();
   }
+  
+  const createLesson = async(lesson_id, formData) => {
+    const response = await authFetch(API.create_lesson, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${getToken()}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formData),
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || 'Ошибка создания');
+    }
+    toast.success('Урок создан');
+    return await response.json();
+  }
 
   const deleteLesson = async(lesson_id) => {
     const response = await authFetch(API.delete_lesson(lesson_id), {
@@ -178,6 +195,6 @@ export const useTeacher = () => {
     return await response.json();
   }
 
-  return { createCourse, updateCourse, teachingCourseDetail, createModule, getModule, getModuleSlug, updateModule, deleteModule, deleteLesson, uploadImage };
+  return { createCourse, updateCourse, teachingCourseDetail, createModule, getModule, getModuleSlug, updateModule, deleteModule, createLesson, deleteLesson, uploadImage };
 };
 
