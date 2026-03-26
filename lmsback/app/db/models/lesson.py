@@ -1,4 +1,5 @@
 from enum import Enum
+from sqlalchemy.dialects.postgresql import UUID
 from datetime import datetime
 from sqlalchemy import Column
 from sqlalchemy import Text
@@ -8,6 +9,7 @@ from sqlalchemy import Integer
 from sqlalchemy import DateTime
 from sqlalchemy import ForeignKey
 from sqlalchemy import JSON
+from sqlalchemy import UniqueConstraint
 from sqlalchemy.orm import relationship
 
 from db.base import Base
@@ -77,3 +79,16 @@ class Practica(LessonBase):
         "polymorphic_identity": "practica",
         "polymorphic_load": "selectin",
     }
+
+class LessonProgress(Base):
+    __tablename__ = "lesson_progress"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(UUID, ForeignKey("users.user_id"), nullable=False)
+    lesson_id = Column(Integer, ForeignKey("lessons.id"), nullable=False)
+    is_completed = Column(Boolean, default=False)
+    completed_at = Column(DateTime, nullable=True)
+
+    __table_args__ = (
+        UniqueConstraint("user_id", "lesson_id", name="uq_user_lesson"),
+    )

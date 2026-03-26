@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom';
 import toast, { Toaster } from 'react-hot-toast';
 import Header from '../../components/Header';
+import { authFetch } from '../../services/authFetch';
 
 const CoursesPage = () => {
   const [courses, setCourses] = useState([]);
@@ -13,7 +14,7 @@ const CoursesPage = () => {
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const response = await fetch(API.list_course);
+        const response = await authFetch(API.list_course);
         if (!response.ok) throw new Error('Ошибка загрузки курсов');
         const data = await response.json();
         setCourses(data);

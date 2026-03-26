@@ -6,6 +6,7 @@ import CoursesPage from './page/courses/CoursesPage';
 import CourseDetailPage from './page/courses/CourseDetailPage';
 import DashboardPage from './page/user_courses/DashboardPage';
 import UserCourse from './page/user_courses/UserCourse';
+import UserLesson from './page/user_courses/UserLesson';
 import TeachingPage from './page/teaching/TeachingPage';
 import TeachingCoursesDetail from './page/teaching/TeachingCoursesDetail';
 import CreateCoursesPage from './page/teaching/CreateCoursesPage';
@@ -27,6 +28,7 @@ function App() {
         <Route path="/teaching/courses/:slug/modules/:module_slug/edit" element={<PrivateRoute><EditModulePage /></PrivateRoute>} />
         <Route path="/teaching/courses/:slug/modules/:module_slug/lessons/new" element={<PrivateRoute><CreateLessonPage /></PrivateRoute>} />
         <Route path="/user/courses/:slug" element={<PrivateRoute><UserCourse /></PrivateRoute>} />
+        <Route path="/user/courses/:slug/modules/:module_slug/lessons/:lesson_slug" element={<PrivateRoute><UserLesson /></PrivateRoute>} />
         <Route path="/profile" element={<PrivateRoute><ProfilePage / > </PrivateRoute>} / >
         <Route path="/login" element={<LoginPage />} />
 

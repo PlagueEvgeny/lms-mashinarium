@@ -162,7 +162,20 @@ export const useTeacher = () => {
     return await response.json();
   }
   
-  const createLesson = async(lesson_id, formData) => {
+  const uploadLessonImage = async (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await fetch(API.create_lesson_image, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${getToken()}` },
+      body: formData,
+    });
+    if (!response.ok) throw new Error('Ошибка загрузки изображения');
+    const data = await response.json();
+    return data.image_url;
+  };
+
+  const createLesson = async (formData) => {
     const response = await authFetch(API.create_lesson, {
       method: 'POST',
       headers: {
@@ -177,7 +190,24 @@ export const useTeacher = () => {
     }
     toast.success('Урок создан');
     return await response.json();
-  }
+  };
+
+  const updateLesson = async (lesson_id, formData) => {
+    const response = await authFetch(API.update_lesson(lesson_id), {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${getToken()}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formData),
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || 'Ошибка обновления');
+    }
+    toast.success('Урок обновлён');
+    return await response.json();
+  };
 
   const deleteLesson = async(lesson_id) => {
     const response = await authFetch(API.delete_lesson(lesson_id), {
@@ -195,6 +225,20 @@ export const useTeacher = () => {
     return await response.json();
   }
 
-  return { createCourse, updateCourse, teachingCourseDetail, createModule, getModule, getModuleSlug, updateModule, deleteModule, createLesson, deleteLesson, uploadImage };
+  return { 
+    createCourse, 
+    updateCourse, 
+    teachingCourseDetail, 
+    createModule, 
+    getModule, 
+    getModuleSlug, 
+    updateModule, 
+    deleteModule, 
+    createLesson,
+    updateLesson,
+    deleteLesson, 
+    uploadImage, 
+    uploadLessonImage 
+  };
 };
 

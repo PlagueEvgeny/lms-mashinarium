@@ -73,6 +73,20 @@ class ShowTeacherCourse(TunedModel):
     modules: List[ShowModule] = []
     students: List[ShowUserShort] = []
 
+
+class ShowUserCourse(TunedModel):
+    id: int
+    name: str
+    slug: str
+    short_description: Optional[str] = None
+    description: Optional[str] = None
+    image: Optional[str] = None
+    is_active: bool
+    categories: List[ShowCategory]
+    teachers: List[ShowUserShort]
+    modules: List[ShowModule] = []
+    students: List[ShowUserShort] = []
+
 class CourseCreate(BaseModel):
     name: str
     slug: str

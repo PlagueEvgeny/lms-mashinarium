@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.v1.routes.actions.auth_actions import get_current_user_from_token
 from api.v1.routes.actions.user_actions import check_user_permissions_moderator, check_user_permissions_teahers, check_user_permissions_admin
-from api.v1.schemas.course_schema import (AddStudentsToCourse, AddTeachersToCourse, ListCourse, RemoveStudentsFromCourse,
+from api.v1.schemas.course_schema import (AddStudentsToCourse, AddTeachersToCourse, ListCourse, RemoveStudentsFromCourse, ShowUserCourse,
                                           RemoveTeachersFromCourse, ShowCourse, CourseCreate, ListTeacherCourse, ShowTeacherCourse,
                                           DeleteCourseResponse, UpdatedCourseResponse, UpdateCourseRequest)
 from api.v1.routes.actions.course_actions import (_get_course_by_id, _create_new_course, _delete_course,
@@ -68,9 +68,10 @@ async def get_course_by_slug(slug: str,
     return course
 
 @course_router.get("/list", response_model=List[ListCourse])
-async def get_course_all(session: AsyncSession = Depends(get_db)) -> List[ListCourse]:
+async def get_course_all(session: AsyncSession = Depends(get_db),
+                        current_user: User = Depends(get_current_user_from_token)) -> List[ListCourse]:
     logger.info("Получение курсов")
-    course = await _get_course_all(session)
+    course = await _get_course_all(user_id=current_user.user_id, session=session)
     if course is None:
         course = []
     return course
@@ -94,7 +95,7 @@ async def get_user_courses_as_student(
         course = []
     return course
 
-@course_router.get("/educations/{slug}", response_model=ShowCourse)
+@course_router.get("/educations/{slug}", response_model=ShowUserCourse)
 async def get_user_course_by_slug(
                         slug: str,
                         session: AsyncSession = Depends(get_db),

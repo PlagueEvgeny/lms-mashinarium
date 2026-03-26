@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom';
 import toast, { Toaster } from 'react-hot-toast';
 import Header from '../../components/Header';
+import LessonCard from '../../components/LessonCard';
 
 
 const UserCourse = () => {
@@ -69,6 +70,16 @@ return (
                 <div className='flex item-baseline gap-4 mb-3 border-b border-border pb-2'>
                   <span className='text-sm text-muted-foreground'>{index + 1}</span>
                   <h2 className='text-lg font-semibold text-foreground'>{module.name}</h2>
+                </div>
+                <div className='grid grid-cols-3 sm:grid-cols-4 mb:grid-cols-5 gap-4'>
+                  {module.lessons.map((lesson) => (
+                    <LessonCard key={lesson.display_order}
+                                navigate={navigate}
+                                courseSlug={course.slug}
+                                moduleSlug={module.slug}
+                                lesson={lesson}
+                    /> 
+                  ))}
                 </div>
               </div>
             ))}

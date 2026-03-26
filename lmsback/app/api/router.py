@@ -6,6 +6,7 @@ from api.v1.routes.category import category_router
 from api.v1.routes.course import course_router
 from api.v1.routes.module import module_router
 from api.v1.routes.lesson import lesson_router
+from api.v1.routes.lesson_progress import progress_router
 
 main_api_router = APIRouter()
 
@@ -15,3 +16,4 @@ main_api_router.include_router(category_router, prefix="/category", tags=["categ
 main_api_router.include_router(course_router, prefix="/course", tags=["course"])
 main_api_router.include_router(module_router, prefix="/module", tags=["module"])
 main_api_router.include_router(lesson_router, prefix="/lesson", tags=["lesson"])
+main_api_router.include_router(progress_router, prefix="/lessons", tags=["progress"])

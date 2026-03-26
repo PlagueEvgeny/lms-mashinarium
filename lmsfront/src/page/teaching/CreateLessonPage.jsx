@@ -75,10 +75,10 @@ const CreateLessonPage = () => {
     if (!form.name || !form.slug) return toast.error('Заполните обязательные поля');
     if (lessonType === 'lecture' && !form.content) return toast.error('Добавьте содержание лекции');
     if (lessonType === 'video' && !form.video_url) return toast.error('Укажите ссылку на видео');
-
+    console.log(buildPayload())
     setLoading(true);
     try {
-      await createLesson(moduleData.id, buildPayload());
+      await createLesson(buildPayload());
       navigate(`/teaching/courses/${slug}`);
     } catch (err) {
       toast.error(err.message || 'Ошибка создания урока');

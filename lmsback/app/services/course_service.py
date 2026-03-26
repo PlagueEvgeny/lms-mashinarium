@@ -61,7 +61,7 @@ class CourseDAL:
     async def get_user_course_by_slug(self, user_id:UUID, slug: str) -> Union[Course, None]:
         query = select(Course).\
                 options(selectinload(Course.categories)).\
-                options(selectinload(Course.modules)).\
+                options(selectinload(Course.modules).selectinload(Module.lessons.and_(LessonBase.is_active == True))).\
                 options(selectinload(Course.teachers)).\
                 options(selectinload(Course.students)).\
                 where(and_(Course.students.any(User.user_id == user_id), Course.slug == slug, Course.is_active))
@@ -93,10 +93,11 @@ class CourseDAL:
         if course_row is not None:
             return course_row[0]
 
-    async def get_course_all(self) -> List[Course]:
+    async def get_course_all(self, user_id: UUID) -> List[Course]:
         query = select(Course).\
                 options(selectinload(Course.categories)).\
-                where(Course.is_active)
+                where(Course.is_active,
+                  ~Course.students.any(User.user_id == user_id))
         result = await self.db_session.execute(query)
         course = result.scalars().all()
         return list(course)

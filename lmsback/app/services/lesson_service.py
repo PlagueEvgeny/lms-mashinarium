@@ -1,11 +1,14 @@
-from typing import List, Type, Union, TypeVar
+from typing import TypeVar
 from typing import Optional
-
-from sqlalchemy import and_
+from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession
-from db.models.lesson import LessonBase, Lecture, LessonType, VideoLesson, Practica
+from db.models.lesson import LessonBase, Lecture, LessonType, VideoLesson, Practica, LessonProgress
+from db.models.user import User
+from db.models.course import Course
+from db.models.module import Module
+from datetime import datetime
 
 T = TypeVar("T", bound=LessonBase)
 
@@ -63,6 +66,21 @@ class LessonDAL:
         )
         return result.scalars().first()
 
+
+    async def get_lesson_by_slug_for_student(self, slug: str, user_id: UUID) -> Optional[LessonBase]:
+        result = await self.db_session.execute(
+            select(LessonBase)
+            .join(Module, Module.id == LessonBase.module_id)
+            .join(Course, Course.id == Module.course_id)
+            .where(
+                LessonBase.slug == slug,
+                LessonBase.is_active == True,
+                Course.is_active == True,
+                Course.students.any(User.user_id == user_id),
+            )
+        )
+        return result.scalars().first()
+
     async def delete_lesson(self, lesson_id: int) -> Optional[int]:
         result = await self.db_session.execute(
             update(LessonBase)
@@ -76,4 +94,41 @@ class LessonDAL:
         deleted_id = result.scalars().first()
         await self.db_session.flush()
         return deleted_id
+
+    async def complete_lesson(self, user_id: UUID, lesson_id: int) -> LessonProgress:
+        result = await self.db_session.execute(
+            select(LessonProgress).where(
+                LessonProgress.user_id == user_id,
+                LessonProgress.lesson_id == lesson_id,
+            )
+        )
+        progress = result.scalars().first()
+
+        if progress:
+            progress.is_completed = True
+            progress.completed_at = datetime.utcnow()
+        else:
+            progress = LessonProgress(
+                user_id=user_id,
+                lesson_id=lesson_id,
+                is_completed=True,
+                completed_at=datetime.utcnow(),
+            )
+            self.db_session.add(progress)
+
+        await self.db_session.flush()
+        return progress
+
+    async def get_completed_lesson_ids(self, user_id: UUID, course_id: int) -> list[int]:
+        result = await self.db_session.execute(
+            select(LessonProgress.lesson_id)
+            .join(LessonBase, LessonBase.id == LessonProgress.lesson_id)
+            .join(Module, Module.id == LessonBase.module_id)
+            .where(
+                LessonProgress.user_id == user_id,
+                LessonProgress.is_completed == True,
+                Module.course_id == course_id,
+            )
+        )
+        return list(result.scalars().all())
 

@@ -1,16 +1,33 @@
-from typing import Union
-from fastapi import APIRouter, Depends, HTTPException
+from pathlib import Path
+from fastapi import APIRouter, Depends, HTTPException, File, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 from loguru import logger
 from db.session import get_db
 from db.models.user import User
-from api.v1.routes.actions.lesson_actions import _create_new_lesson, _delete_lesson, _get_lesson, _get_lesson_by_slug 
+from api.v1.routes.actions.lesson_actions import _create_new_lesson, _delete_lesson, _get_lesson, _get_lesson_by_slug, _get_lesson_by_slug_for_student 
 from api.v1.routes.actions.auth_actions import get_current_user_from_token
 from api.v1.routes.actions.user_actions import check_user_permissions_admin, check_user_permissions_teahers
 from api.v1.schemas.lesson_schema import LessonCreate, LessonResponse, LectureCreate, VideoCreate
-  
+from utils.images import save_upload_image
+from core.config import BASE_URL 
 
 lesson_router = APIRouter()
+
+LESSON_UPLOAD_DIR = Path("media/lesson")
+
+@lesson_router.post("/upload-image/")
+async def upload_course_image(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user_from_token),
+) -> dict:
+    if not check_user_permissions_teahers(current_user=current_user):
+        logger.error(f"У пользователя {current_user.email} не хватает прав")
+        raise HTTPException(status_code=403, detail="Forbidden.")
+
+    image_url = await save_upload_image(file, LESSON_UPLOAD_DIR, BASE_URL)
+    logger.info(f"Изображение загружено пользователем {current_user.email}: {image_url}")
+    return {"image_url": image_url}
+
 
 @lesson_router.post("/", response_model=LessonResponse)
 async def create_lesson(
@@ -38,6 +55,18 @@ async def get_lesson(
         raise HTTPException(status_code=404, detail=str(e))
 
 
+@lesson_router.get("/student/{slug}", response_model=LessonResponse)
+async def get_lesson_by_slug_for_student(
+        slug: str,
+        session: AsyncSession = Depends(get_db),
+        current_user: User = Depends(get_current_user_from_token),
+):
+    try:
+        return await _get_lesson_by_slug_for_student(slug, current_user.user_id, session)
+    except ValueError as e:
+        raise HTTPException(status_code=403, detail=str(e))
+
+
 @lesson_router.get("/by-slug/{slug}", response_model=LessonResponse)
 async def get_lesson_by_slug(
         slug: str,
@@ -48,9 +77,9 @@ async def get_lesson_by_slug(
         return await _get_lesson_by_slug(slug, session)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
-
-
 @lesson_router.delete("/", status_code=200)
+
+
 async def delete_lesson(
         lesson_id: int,
         session: AsyncSession = Depends(get_db),

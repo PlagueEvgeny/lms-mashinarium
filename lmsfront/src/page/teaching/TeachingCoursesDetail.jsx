@@ -10,7 +10,7 @@ const lessonTypeIcons = {
   lecture: FileText,
   video: Video,
   practica: ClipboardList,
-  quiz: HelpCircle
+  test: HelpCircle
 }
 
 const lessonTypeLabels = {

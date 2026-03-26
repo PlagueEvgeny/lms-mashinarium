@@ -23,11 +23,11 @@ async def _get_course_by_slug(slug: str, session) -> Union[Course, None]:
         if course is not None:
             return course
 
-async def _get_course_all(session) -> List[ListCourse]:
+async def _get_course_all(user_id: UUID, session) -> List[ListCourse]:
     logger.info("Получение курсов")
     async with session.begin():
         course_dal = CourseDAL(session)
-        course = await course_dal.get_course_all()
+        course = await course_dal.get_course_all(user_id=user_id)
         return list(course)
 
 async def _get_user_courses_as_student(user_id: UUID, session) -> List[ListCourse]:

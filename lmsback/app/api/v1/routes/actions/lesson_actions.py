@@ -1,5 +1,6 @@
 from typing import Union
 from loguru import logger
+from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 from services.lesson_service import LessonDAL
 from db.models.lesson import LessonType
@@ -69,6 +70,26 @@ async def _get_lesson_by_slug(slug: str, session: AsyncSession) -> Union[Lecture
 
         if lesson is None:
             raise ValueError(f"Урок с slug '{slug}' не найден")
+
+        response_class = LESSON_RESPONSE_MAP.get(LessonType(lesson.lesson_type))
+        if response_class is None:
+            raise ValueError(f"Неизвестный тип урока: {lesson.lesson_type}")
+
+        return response_class.model_validate(lesson)
+
+
+async def _get_lesson_by_slug_for_student(
+        slug: str,
+        user_id: UUID,
+        session: AsyncSession,
+) -> Union[LectureResponse, VideoResponse]:
+    logger.info(f"Получение урока {slug} для студента {user_id}")
+    async with session.begin():
+        lesson_dal = LessonDAL(session)
+        lesson = await lesson_dal.get_lesson_by_slug_for_student(slug, user_id)
+
+        if lesson is None:
+            raise ValueError(f"Урок с slug '{slug}' не найден или нет доступа к курсу")
 
         response_class = LESSON_RESPONSE_MAP.get(LessonType(lesson.lesson_type))
         if response_class is None:
