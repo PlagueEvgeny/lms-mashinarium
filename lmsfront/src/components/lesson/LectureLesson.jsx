@@ -4,22 +4,52 @@ import { ChevronLeft, ChevronRight, Clock, BookOpen, ZoomIn, X } from 'lucide-re
 const parseMarkdown = (md) => {
   if (!md) return '';
   return md
+    // Заголовки
     .replace(/^### (.+)$/gm, '<h3 class="lesson-h3">$1</h3>')
     .replace(/^## (.+)$/gm,  '<h2 class="lesson-h2">$1</h2>')
     .replace(/^# (.+)$/gm,   '<h1 class="lesson-h1">$1</h1>')
+
+    // Код
     .replace(/```(\w+)?\n([\s\S]*?)```/gm, (_, lang, code) =>
       `<div class="lesson-code-block"><div class="lesson-code-lang">${lang || 'code'}</div>` +
       `<pre><code>${code.trim().replace(/</g,'&lt;').replace(/>/g,'&gt;')}</code></pre></div>`
     )
     .replace(/`([^`]+)`/g, '<code class="lesson-inline-code">$1</code>')
+
+    // Цитаты
     .replace(/^> (.+)$/gm,  '<blockquote class="lesson-blockquote">$1</blockquote>')
+
+    // Изображения
     .replace(/!\[([^\]]*)\]\(([^)]+)\)/g,
       '<img src="$2" alt="$1" class="lesson-img" data-src="$2" />'
     )
+
+    // Жирный, курсив, подчёркнутый
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.+?)\*/g,    '<em>$1</em>')
+    .replace(/__(.+?)__/g,    '<u>$1</u>')
+
+    // Ссылки
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" class="lesson-link">$1</a>')
+
+    // Горизонтальная линия
+    .replace(/^---$/gm, '<hr class="lesson-hr" />')
+
+    // Списки
     .replace(/^- (.+)$/gm,  '<li>$1</li>')
     .replace(/(<li>[\s\S]*?<\/li>\n?)+/g, m => `<ul class="lesson-ul">${m}</ul>`)
+
+    // Таблицы
+    .replace(/\|(.+)\|\n\|(?:[-\s|:]+)\|\n((?:\|.*\|\n?)*)/gm, (_, header, rows) => {
+      const headers = header.split('|').map(h => h.trim());
+      const rowHtml = rows.trim().split('\n').map(r => {
+        const cells = r.split('|').map(c => c.trim());
+        return `<tr>${cells.map(c => `<td>${c}</td>`).join('')}</tr>`;
+      }).join('');
+      return `<table class="lesson-table"><thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${rowHtml}</tbody></table>`;
+    })
+
+    // Параграфы
     .replace(/\n\n/g, '</p><p class="lesson-p">')
     .replace(/^(?!<[hulbcpi])(.+\S.*)$/gm, '<p class="lesson-p">$1</p>')
     .replace(/<p class="lesson-p"><\/p>/g, '');
@@ -53,6 +83,26 @@ const LectureLesson = ({ lesson, onPrev, onNext, hasPrev, hasNext }) => {
         .lesson-inline-code{font-family:ui-monospace,monospace;font-size:13.5px;background:hsl(var(--muted));border:1px solid hsl(var(--border));border-radius:4px;padding:2px 7px}
         .lesson-img{max-width:100%;border-radius:10px;margin:1rem 0;display:block;cursor:zoom-in;border:1px solid hsl(var(--border));transition:opacity .2s}
         .lesson-img:hover{opacity:.9}
+        .lesson-hr {border: none;border-top: 1px solid hsl(var(--border)); margin: 1.5rem 0;}
+        .lesson-link {
+          color: var(--primary);
+          text-decoration: underline;
+        }
+        .lesson-table {
+          width: 100%;
+          border-collapse: collapse;
+          margin: 1.25rem 0;
+          font-size: 15px;
+        }
+        .lesson-table th,
+        .lesson-table td {
+          border: 1px solid hsl(var(--border));
+          padding: 8px 12px;
+          text-align: left;
+        }
+        .lesson-table th {
+          background: hsl(var(--muted)/.5);
+        }
       `}</style>
 
       <div className="flex flex-col gap-6">
