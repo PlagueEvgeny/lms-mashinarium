@@ -32,8 +32,8 @@ const LessonBaseFields = ({ form, onChange }) => (
         </label>
         <input
           type="number"
-          value={form.display_order}
-          onChange={e => onChange('display_order', parseInt(e.target.value))}
+          value={Number.isFinite(form.display_order) ? form.display_order : 1}
+          onChange={e => onChange('display_order', e.target.value === '' ? 1 : parseInt(e.target.value, 10))}
           min={1}
           className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
         />

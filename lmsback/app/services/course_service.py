@@ -7,15 +7,17 @@ from fastapi import HTTPException
 from sqlalchemy import and_
 from sqlalchemy import select
 from sqlalchemy import update
+from sqlalchemy import func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import selectin_polymorphic
 from services.category_service import CategoryDAL
 from services.user_service import UserDAL
 from db.models.course import Course, Status
 from db.models.user import User
 from db.models.category import Category
 from db.models.module import Module
-from db.models.lesson import LessonBase
+from db.models.lesson import LessonBase, Lecture, VideoLesson, Practica, TestLesson
 
 class CourseDAL:
     def __init__(self, db_session: AsyncSession):
@@ -61,7 +63,11 @@ class CourseDAL:
     async def get_user_course_by_slug(self, user_id:UUID, slug: str) -> Union[Course, None]:
         query = select(Course).\
                 options(selectinload(Course.categories)).\
-                options(selectinload(Course.modules).selectinload(Module.lessons.and_(LessonBase.is_active == True))).\
+                options(
+                    selectinload(Course.modules)
+                    .selectinload(Module.lessons.and_(LessonBase.is_active == True))
+                    .options(selectin_polymorphic(LessonBase, [Lecture, VideoLesson, Practica, TestLesson]))
+                ).\
                 options(selectinload(Course.teachers)).\
                 options(selectinload(Course.students)).\
                 where(and_(Course.students.any(User.user_id == user_id), Course.slug == slug, Course.is_active))
@@ -73,25 +79,58 @@ class CourseDAL:
     async def get_user_courses_as_teacher(self, user_id:UUID) -> List[Course]:
         query = select(Course).\
                 options(selectinload(Course.categories)).\
-                options(selectinload(Course.modules)).\
+                options(
+                    selectinload(Course.modules)
+                    .selectinload(Module.lessons.and_(LessonBase.is_active == True))
+                    .options(selectin_polymorphic(LessonBase, [Lecture, VideoLesson, Practica, TestLesson]))
+                ).\
                 options(selectinload(Course.teachers)).\
                 options(selectinload(Course.students)).\
                 where(and_(Course.teachers.any(User.user_id == user_id), Course.is_active))
         result = await self.db_session.execute(query)
         course = result.scalars().all()
-        return list(course)
+        courses = list(course)
+        await self._attach_lessons_count(courses)
+        return courses
 
     async def get_teacher_course_by_slug(self, user_id:UUID, slug: str) -> Union[Course, None]:
         query = select(Course).\
                 options(selectinload(Course.categories)).\
-                options(selectinload(Course.modules).selectinload(Module.lessons.and_(LessonBase.is_active == True))).\
+                options(
+                    selectinload(Course.modules)
+                    .selectinload(Module.lessons.and_(LessonBase.is_active == True))
+                    .options(selectin_polymorphic(LessonBase, [Lecture, VideoLesson, Practica, TestLesson]))
+                ).\
                 options(selectinload(Course.teachers)).\
                 options(selectinload(Course.students)).\
                 where(and_(Course.teachers.any(User.user_id == user_id), Course.slug == slug, Course.is_active))
         result = await self.db_session.execute(query)
         course_row = result.fetchone()
         if course_row is not None:
-            return course_row[0]
+            course = course_row[0]
+            await self._attach_lessons_count([course])
+            return course
+
+    async def _attach_lessons_count(self, courses: list[Course]) -> None:
+        module_ids: list[int] = []
+        for c in courses:
+            for m in (c.modules or []):
+                if m and m.id is not None:
+                    module_ids.append(m.id)
+
+        if not module_ids:
+            return
+
+        res = await self.db_session.execute(
+            select(LessonBase.module_id, func.count(LessonBase.id))
+            .where(LessonBase.is_active == True, LessonBase.module_id.in_(module_ids))
+            .group_by(LessonBase.module_id)
+        )
+        counts = {mid: cnt for (mid, cnt) in res.all()}
+
+        for c in courses:
+            for m in (c.modules or []):
+                setattr(m, "lessons_count", int(counts.get(m.id, 0)))
 
     async def get_course_all(self, user_id: UUID) -> List[Course]:
         query = select(Course).\

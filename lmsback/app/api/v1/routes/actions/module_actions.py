@@ -42,7 +42,9 @@ async def _get_module_by_id(id, session) -> Union[Module, None]:
         module_dal = ModuleDAL(session)
         module = await module_dal.get_module_by_id(id=id)
         if module is not None:
-            return module
+            # Важно: валидируем/сериализуем внутри контекста сессии
+            # (иначе возможны MissingGreenlet при подгрузке JSON полей).
+            return ShowModule.model_validate(module)
 
 async def _get_module_by_slug(slug, session) -> Union[Module, None]:
     logger.info(f"Получение модуля {slug} по slug")
@@ -50,7 +52,7 @@ async def _get_module_by_slug(slug, session) -> Union[Module, None]:
         module_dal = ModuleDAL(session)
         module = await module_dal.get_module_by_slug(slug=slug)
         if module is not None:
-            return module
+            return ShowModule.model_validate(module)
 
 #async def _get_module_list(session) -> List[Module]:
 #    logger.info(f"Получение списка модулей")

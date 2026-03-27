@@ -3,10 +3,12 @@ from uuid import UUID
 
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
 from db.models.lesson import LessonType
 from services.lesson_service import LessonDAL
 from api.v1.schemas.practica_schema import PracticaSubmissionResponse
+from db.models.user import User
 
 
 def _validate_practica_lesson_type(lesson_type: str) -> None:
@@ -113,5 +115,17 @@ async def _get_submissions_for_practica(
         _validate_practica_lesson_type(lesson.lesson_type)
 
         submissions = await lesson_dal.get_practica_submissions(practica_id=lesson.id)
-        return [PracticaSubmissionResponse.model_validate(s) for s in submissions]
+
+        user_ids = [s.user_id for s in submissions]
+        emails_by_id: dict[UUID, str] = {}
+        if user_ids:
+            r = await session.execute(select(User.user_id, User.email).where(User.user_id.in_(user_ids)))
+            emails_by_id = {row[0]: row[1] for row in r.all()}
+
+        resp: list[PracticaSubmissionResponse] = []
+        for s in submissions:
+            item = PracticaSubmissionResponse.model_validate(s)
+            item.user_email = emails_by_id.get(s.user_id)
+            resp.append(item)
+        return resp
 

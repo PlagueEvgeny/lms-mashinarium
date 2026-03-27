@@ -18,7 +18,15 @@ from api.v1.routes.actions.lesson_actions import (
 )
 from api.v1.routes.actions.auth_actions import get_current_user_from_token
 from api.v1.routes.actions.user_actions import check_user_permissions_admin, check_user_permissions_teahers
-from api.v1.schemas.lesson_schema import LessonCreate, LessonResponse, PracticaCreate, PracticaResponse
+from api.v1.schemas.lesson_schema import (
+    LessonCreate,
+    LessonResponse,
+    LessonStudentResponse,
+    PracticaCreate,
+    PracticaResponse,
+    TestCheckRequest,
+    TestCheckResponse,
+)
 from utils.images import save_upload_image
 from utils.files import save_upload_file
 from core.config import BASE_URL 
@@ -251,7 +259,7 @@ async def get_lesson(
         raise HTTPException(status_code=404, detail=str(e))
 
 
-@lesson_router.get("/student/{slug}", response_model=LessonResponse)
+@lesson_router.get("/student/{slug}", response_model=LessonStudentResponse)
 async def get_lesson_by_slug_for_student(
         slug: str,
         session: AsyncSession = Depends(get_db),
@@ -261,6 +269,29 @@ async def get_lesson_by_slug_for_student(
         return await _get_lesson_by_slug_for_student(slug, current_user.user_id, session)
     except ValueError as e:
         raise HTTPException(status_code=403, detail=str(e))
+
+
+@lesson_router.post("/test/{lesson_slug}/check", response_model=TestCheckResponse)
+async def check_test_answers(
+    lesson_slug: str,
+    body: TestCheckRequest,
+    session: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user_from_token),
+):
+    try:
+        # импорт тут, чтобы не раздувать imports сверху
+        from api.v1.routes.actions.lesson_actions import _check_test_answers
+
+        return await _check_test_answers(
+            lesson_slug=lesson_slug,
+            user_id=current_user.user_id,
+            answers=body.answers,
+            session=session,
+        )
+    except ValueError as e:
+        msg = str(e)
+        status_code = 403 if "нет доступа" in msg else 404 if "не найден" in msg else 400
+        raise HTTPException(status_code=status_code, detail=msg)
 
 
 @lesson_router.get("/by-slug/{slug}", response_model=LessonResponse)

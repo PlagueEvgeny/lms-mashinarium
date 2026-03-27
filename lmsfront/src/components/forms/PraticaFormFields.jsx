@@ -56,7 +56,7 @@ const PracticaFormFields = ({ form, onChange }) => {
           </label>
           <input
             type="number"
-            value={form.deadline_days}
+            value={form.deadline_days ?? ''}
             onChange={(e) => onChange('deadline_days', e.target.value === '' ? null : parseInt(e.target.value, 10))}
             min={0}
             className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"

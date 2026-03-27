@@ -6,9 +6,10 @@ from sqlalchemy import select
 from sqlalchemy import update
 from sqlalchemy import delete
 from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import selectin_polymorphic
 from sqlalchemy.ext.asyncio import AsyncSession
 from db.models.module import Module
-from db.models.lesson import LessonBase
+from db.models.lesson import LessonBase, Lecture, VideoLesson, Practica, TestLesson
 
 
 
@@ -20,6 +21,7 @@ class ModuleDAL:
         query = (
             select(Module).\
             options(selectinload(Module.lessons.and_(LessonBase.is_active == True))).\
+            options(selectin_polymorphic(LessonBase, [Lecture, VideoLesson, Practica, TestLesson])).\
             where(and_(Module.id == id, Module.is_active == True)).\
             order_by(Module.display_order)
         )
@@ -31,6 +33,7 @@ class ModuleDAL:
         query = (
             select(Module).\
             options(selectinload(Module.lessons.and_(LessonBase.is_active == True))).\
+            options(selectin_polymorphic(LessonBase, [Lecture, VideoLesson, Practica, TestLesson])).\
             where(and_(Module.slug == slug, Module.is_active == True)).\
             order_by(Module.display_order)
         )

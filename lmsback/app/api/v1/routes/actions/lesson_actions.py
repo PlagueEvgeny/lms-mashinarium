@@ -9,6 +9,9 @@ from api.v1.schemas.lesson_schema import (
     VideoCreate, VideoResponse,
     PracticaCreate, PracticaResponse,
     TestCreate, TestResponse,
+    TestStudentResponse,
+    TestCheckResponse,
+    TestQuestionCheckResult,
 )
 
 LESSON_TYPE_FIELDS = {
@@ -25,6 +28,33 @@ LESSON_RESPONSE_MAP = {
     LessonType.TEST:    TestResponse,
 }
 
+LESSON_STUDENT_RESPONSE_MAP = {
+    LessonType.LECTURE: LectureResponse,
+    LessonType.VIDEO:   VideoResponse,
+    LessonType.PRACTICA: PracticaResponse,
+    LessonType.TEST:    TestStudentResponse,
+}
+
+def _jsonable(value: Any) -> Any:
+    """
+    Приводит Pydantic модели/коллекции к JSON-совместимому виду,
+    чтобы SQLAlchemy мог положить это в JSON колонку.
+    """
+    if value is None:
+        return None
+
+    # Pydantic v2
+    model_dump = getattr(value, "model_dump", None)
+    if callable(model_dump):
+        return value.model_dump()
+
+    if isinstance(value, list):
+        return [_jsonable(v) for v in value]
+    if isinstance(value, dict):
+        return {k: _jsonable(v) for k, v in value.items()}
+
+    return value
+
 async def _create_new_lesson(
         body: Union[LectureCreate, VideoCreate, PracticaCreate, TestCreate],
         session: AsyncSession,
@@ -34,7 +64,7 @@ async def _create_new_lesson(
         lesson_dal = LessonDAL(session)
 
         extra_fields = {
-            field: getattr(body, field)
+            field: _jsonable(getattr(body, field))
             for field in LESSON_TYPE_FIELDS.get(body.lesson_type, [])
             if getattr(body, field, None) is not None
         }
@@ -103,11 +133,98 @@ async def _get_lesson_by_slug_for_student(
         if lesson is None:
             raise ValueError(f"Урок с slug '{slug}' не найден или нет доступа к курсу")
 
-        response_class = LESSON_RESPONSE_MAP.get(LessonType(lesson.lesson_type))
+        lesson_type = LessonType(lesson.lesson_type)
+
+        response_class = LESSON_STUDENT_RESPONSE_MAP.get(lesson_type)
         if response_class is None:
             raise ValueError(f"Неизвестный тип урока: {lesson.lesson_type}")
 
+        # Тест: скрываем правильные ответы
+        if lesson_type == LessonType.TEST:
+            raw_questions = lesson.questions or []
+            safe_questions = []
+            for q in raw_questions:
+                if isinstance(q, dict):
+                    qq = dict(q)
+                    qq.pop("correct_option", None)
+                    qq.pop("correct_options", None)
+                    qq.pop("correct_text", None)
+                    safe_questions.append(qq)
+                else:
+                    safe_questions.append(q)
+            lesson.questions = safe_questions
+
         return response_class.model_validate(lesson)
+
+
+async def _check_test_answers(
+    lesson_slug: str,
+    user_id: UUID,
+    answers: list[Any],
+    session: AsyncSession,
+) -> TestCheckResponse:
+    logger.info(f"Проверка теста '{lesson_slug}' для {user_id}")
+    async with session.begin():
+        lesson_dal = LessonDAL(session)
+        lesson = await lesson_dal.get_lesson_by_slug_for_student(lesson_slug, user_id)
+        if lesson is None:
+            raise ValueError(f"Урок с slug '{lesson_slug}' не найден или нет доступа к курсу")
+
+        if LessonType(lesson.lesson_type) != LessonType.TEST:
+            raise ValueError("Указанный урок не является тестом")
+
+        questions = lesson.questions or []
+        if not isinstance(questions, list):
+            raise ValueError("Некорректный формат questions")
+
+        results: list[TestQuestionCheckResult] = []
+        checked = 0
+        total_score = 0.0
+
+        for idx, q in enumerate(questions):
+            if not isinstance(q, dict):
+                results.append(TestQuestionCheckResult(is_correct=None, score=0.0))
+                continue
+
+            q_type = q.get("question_type") or "single"
+            user_answer = answers[idx] if idx < len(answers) else None
+            score = 0.0
+            is_correct: Optional[bool] = None
+
+            if q_type == "single":
+                correct = q.get("correct_option")
+                if correct is not None and isinstance(user_answer, int):
+                    is_correct = (user_answer == correct)
+                    checked += 1
+                    score = 1.0 if is_correct else 0.0
+            elif q_type == "multiple":
+                correct = q.get("correct_options")
+                if isinstance(correct, list) and all(isinstance(i, int) for i in correct) and isinstance(user_answer, list):
+                    user_set = {int(i) for i in user_answer if isinstance(i, int)}
+                    correct_set = set(correct)
+                    is_correct = (user_set == correct_set)
+                    checked += 1
+                    score = 1.0 if is_correct else 0.0
+            elif q_type == "text":
+                correct_text = q.get("correct_text")
+                if isinstance(correct_text, str) and isinstance(user_answer, str):
+                    # простая нормализация
+                    ua = user_answer.strip().lower()
+                    ca = correct_text.strip().lower()
+                    if ca:
+                        is_correct = (ua == ca)
+                        checked += 1
+                        score = 1.0 if is_correct else 0.0
+
+            total_score += score
+            results.append(TestQuestionCheckResult(is_correct=is_correct, score=score))
+
+        return TestCheckResponse(
+            total_questions=len(questions),
+            checked_questions=checked,
+            total_score=total_score,
+            results=results,
+        )
 
 
 async def _delete_lesson(lesson_id: int, session: AsyncSession) -> int:
@@ -312,7 +429,7 @@ async def _update_lesson(
                 lesson.content = updated_params["content"]
         elif lesson_type == LessonType.TEST:
             if "questions" in updated_params and updated_params["questions"] is not None:
-                lesson.questions = updated_params["questions"]
+                lesson.questions = _jsonable(updated_params["questions"])
         else:
             raise ValueError(f"Неизвестный тип урока: {lesson.lesson_type}")
 

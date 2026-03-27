@@ -32,6 +32,7 @@ class ShortModule(TunedModel):
     slug: str
     description: str
     display_order: int
+    lessons_count: int = 0
 
 class ModuleCreate(BaseModel):
     course_id: int

@@ -1,5 +1,7 @@
 from typing import Optional, List, Any, Union, Annotated, Literal
+from enum import Enum
 from pydantic import Field
+from pydantic import model_validator
 from datetime import datetime
 from db.models.lesson import LessonType
 
@@ -42,14 +44,70 @@ class PracticaCreate(LessonBaseSchema):
     deadline_days: Optional[int] = Field(default=None, ge=0)
 
 
-class TestQuestion(TunedModel):
+class TestQuestionType(str, Enum):
+    SINGLE = "single"      # один вариант
+    MULTIPLE = "multiple"  # несколько вариантов
+    TEXT = "text"          # письменный ответ
+
+
+class TestQuestionBase(TunedModel):
     prompt: str = Field(..., min_length=1)
-    options: List[str] = Field(..., min_length=2)
+    question_type: TestQuestionType = Field(default=TestQuestionType.SINGLE)
+    # Для single/multiple обязательны варианты, для text — не нужны
+    options: Optional[List[str]] = None
+
+    @model_validator(mode="after")
+    def _validate_by_type(self):
+        if self.question_type == TestQuestionType.TEXT:
+            # options игнорируем (может быть None)
+            return self
+
+        if not self.options or len([o for o in self.options if isinstance(o, str) and o.strip()]) < 2:
+            raise ValueError("Для single/multiple нужно минимум 2 непустых варианта ответа")
+        return self
+
+
+class TestQuestionTeacher(TestQuestionBase):
+    # правильные ответы (для автопроверки)
+    correct_option: Optional[int] = Field(default=None, ge=0)
+    correct_options: Optional[List[int]] = None
+    correct_text: Optional[str] = None
+
+    @model_validator(mode="after")
+    def _validate_correct(self):
+        """
+        Правильные ответы НЕ обязаны для отображения вопросов (иначе старые тесты ломают сериализацию).
+        Автопроверка учитывает correct_* только если они присутствуют и валидны.
+        """
+        if self.question_type == TestQuestionType.SINGLE:
+            if self.correct_option is None or not self.options:
+                return self
+            if self.correct_option < 0 or self.correct_option >= len(self.options):
+                raise ValueError("correct_option вне диапазона options")
+
+        elif self.question_type == TestQuestionType.MULTIPLE:
+            if not self.correct_options or len(self.correct_options) == 0 or not self.options:
+                return self
+            if any((not isinstance(i, int) or i < 0 or i >= len(self.options)) for i in self.correct_options):
+                raise ValueError("Один из correct_options вне диапазона options")
+
+        elif self.question_type == TestQuestionType.TEXT:
+            # Можно без correct_text (тогда не автопроверяем).
+            return self
+
+        return self
+
+
+class TestQuestionStudent(TestQuestionBase):
+    """
+    Версия вопроса для студента: без правильных ответов.
+    """
+    pass
 
 
 class TestCreate(LessonBaseSchema):
     lesson_type: Literal[LessonType.TEST] = LessonType.TEST
-    questions: List[TestQuestion] = Field(..., min_length=1)
+    questions: List[TestQuestionTeacher] = Field(..., min_length=1)
 
 
 LessonCreate = Annotated[
@@ -89,7 +147,7 @@ class PracticaResponse(LessonBaseResponse):
 
 class TestResponse(LessonBaseResponse):
     lesson_type: Literal[LessonType.TEST] = LessonType.TEST
-    questions: List[TestQuestion]
+    questions: List[TestQuestionTeacher]
 
 
 class DeleteResponse(TunedModel):
@@ -100,3 +158,32 @@ LessonResponse = Annotated[
     Union[LectureResponse, VideoResponse, PracticaResponse, TestResponse],
     Field(discriminator="lesson_type")
 ]
+
+
+class TestStudentResponse(LessonBaseResponse):
+    lesson_type: Literal[LessonType.TEST] = LessonType.TEST
+    questions: List[TestQuestionStudent]
+
+
+LessonStudentResponse = Annotated[
+    Union[LectureResponse, VideoResponse, PracticaResponse, TestStudentResponse],
+    Field(discriminator="lesson_type")
+]
+
+
+class TestCheckRequest(TunedModel):
+    # список ответов по индексам вопросов:
+    # single -> int | null, multiple -> list[int], text -> str
+    answers: List[Any] = Field(..., min_length=1)
+
+
+class TestQuestionCheckResult(TunedModel):
+    is_correct: Optional[bool] = None  # None если не смогли автопроверить (text без correct_text)
+    score: float = 0.0
+
+
+class TestCheckResponse(TunedModel):
+    total_questions: int
+    checked_questions: int
+    total_score: float
+    results: List[TestQuestionCheckResult]

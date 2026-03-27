@@ -73,7 +73,42 @@ const CreateLessonPage = () => {
       return { ...base, video_url: form.video_url, ...(form.duration ? { duration: form.duration } : {}) };
     }
     if (lessonType === 'test') {
-      return { ...base, questions: form.questions };
+      return {
+        ...base,
+        questions: (form.questions || []).map((q) => {
+          const t = q?.question_type || 'single';
+          if (t === 'text') {
+            return {
+              prompt: q?.prompt || '',
+              question_type: 'text',
+              options: null,
+              correct_text: (q?.correct_text ?? '').trim() || null,
+            };
+          }
+          const opts = Array.isArray(q?.options) ? q.options : [];
+          const mapping = new Map(); // oldIdx -> newIdx
+          const cleanOpts = [];
+          opts.forEach((s, oldIdx) => {
+            const v = typeof s === 'string' ? s.trim() : '';
+            if (!v) return;
+            mapping.set(oldIdx, cleanOpts.length);
+            cleanOpts.push(v);
+          });
+
+          const remap = (idx) => {
+            if (!Number.isFinite(idx)) return null;
+            return mapping.has(idx) ? mapping.get(idx) : null;
+          };
+          return {
+            prompt: q?.prompt || '',
+            question_type: t,
+            options: cleanOpts,
+            ...(t === 'single'
+              ? { correct_option: remap(q?.correct_option) }
+              : { correct_options: (Array.isArray(q?.correct_options) ? q.correct_options : []).map(remap).filter((x) => x !== null) }),
+          };
+        }),
+      };
     }
     return base;
   };

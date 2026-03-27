@@ -15,6 +15,9 @@ export const API = {
   user_course_lesson: (slug) => `${API_URL}/lesson/student/${slug}`,
   practica_my_submission: (lesson_slug) => `${API_URL}/practica/${lesson_slug}/submissions/me`,
   practica_submit: (lesson_slug) => `${API_URL}/practica/${lesson_slug}/submissions`,
+  practica_submissions_teacher: (lesson_slug) => `${API_URL}/practica/${lesson_slug}/submissions`,
+  practica_grade: (lesson_slug, student_user_id) => `${API_URL}/practica/${lesson_slug}/submissions/${student_user_id}/grade`,
+  test_check: (lesson_slug) => `${API_URL}/lesson/test/${lesson_slug}/check`,
   complete_lesson: (lesson_slug) => `${API_URL}/lessons/complete/${lesson_slug}`,
   course_progress: (slug) => `${API_URL}/lessons/progress/${slug}`,
 
@@ -29,7 +32,7 @@ export const API = {
   delete_module: (id) => `${API_URL}/module/?id=${id}`,
   
   create_lesson_image: `${API_URL}/lesson/upload-image/`,
-  create_lesson: `${API_URL}/lesson`,
+  create_lesson: `${API_URL}/lesson/`,
   create_practica_lesson: `${API_URL}/lesson/practica/`,
   get_lesson_id: (id) => `${API_URL}/lesson/?lesson_id=${id}`,
   get_lesson_slug: (slug) => `${API_URL}/lesson/by-slug/${slug}`,

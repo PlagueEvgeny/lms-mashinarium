@@ -56,7 +56,11 @@ const TeachingPage = () => {
               <div key={course.id} className='bg-card rounded-xl border border-border p-6'>
                 <div className='flex items-start gap-4'>
                   <div className='w-14 h-14 rounded-xl bg-accent/10 flex items-center justify-center flex-shrink-0'>
-                    <img src={course.image} alt={course.name} className='w-8 h-8 rounded-lg' / >
+                    {course.image ? (
+                      <img src={course.image} alt={course.name} className='w-8 h-8 rounded-lg' />
+                    ) : (
+                      <FileText className="w-6 h-6 text-muted-foreground" />
+                    )}
                   </div>
                   <div className='flex-1 min-w-0'>
                     <div className='flex items-start justify-between gap-4'>

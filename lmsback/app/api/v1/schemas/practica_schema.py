@@ -18,6 +18,7 @@ class PracticaSubmissionResponse(TunedModel):
     id: int
     practica_id: int
     user_id: UUID
+    user_email: Optional[str] = None
 
     text_answer: Optional[str] = None
     files: Optional[List[str]] = None

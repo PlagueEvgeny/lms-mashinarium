@@ -2,7 +2,7 @@ from typing import List, Union
 from uuid import UUID
 from loguru import logger
 
-from api.v1.schemas.course_schema import ListCourse, ShowCourse
+from api.v1.schemas.course_schema import ListCourse, ShowCourse, ListTeacherCourse, ShowTeacherCourse, ShowUserCourse
 from api.v1.schemas.course_schema import CourseCreate
 from services.course_service import CourseDAL
 from db.models.course import Course
@@ -43,14 +43,16 @@ async def _get_user_course_by_slug(user_id: UUID, slug: str, session) -> Union[C
         course_dal = CourseDAL(session)
         course = await course_dal.get_user_course_by_slug(user_id=user_id, slug=slug)
         if course is not None:
-            return course
+            return ShowUserCourse.model_validate(course)
 
 async def _get_user_courses_as_teacher(user_id: UUID, session) -> List[ListCourse]:
     logger.info("Получение курсов преподавателя")
     async with session.begin():
         course_dal = CourseDAL(session)
         course = await course_dal.get_user_courses_as_teacher(user_id=user_id)
-        return list(course)
+        # Важно: валидируем/сериализуем внутри контекста сессии,
+        # чтобы не происходило ленивых загрузок в response_model после выхода из begin().
+        return [ListTeacherCourse.model_validate(c) for c in list(course)]
 
 async def _get_teacher_course_by_slug(user_id: UUID, slug: str, session) -> Union[Course, None]:
     logger.info("Получение курса преподавателя по slug")
@@ -58,7 +60,7 @@ async def _get_teacher_course_by_slug(user_id: UUID, slug: str, session) -> Unio
         course_dal = CourseDAL(session)
         course = await course_dal.get_teacher_course_by_slug(user_id=user_id, slug=slug)
         if course is not None:
-            return course
+            return ShowTeacherCourse.model_validate(course)
 
 async def _get_course_by_categories(categories_slug: str, session) -> List[ListCourse]:
     logger.info("Получение курсов по категориям")

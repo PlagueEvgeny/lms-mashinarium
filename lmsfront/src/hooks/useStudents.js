@@ -71,6 +71,19 @@ export const useStudents = () => {
     return await response.json();
   };
 
+  const checkTest = async (lessonSlug, answers) => {
+    const response = await authFetch(API.test_check(lessonSlug), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ answers }),
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || 'Не удалось проверить тест');
+    }
+    return await response.json();
+  };
+
   return {
     getCourseBySlug,
     getLessonBySlug,
@@ -78,5 +91,6 @@ export const useStudents = () => {
     getCourseProgress,
     getMyPracticaSubmission,
     submitPractica,
+    checkTest,
   };
 };

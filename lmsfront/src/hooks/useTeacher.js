@@ -257,6 +257,31 @@ export const useTeacher = () => {
     return await response.json();
   };
 
+  const getPracticaSubmissions = async (lessonSlug) => {
+    const response = await authFetch(API.practica_submissions_teacher(lessonSlug));
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || 'Не удалось получить отправки');
+    }
+    return await response.json();
+  };
+
+  const gradePracticaSubmission = async (lessonSlug, studentUserId, { score, feedback }) => {
+    const response = await authFetch(API.practica_grade(lessonSlug, studentUserId), {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${getToken()}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ score, feedback }),
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || 'Не удалось поставить оценку');
+    }
+    return await response.json();
+  };
+
   const deleteLesson = async(lesson_id) => {
     const response = await authFetch(API.delete_lesson(lesson_id), {
       method:'DELETE',
@@ -288,6 +313,8 @@ export const useTeacher = () => {
     updatePracticaLesson,
     uploadLessonMaterials,
     deleteLesson, 
+    getPracticaSubmissions,
+    gradePracticaSubmission,
     uploadImage, 
     uploadLessonImage 
   };

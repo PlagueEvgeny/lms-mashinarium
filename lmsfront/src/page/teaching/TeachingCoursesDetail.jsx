@@ -4,7 +4,7 @@ import toast, { Toaster } from 'react-hot-toast';
 import Header from '../../components/Header';
 import { useAuthUser } from '../../hooks/useAuthUser';
 import { useTeacher } from '../../hooks/useTeacher';
-import { Edit, FileText, GripVertical, MoreVertical, Plus, Trash2, ChevronUp, ChevronDown, Video, ClipboardList, HelpCircle, Edit2 } from 'lucide-react';
+import { Edit, FileText, GripVertical, MoreVertical, Plus, Trash2, ChevronUp, ChevronDown, Video, ClipboardList, HelpCircle, Edit2, Users, ClipboardCheck } from 'lucide-react';
 
 const lessonTypeIcons = {
   lecture: FileText,
@@ -17,7 +17,7 @@ const lessonTypeLabels = {
   lecture: "Лекция",
   video: "Видео",
   practica: "Практика",
-  quiz: "Тестирование"
+  test: "Тестирование"
 }
 
 
@@ -141,6 +141,33 @@ const TeachingCoursesDetail = () => {
             </button> 
           </div>
         </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+          <button
+            onClick={() => navigate(`/teaching/courses/${course.slug}/students`)}
+            className="bg-card rounded-2xl border border-border p-4 hover:bg-muted/30 transition flex items-center gap-3"
+          >
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Users className="w-5 h-5 text-primary" />
+            </div>
+            <div className="text-left">
+              <div className="text-sm font-semibold text-foreground">Студенты курса</div>
+              <div className="text-xs text-muted-foreground">Всего: {course?.students?.length ?? 0}</div>
+            </div>
+          </button>
+
+          <button
+            onClick={() => navigate(`/teaching/courses/${course.slug}/practica-check`)}
+            className="bg-card rounded-2xl border border-border p-4 hover:bg-muted/30 transition flex items-center gap-3"
+          >
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <ClipboardCheck className="w-5 h-5 text-primary" />
+            </div>
+            <div className="text-left">
+              <div className="text-sm font-semibold text-foreground">Проверка практик</div>
+              <div className="text-xs text-muted-foreground">Отправки и оценивание</div>
+            </div>
+          </button>
+        </div>
         <div className='flex items-center justify-between mb-4'>
           <h2 className='text-xl font-semibold'>Модули и уроки</h2>
           <button 
@@ -229,7 +256,9 @@ const TeachingCoursesDetail = () => {
                     {module.display_order}
                   </div>
                   <span className='flex-1 font-medium'>{module.name}</span>
-                  <span className='text-sm text-muted-foreground'>{moduleDetails?.lessons?.length || module.lessons?.length || 0} уроков</span>
+                  <span className='text-sm text-muted-foreground'>
+                    {moduleDetails?.lessons?.length ?? module.lessons_count ?? 0} уроков
+                  </span>
                   <div className='relative' onClick={(e) => e.stopPropagation()}>{}
                     <button onClick={(e) => { e.stopPropagation(); setMenuOpen(menuOpen == module.id ? null : module.id) }}
                             className='p-1 hover:bg-muted rounded transition-colors'

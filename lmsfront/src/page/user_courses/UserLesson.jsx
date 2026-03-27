@@ -20,7 +20,7 @@ const LESSON_COMPONENTS = {
 const UserLesson = () => {
   const { slug, module_slug, lesson_slug } = useParams();
   const navigate = useNavigate();
-  const { getCourseBySlug, getLessonBySlug, completeLesson, getCourseProgress } = useStudents();
+  const { getCourseBySlug, getLessonBySlug, completeLesson, getCourseProgress, checkTest } = useStudents();
 
   const [course, setCourse]               = useState(null);
   const [lesson, setLesson]               = useState(null);
@@ -63,6 +63,7 @@ const UserLesson = () => {
   }, [lesson_slug]);
 
   const handleSelect = (newLessonSlug) => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     navigate(`/user/courses/${slug}/modules/${module_slug}/lessons/${newLessonSlug}`);
   };
 
@@ -156,6 +157,7 @@ const UserLesson = () => {
                 onNext={handleNext}
                 hasPrev={hasPrev}
                 hasNext={hasNext}
+                onCheckTest={lesson?.lesson_type === 'test' ? (answers) => checkTest(lesson_slug, answers) : null}
               />
             )}
           </div>
