@@ -1,17 +1,14 @@
-import { useState, useRef } from 'react';
-import { ChevronLeft, ChevronRight, Clock, BookOpen, X, FileText } from 'lucide-react';
-import { parseMarkdown, LESSON_CSS } from '../../utility/markdownParser';
+import { useMemo, useState } from 'react';
+import { ChevronLeft, ChevronRight, HelpCircle, FileText } from 'lucide-react';
+import { LESSON_CSS } from '../../utility/markdownParser';
 
-const LectureLesson = ({ lesson, onPrev, onNext, hasPrev, hasNext }) => {
-  const [lightbox, setLightbox] = useState(null);
-  const contentRef = useRef(null);
-  const readTime = Math.max(1, Math.ceil((lesson.content || '').split(' ').length / 200));
+const TestLesson = ({ lesson, onPrev, onNext, hasPrev, hasNext }) => {
+  const questions = useMemo(() => lesson?.questions || [], [lesson?.questions]);
+  const [answers, setAnswers] = useState(() => (questions || []).map(() => null));
   const materials = lesson?.materials || [];
 
-  const handleContentClick = (e) => {
-    if (e.target.tagName === 'IMG' && e.target.dataset.src) {
-      setLightbox(e.target.dataset.src);
-    }
+  const setAnswer = (qIdx, optIdx) => {
+    setAnswers((prev) => prev.map((a, i) => (i === qIdx ? optIdx : a)));
   };
 
   return (
@@ -22,24 +19,39 @@ const LectureLesson = ({ lesson, onPrev, onNext, hasPrev, hasNext }) => {
         <div className="bg-card rounded-2xl border border-border p-6">
           <div className="flex items-center gap-3 mb-4">
             <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-primary/10">
-              <BookOpen size={17} className="text-primary" />
+              <HelpCircle size={17} className="text-primary" />
             </div>
-            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Лекция</span>
-            <span className="text-muted-foreground">·</span>
-            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <Clock size={13} />
-              {readTime} мин
-            </span>
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Тест</span>
           </div>
           <h1 className="text-2xl font-bold text-foreground">{lesson.name}</h1>
         </div>
 
-        <div className="bg-card rounded-2xl border border-border p-8">
-          <div
-            ref={contentRef}
-            onClick={handleContentClick}
-            dangerouslySetInnerHTML={{ __html: parseMarkdown(lesson.content, 'lesson') }}
-          />
+        <div className="bg-card rounded-2xl border border-border p-6 space-y-4">
+          {(questions || []).length === 0 ? (
+            <p className="text-sm text-muted-foreground">В тесте нет вопросов.</p>
+          ) : (
+            questions.map((q, idx) => (
+              <div key={idx} className="space-y-3 border border-border rounded-xl p-4 bg-muted/10">
+                <p className="font-medium text-foreground">
+                  {idx + 1}. {q.prompt}
+                </p>
+
+                <div className="space-y-2">
+                  {(q.options || []).map((opt, optIdx) => (
+                    <label key={optIdx} className="flex items-center gap-2 text-sm cursor-pointer">
+                      <input
+                        type="radio"
+                        name={`q_${idx}`}
+                        checked={answers[idx] === optIdx}
+                        onChange={() => setAnswer(idx, optIdx)}
+                      />
+                      <span className="text-foreground">{opt}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            ))
+          )}
         </div>
 
         <div className="bg-card rounded-2xl border border-border p-6">
@@ -86,28 +98,9 @@ const LectureLesson = ({ lesson, onPrev, onNext, hasPrev, hasNext }) => {
           </button>
         </div>
       </div>
-
-      {lightbox && (
-        <div
-          onClick={() => setLightbox(null)}
-          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-6"
-        >
-          <button
-            onClick={() => setLightbox(null)}
-            className="absolute top-5 right-5 p-2 rounded-full bg-white/10 text-white hover:bg-white/20 transition"
-          >
-            <X size={20} />
-          </button>
-          <img
-            src={lightbox}
-            alt=""
-            onClick={e => e.stopPropagation()}
-            className="max-w-full max-h-[85vh] rounded-xl object-contain"
-          />
-        </div>
-      )}
     </>
   );
 };
 
-export default LectureLesson;
+export default TestLesson;
+

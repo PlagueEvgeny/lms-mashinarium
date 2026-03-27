@@ -13,6 +13,7 @@ import CreateCoursesPage from './page/teaching/CreateCoursesPage';
 import EditCoursesPage from './page/teaching/EditCoursesPage';
 import EditModulePage from './page/teaching/EditModulePage';
 import CreateLessonPage from './page/teaching/CreateLessonPage';
+import EditLessonPage from './page/teaching/EditLessonPage';
 
 function App() {
   return (
@@ -27,9 +28,10 @@ function App() {
         <Route path="/teaching/courses/:slug/edit" element={<PrivateRoute><EditCoursesPage /></PrivateRoute>} />
         <Route path="/teaching/courses/:slug/modules/:module_slug/edit" element={<PrivateRoute><EditModulePage /></PrivateRoute>} />
         <Route path="/teaching/courses/:slug/modules/:module_slug/lessons/new" element={<PrivateRoute><CreateLessonPage /></PrivateRoute>} />
+        <Route path="/teaching/courses/:slug/modules/:module_slug/lessons/:lesson_slug/edit" element={<PrivateRoute><EditLessonPage /></PrivateRoute>} />
         <Route path="/user/courses/:slug" element={<PrivateRoute><UserCourse /></PrivateRoute>} />
         <Route path="/user/courses/:slug/modules/:module_slug/lessons/:lesson_slug" element={<PrivateRoute><UserLesson /></PrivateRoute>} />
-        <Route path="/profile" element={<PrivateRoute><ProfilePage / > </PrivateRoute>} / >
+        <Route path="/profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
         <Route path="/login" element={<LoginPage />} />
 
       </Routes>

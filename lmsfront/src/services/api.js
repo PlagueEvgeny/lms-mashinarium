@@ -13,6 +13,8 @@ export const API = {
   dashboard: `${API_URL}/course/educations`,
   user_course: (slug) => `${API_URL}/course/educations/${slug}`,
   user_course_lesson: (slug) => `${API_URL}/lesson/student/${slug}`,
+  practica_my_submission: (lesson_slug) => `${API_URL}/practica/${lesson_slug}/submissions/me`,
+  practica_submit: (lesson_slug) => `${API_URL}/practica/${lesson_slug}/submissions`,
   complete_lesson: (lesson_slug) => `${API_URL}/lessons/complete/${lesson_slug}`,
   course_progress: (slug) => `${API_URL}/lessons/progress/${slug}`,
 
@@ -28,9 +30,12 @@ export const API = {
   
   create_lesson_image: `${API_URL}/lesson/upload-image/`,
   create_lesson: `${API_URL}/lesson`,
+  create_practica_lesson: `${API_URL}/lesson/practica/`,
   get_lesson_id: (id) => `${API_URL}/lesson/?lesson_id=${id}`,
   get_lesson_slug: (slug) => `${API_URL}/lesson/by-slug/${slug}`,
   update_lesson: (id) => `${API_URL}/lesson/?lesson_id=${id}`,
+  update_practica_lesson: (slug) => `${API_URL}/lesson/practica/${slug}`,
+  upload_lesson_materials: (slug) => `${API_URL}/lesson/materials/${slug}`,
   delete_lesson: (id) => `${API_URL}/lesson/?lesson_id=${id}`,
   
   user: `${API_URL}/user/me`,

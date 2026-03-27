@@ -45,10 +45,38 @@ export const useStudents = () => {
     return data.completed_lesson_ids;
   };
 
+  const getMyPracticaSubmission = async (lessonSlug) => {
+    const response = await authFetch(API.practica_my_submission(lessonSlug));
+    if (!response.ok) return null;
+    return await response.json();
+  };
+
+  const submitPractica = async (lessonSlug, { textAnswer, files }) => {
+    const formData = new FormData();
+    if (textAnswer && textAnswer.trim() !== '') {
+      formData.append('text_answer', textAnswer);
+    }
+    (files || []).forEach((file) => formData.append('files', file));
+
+    const response = await authFetch(API.practica_submit(lessonSlug), {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || 'Не удалось отправить решение');
+    }
+
+    return await response.json();
+  };
+
   return {
     getCourseBySlug,
     getLessonBySlug,
     completeLesson,
-    getCourseProgress
+    getCourseProgress,
+    getMyPracticaSubmission,
+    submitPractica,
   };
 };

@@ -1,6 +1,6 @@
 // VideoLesson.jsx
 import { useState } from 'react';
-import { ChevronLeft, ChevronRight, Play, Clock, Video } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Play, Clock, Video, FileText } from 'lucide-react';
 import HLSPlayer from '../HLSPlayer';
 import BigBlueButtonPlayer from '../BigBlueButtonPlayer';
 
@@ -46,6 +46,7 @@ const VideoLesson = ({ lesson, onPrev, onNext, hasPrev, hasNext }) => {
   const [fallbackPlaying, setFallbackPlaying] = useState(false);
   const [bbbStatus, setBbbStatus] = useState(null); // null | 'ready' | 'error'
 
+  const materials = lesson?.materials || [];
   const url = lesson.video_url;
   const embedUrl = getEmbedUrl(url);
   const isBbbUrl = isBBB(url);
@@ -161,6 +162,34 @@ const VideoLesson = ({ lesson, onPrev, onNext, hasPrev, hasNext }) => {
               <span className="text-sm text-muted-foreground shrink-0 ml-4">{formatDuration(lesson.duration)}</span>
             )}
           </div>
+        )}
+      </div>
+
+      {/* Materials */}
+      <div className="bg-card rounded-2xl border border-border p-6">
+        <div className="flex items-center gap-2 mb-3">
+          <FileText size={16} className="text-primary" />
+          <h2 className="text-base font-semibold">Материалы</h2>
+        </div>
+
+        {materials.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Материалы не прикреплены.</p>
+        ) : (
+          <ul className="space-y-2">
+            {materials.map((m) => (
+              <li key={m.id} className="flex items-center justify-between gap-3">
+                <a
+                  href={m.file_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-sm text-primary hover:underline truncate"
+                  title={m.title}
+                >
+                  {m.title}
+                </a>
+              </li>
+            ))}
+          </ul>
         )}
       </div>
 

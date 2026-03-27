@@ -192,6 +192,22 @@ export const useTeacher = () => {
     return await response.json();
   };
 
+  const createPracticaLesson = async (formData) => {
+    const response = await authFetch(API.create_practica_lesson, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${getToken()}`,
+      },
+      body: formData,
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || 'Ошибка создания');
+    }
+    toast.success('Практика создана');
+    return await response.json();
+  };
+
   const updateLesson = async (lesson_id, formData) => {
     const response = await authFetch(API.update_lesson(lesson_id), {
       method: 'PATCH',
@@ -206,6 +222,38 @@ export const useTeacher = () => {
       throw new Error(errorData.detail || 'Ошибка обновления');
     }
     toast.success('Урок обновлён');
+    return await response.json();
+  };
+
+  const updatePracticaLesson = async (lessonSlug, formData) => {
+    const response = await authFetch(API.update_practica_lesson(lessonSlug), {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${getToken()}`,
+      },
+      body: formData,
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || 'Ошибка обновления');
+    }
+    toast.success('Практика обновлена');
+    return await response.json();
+  };
+
+  const uploadLessonMaterials = async (lessonSlug, files) => {
+    const fd = new FormData();
+    (files || []).forEach((f) => fd.append('materials', f));
+
+    const response = await authFetch(API.upload_lesson_materials(lessonSlug), {
+      method: 'POST',
+      body: fd,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || 'Ошибка загрузки материалов');
+    }
     return await response.json();
   };
 
@@ -235,7 +283,10 @@ export const useTeacher = () => {
     updateModule, 
     deleteModule, 
     createLesson,
+    createPracticaLesson,
     updateLesson,
+    updatePracticaLesson,
+    uploadLessonMaterials,
     deleteLesson, 
     uploadImage, 
     uploadLessonImage 

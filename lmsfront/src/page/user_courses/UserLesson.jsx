@@ -6,11 +6,15 @@ import Header from '../../components/Header';
 import LessonSidebar from '../../components/lesson/LessonSidebar';
 import LectureLesson from '../../components/lesson/LectureLesson';
 import VideoLesson   from '../../components/lesson/VideoLesson';
+import PracticaLesson from '../../components/lesson/PracticaLesson';
+import TestLesson from '../../components/lesson/TestLesson';
 import { useStudents } from '../../hooks/useStudents';
 
 const LESSON_COMPONENTS = {
   lecture: LectureLesson,
   video:   VideoLesson,
+  practica: PracticaLesson,
+  test:    TestLesson,
 };
 
 const UserLesson = () => {
@@ -73,6 +77,7 @@ const UserLesson = () => {
         setCompletedIds(prev => [...prev, lesson.id]);
       } catch (err) {
         toast.error('Не удалось сохранить прогресс');
+        console.error(err);
       }
     }
     if (hasNext) handleSelect(allLessons[currentIndex + 1].slug);

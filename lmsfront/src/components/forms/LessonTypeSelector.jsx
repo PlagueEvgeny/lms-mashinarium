@@ -20,14 +20,14 @@ const LESSON_TYPES = [
     label: 'Практика',
     description: 'Задание для самостоятельной работы',
     icon: FlaskConical,
-    available: false,
+    available: true,
   },
   {
     type: 'test',
     label: 'Тест',
     description: 'Вопросы с вариантами ответов',
     icon: ClipboardList,
-    available: false,
+    available: true,
   },
 ];
 

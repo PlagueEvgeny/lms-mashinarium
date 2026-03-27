@@ -1,5 +1,3 @@
-import { API } from '../../services/api';
-import { authFetch } from '../../services/authFetch';
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import toast, { Toaster } from 'react-hot-toast';
@@ -9,6 +7,9 @@ import LessonTypeSelector from '../../components/forms/LessonTypeSelector';
 import LessonBaseFields from '../../components/forms/LessonBaseFields';
 import LectureFormFields from '../../components/forms/LectureFormFields';
 import VideoFormFields from '../../components/forms/VideoFormFields';
+import PracticaFormFields from '../../components/forms/PraticaFormFields';
+import FilePicker from '../../components/forms/FilePicker';
+import TestFormFields from '../../components/forms/TestFormFields';
 
 const INITIAL_FORM = {
   name: '',
@@ -18,10 +19,14 @@ const INITIAL_FORM = {
   images: [],
   video_url: '',
   duration: '',
+  max_score: 100,
+  deadline_days: null,
+  materials: [],
+  questions: [],
 };
 
 const CreateLessonPage = () => {
-  const { createLesson, getModuleSlug } = useTeacher();
+  const { createLesson, createPracticaLesson, uploadLessonMaterials, getModuleSlug } = useTeacher();
   const navigate = useNavigate();
   const { slug, module_slug } = useParams();
   const [moduleData, setModuleData] = useState(null);
@@ -37,8 +42,8 @@ const CreateLessonPage = () => {
         await getModuleSlug(module_slug, {
           setModule: setModuleData
         });
-      } catch (error) {
-        toast.error('Модуль не найден');
+      } catch (err) {
+        toast.error(err?.message || 'Модуль не найден');
         navigate(`/teaching/courses/${slug}`);
       }
     };
@@ -67,6 +72,9 @@ const CreateLessonPage = () => {
     if (lessonType === 'video') {
       return { ...base, video_url: form.video_url, ...(form.duration ? { duration: form.duration } : {}) };
     }
+    if (lessonType === 'test') {
+      return { ...base, questions: form.questions };
+    }
     return base;
   };
 
@@ -75,10 +83,34 @@ const CreateLessonPage = () => {
     if (!form.name || !form.slug) return toast.error('Заполните обязательные поля');
     if (lessonType === 'lecture' && !form.content) return toast.error('Добавьте содержание лекции');
     if (lessonType === 'video' && !form.video_url) return toast.error('Укажите ссылку на видео');
-    console.log(buildPayload())
+    if (lessonType === 'test' && (!form.questions || form.questions.length === 0)) return toast.error('Добавьте вопросы теста');
+
     setLoading(true);
     try {
-      await createLesson(buildPayload());
+      if (lessonType === 'practica') {
+        if (!form.content) return toast.error('Добавьте условие практики');
+
+        const fd = new FormData();
+        fd.append('module_id', moduleData?.id);
+        fd.append('name', form.name);
+        fd.append('slug', form.slug);
+        fd.append('display_order', form.display_order);
+        fd.append('content', form.content);
+        fd.append('max_score', form.max_score ?? 100);
+        if (form.deadline_days !== null && form.deadline_days !== '') {
+          fd.append('deadline_days', form.deadline_days);
+        }
+        (form.materials || []).forEach((f) => fd.append('materials', f));
+
+        await createPracticaLesson(fd);
+      } else {
+        const created = await createLesson(buildPayload());
+        const files = form.materials || [];
+        if (files.length > 0) {
+          const lessonSlug = created?.slug || form.slug;
+          await uploadLessonMaterials(lessonSlug, files);
+        }
+      }
       navigate(`/teaching/courses/${slug}`);
     } catch (err) {
       toast.error(err.message || 'Ошибка создания урока');
@@ -118,6 +150,16 @@ const CreateLessonPage = () => {
 
               {lessonType === 'lecture' && <LectureFormFields form={form} onChange={onChange} />}
               {lessonType === 'video' && <VideoFormFields form={form} onChange={onChange} />}
+              {lessonType === 'practica' && <PracticaFormFields form={form} onChange={onChange} />}
+              {lessonType === 'test' && <TestFormFields form={form} onChange={onChange} />}
+              {(lessonType === 'lecture' || lessonType === 'video' || lessonType === 'test') && (
+                <FilePicker
+                  label="Материалы (файлы)"
+                  files={form.materials || []}
+                  onChange={(selected) => onChange('materials', selected)}
+                  helperText="Прикрепите файлы, которые будут доступны студентам"
+                />
+              )}
 
               <div className="flex justify-end gap-3 pt-2">
                 <button
