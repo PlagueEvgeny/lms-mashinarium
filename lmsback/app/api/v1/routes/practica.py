@@ -17,6 +17,7 @@ from api.v1.routes.actions.practica_actions import (
     _get_my_submission,
     _grade_submission,
     _get_submissions_for_practica,
+    _get_submissions_for_course_practicas,
 )
 from db.session import get_db
 from db.models.user import User
@@ -88,6 +89,25 @@ async def get_practica_submissions_for_teacher(
     except ValueError as e:
         msg = str(e)
         raise HTTPException(status_code=404, detail=msg)
+
+
+@practica_router.get("/course/{course_slug}/submissions", response_model=List[PracticaSubmissionResponse])
+async def get_course_practica_submissions_for_teacher(
+    course_slug: str,
+    session: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user_from_token),
+):
+    if not check_user_permissions_teahers(current_user=current_user):
+        logger.error(f"У пользователя {current_user.email} не хватает прав")
+        raise HTTPException(status_code=403, detail="Forbidden.")
+    try:
+        return await _get_submissions_for_course_practicas(
+            course_slug=course_slug,
+            teacher_user_id=current_user.user_id,
+            session=session,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
 
 
 @practica_router.patch("/{lesson_slug}/submissions/{student_user_id}/grade", response_model=PracticaSubmissionResponse)

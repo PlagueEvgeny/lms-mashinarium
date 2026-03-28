@@ -15,7 +15,7 @@ const LESSON_LABELS = {
   test:     'Тест',
 };
 
-const LessonSidebar = ({ modules, currentSlug, onSelect, completedSlugs = [] }) => {
+const LessonSidebar = ({ modules, currentSlug, onSelect, completedSlugs = [], lockedSlugs = [] }) => {
   const [collapsed, setCollapsed] = useState({});
 
   const toggleModule = (moduleId) => {
@@ -75,16 +75,21 @@ const LessonSidebar = ({ modules, currentSlug, onSelect, completedSlugs = [] }) 
                       const Icon = LESSON_ICONS[lesson.lesson_type] || BookOpen;
                       const isActive    = lesson.slug === currentSlug;
                       const isCompleted = completedSlugs.includes(lesson.slug);
+                      const isLocked = lockedSlugs.includes(lesson.slug);
 
                       return (
                         <button
                           key={lesson.id}
-                          onClick={() => onSelect(lesson.slug)}
+                          type="button"
+                          onClick={() => !isLocked && onSelect(lesson.slug)}
+                          disabled={isLocked}
+                          title={isLocked ? 'Сначала завершите предыдущие занятия' : undefined}
                           className={`
                             w-full flex items-center gap-3 px-5 py-3.5 text-left transition border-b border-border last:border-b-0
+                            ${isLocked ? 'opacity-50 cursor-not-allowed' : ''}
                             ${isActive
                               ? 'bg-primary/8 text-primary'
-                              : 'hover:bg-muted/30 text-foreground'
+                              : isLocked ? '' : 'hover:bg-muted/30 text-foreground'
                             }
                           `}
                         >
@@ -92,9 +97,12 @@ const LessonSidebar = ({ modules, currentSlug, onSelect, completedSlugs = [] }) 
                           <div className={`shrink-0 w-7 h-7 rounded-lg flex items-center justify-center ${
                             isActive    ? 'bg-primary/15' :
                             isCompleted ? 'bg-green-500/10' :
+                            isLocked ? 'bg-muted' :
                             'bg-muted'
                           }`}>
-                            {isCompleted && !isActive
+                            {isLocked && !isActive
+                              ? <Lock size={14} className="text-muted-foreground" />
+                              : isCompleted && !isActive
                               ? <CheckCircle2 size={14} className="text-green-500" />
                               : <Icon size={14} className={isActive ? 'text-primary' : 'text-muted-foreground'} />
                             }

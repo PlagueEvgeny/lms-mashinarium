@@ -15,6 +15,9 @@ from db.models.lesson import (
     LessonProgress,
     PracticaSubmission,
     LessonMaterial,
+    TestCorrectAnswer,
+    TestSubmission,
+    TestSubmissionAnswer,
 )
 from db.models.user import User
 from db.models.course import Course
@@ -193,8 +196,12 @@ class LessonDAL:
         existing = await self.get_practica_submission(practica_id=practica_id, user_id=user_id)
 
         if existing:
-            existing.text_answer = text_answer
-            existing.files = files
+            # Если поле не прислали, сохраняем предыдущее значение,
+            # чтобы не затирать ответ при частичном обновлении.
+            if text_answer is not None:
+                existing.text_answer = text_answer
+            if files is not None:
+                existing.files = files
             existing.is_graded = False
             existing.score = None
             existing.feedback = None
@@ -244,4 +251,118 @@ class LessonDAL:
             )
         )
         return list(result.scalars().all())
+
+    async def get_practica_submissions_by_ids(self, practica_ids: list[int]) -> list[PracticaSubmission]:
+        if not practica_ids:
+            return []
+        result = await self.db_session.execute(
+            select(PracticaSubmission).where(PracticaSubmission.practica_id.in_(practica_ids))
+        )
+        return list(result.scalars().all())
+
+    async def replace_test_correct_answers(self, test_lesson_id: int, questions: list[dict]) -> None:
+        existing = await self.db_session.execute(
+            select(TestCorrectAnswer).where(TestCorrectAnswer.test_lesson_id == test_lesson_id)
+        )
+        for item in existing.scalars().all():
+            await self.db_session.delete(item)
+
+        for idx, q in enumerate(questions or []):
+            if not isinstance(q, dict):
+                continue
+
+            question_type = q.get("question_type") or "single"
+            correct = TestCorrectAnswer(
+                test_lesson_id=test_lesson_id,
+                question_index=idx,
+                question_type=question_type,
+                correct_option=q.get("correct_option"),
+                correct_options=q.get("correct_options"),
+                correct_text=q.get("correct_text"),
+            )
+            self.db_session.add(correct)
+
+        await self.db_session.flush()
+
+    async def get_test_correct_answers_map(self, test_lesson_id: int) -> dict[int, TestCorrectAnswer]:
+        result = await self.db_session.execute(
+            select(TestCorrectAnswer).where(TestCorrectAnswer.test_lesson_id == test_lesson_id)
+        )
+        rows = result.scalars().all()
+        return {row.question_index: row for row in rows}
+
+    async def get_test_submission(self, test_lesson_id: int, user_id: UUID) -> Optional[TestSubmission]:
+        result = await self.db_session.execute(
+            select(TestSubmission).where(
+                TestSubmission.test_lesson_id == test_lesson_id,
+                TestSubmission.user_id == user_id,
+            )
+        )
+        return result.scalars().first()
+
+    async def get_test_submission_with_answers(self, test_lesson_id: int, user_id: UUID) -> Optional[TestSubmission]:
+        result = await self.db_session.execute(
+            select(TestSubmission)
+            .options(selectinload(TestSubmission.answers))
+            .where(
+                TestSubmission.test_lesson_id == test_lesson_id,
+                TestSubmission.user_id == user_id,
+            )
+        )
+        return result.scalars().first()
+
+    async def get_test_submissions_with_answers(self, test_lesson_id: int) -> list[TestSubmission]:
+        result = await self.db_session.execute(
+            select(TestSubmission)
+            .options(selectinload(TestSubmission.answers))
+            .where(TestSubmission.test_lesson_id == test_lesson_id)
+        )
+        return list(result.scalars().all())
+
+    async def get_test_submissions_with_answers_by_ids(self, test_lesson_ids: list[int]) -> list[TestSubmission]:
+        if not test_lesson_ids:
+            return []
+        result = await self.db_session.execute(
+            select(TestSubmission)
+            .options(selectinload(TestSubmission.answers))
+            .where(TestSubmission.test_lesson_id.in_(test_lesson_ids))
+        )
+        return list(result.scalars().all())
+
+    async def create_test_submission(
+        self,
+        test_lesson_id: int,
+        user_id: UUID,
+        total_questions: int,
+        checked_questions: int,
+        total_score: float,
+        answers: list[dict],
+    ) -> TestSubmission:
+        submission = TestSubmission(
+            test_lesson_id=test_lesson_id,
+            user_id=user_id,
+            total_questions=total_questions,
+            checked_questions=checked_questions,
+            total_score=total_score,
+            submitted_at=datetime.utcnow(),
+        )
+        self.db_session.add(submission)
+        await self.db_session.flush()
+
+        for item in answers:
+            answer = TestSubmissionAnswer(
+                submission_id=submission.id,
+                question_index=item["question_index"],
+                question_type=item["question_type"],
+                selected_option=item.get("selected_option"),
+                selected_options=item.get("selected_options"),
+                text_answer=item.get("text_answer"),
+                is_correct=item.get("is_correct"),
+                score=item.get("score", 0.0),
+            )
+            self.db_session.add(answer)
+
+        await self.db_session.flush()
+        await self.db_session.refresh(submission)
+        return submission
 

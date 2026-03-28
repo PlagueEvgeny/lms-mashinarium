@@ -2,7 +2,17 @@ import { useEffect, useMemo, useState } from 'react';
 import { ChevronLeft, ChevronRight, HelpCircle, FileText } from 'lucide-react';
 import { LESSON_CSS } from '../../utility/markdownParser';
 
-const TestLesson = ({ lesson, onPrev, onNext, hasPrev, hasNext, onCheckTest }) => {
+const TestLesson = ({
+  lesson,
+  onPrev,
+  onNext,
+  hasPrev,
+  hasNext,
+  onCheckTest,
+  onGetMyTestResult,
+  blockNext = false,
+  onRequirementMetChange,
+}) => {
   const questions = useMemo(() => lesson?.questions || [], [lesson?.questions]);
   const storageKey = useMemo(() => (lesson?.slug ? `test_answers_${lesson.slug}` : null), [lesson?.slug]);
 
@@ -28,6 +38,7 @@ const TestLesson = ({ lesson, onPrev, onNext, hasPrev, hasNext, onCheckTest }) =
   const materials = lesson?.materials || [];
   const [checking, setChecking] = useState(false);
   const [checkResult, setCheckResult] = useState(null);
+  const [loadingResult, setLoadingResult] = useState(false);
 
   useEffect(() => {
     // если поменялся урок/вопросы — нормализуем длину ответов
@@ -48,6 +59,24 @@ const TestLesson = ({ lesson, onPrev, onNext, hasPrev, hasNext, onCheckTest }) =
       // ignore
     }
   }, [storageKey, answers]);
+
+  useEffect(() => {
+    if (!onGetMyTestResult || !lesson?.slug) return;
+    const loadResult = async () => {
+      setLoadingResult(true);
+      try {
+        const result = await onGetMyTestResult();
+        if (result) setCheckResult(result);
+      } finally {
+        setLoadingResult(false);
+      }
+    };
+    loadResult();
+  }, [onGetMyTestResult, lesson?.slug]);
+
+  useEffect(() => {
+    onRequirementMetChange?.(!!checkResult);
+  }, [checkResult, onRequirementMetChange]);
 
   const setSingleAnswer = (qIdx, optIdx) => {
     setAnswers((prev) => prev.map((a, i) => (i === qIdx ? optIdx : a)));
@@ -109,6 +138,7 @@ const TestLesson = ({ lesson, onPrev, onNext, hasPrev, hasNext, onCheckTest }) =
                     onChange={(e) => setTextAnswer(idx, e.target.value)}
                     placeholder="Введите ответ..."
                     rows={4}
+                    disabled={Boolean(checkResult)}
                     className="w-full px-4 py-3 rounded-xl border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
                   />
                 ) : (
@@ -125,6 +155,7 @@ const TestLesson = ({ lesson, onPrev, onNext, hasPrev, hasNext, onCheckTest }) =
                             type={t === 'multiple' ? 'checkbox' : 'radio'}
                             name={`q_${idx}`}
                             checked={checked}
+                            disabled={Boolean(checkResult)}
                             onChange={() => {
                               if (t === 'multiple') toggleMultiAnswer(idx, optIdx);
                               else setSingleAnswer(idx, optIdx);
@@ -140,23 +171,24 @@ const TestLesson = ({ lesson, onPrev, onNext, hasPrev, hasNext, onCheckTest }) =
             ))
           )}
 
-          {onCheckTest && (
+          {onCheckTest && !checkResult && (
             <div className="pt-2 flex items-center justify-between gap-3">
               <button
                 type="button"
                 onClick={runCheck}
-                disabled={checking}
+                disabled={checking || loadingResult}
                 className="px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition disabled:opacity-50"
               >
                 {checking ? 'Проверка...' : 'Проверить тест'}
               </button>
+            </div>
+          )}
 
-              {checkResult && (
-                <div className="text-sm text-muted-foreground">
-                  Баллы: <span className="text-foreground font-medium">{checkResult.total_score}</span> /{' '}
-                  <span className="text-foreground font-medium">{checkResult.total_questions}</span>
-                </div>
-              )}
+          {checkResult && (
+            <div className="pt-2 text-sm text-muted-foreground">
+              Тест уже отправлен. Баллы:{' '}
+              <span className="text-foreground font-medium">{checkResult.total_score}</span> /{' '}
+              <span className="text-foreground font-medium">{checkResult.total_questions}</span>
             </div>
           )}
         </div>
@@ -188,6 +220,12 @@ const TestLesson = ({ lesson, onPrev, onNext, hasPrev, hasNext, onCheckTest }) =
           )}
         </div>
 
+        {blockNext && hasNext && (
+          <p className="text-xs text-muted-foreground text-center">
+            Отправьте ответы и нажмите «Проверить тест», чтобы перейти к следующему занятию.
+          </p>
+        )}
+
         <div className="flex items-center justify-between">
           <button
             onClick={onPrev}
@@ -198,7 +236,7 @@ const TestLesson = ({ lesson, onPrev, onNext, hasPrev, hasNext, onCheckTest }) =
           </button>
           <button
             onClick={onNext}
-            disabled={!hasNext}
+            disabled={!hasNext || blockNext}
             className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition disabled:opacity-30 disabled:pointer-events-none"
           >
             Следующий <ChevronRight size={16} />

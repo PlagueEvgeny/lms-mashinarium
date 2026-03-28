@@ -7,6 +7,7 @@ from sqlalchemy import select
 
 from db.models.lesson import LessonType
 from services.lesson_service import LessonDAL
+from services.course_service import CourseDAL
 from api.v1.schemas.practica_schema import PracticaSubmissionResponse
 from db.models.user import User
 
@@ -126,6 +127,47 @@ async def _get_submissions_for_practica(
         for s in submissions:
             item = PracticaSubmissionResponse.model_validate(s)
             item.user_email = emails_by_id.get(s.user_id)
+            resp.append(item)
+        return resp
+
+
+async def _get_submissions_for_course_practicas(
+    course_slug: str,
+    teacher_user_id: UUID,
+    session: AsyncSession,
+) -> List[PracticaSubmissionResponse]:
+    logger.info(f"Получение отправок по всем практикам курса '{course_slug}'")
+    async with session.begin():
+        course_dal = CourseDAL(session)
+        lesson_dal = LessonDAL(session)
+
+        course = await course_dal.get_teacher_course_by_slug(user_id=teacher_user_id, slug=course_slug)
+        if course is None:
+            raise ValueError(f"Курс с slug '{course_slug}' не найден или нет доступа")
+
+        practica_lessons = []
+        for module in (course.modules or []):
+            for lesson in (module.lessons or []):
+                if getattr(lesson, "lesson_type", None) == LessonType.PRACTICA.value:
+                    practica_lessons.append(lesson)
+
+        practica_ids = [lesson.id for lesson in practica_lessons]
+        submissions = await lesson_dal.get_practica_submissions_by_ids(practica_ids)
+
+        user_ids = [s.user_id for s in submissions]
+        emails_by_id: dict[UUID, str] = {}
+        if user_ids:
+            r = await session.execute(select(User.user_id, User.email).where(User.user_id.in_(user_ids)))
+            emails_by_id = {row[0]: row[1] for row in r.all()}
+
+        lesson_by_id = {lesson.id: lesson for lesson in practica_lessons}
+        resp: list[PracticaSubmissionResponse] = []
+        for s in submissions:
+            lesson = lesson_by_id.get(s.practica_id)
+            item = PracticaSubmissionResponse.model_validate(s)
+            item.user_email = emails_by_id.get(s.user_id)
+            item.lesson_slug = getattr(lesson, "slug", None)
+            item.lesson_name = getattr(lesson, "name", None)
             resp.append(item)
         return resp
 

@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { ChevronLeft, ChevronRight, Clock, BookOpen, X, FileText } from 'lucide-react';
 import { parseMarkdown, LESSON_CSS } from '../../utility/markdownParser';
 
-const LectureLesson = ({ lesson, onPrev, onNext, hasPrev, hasNext }) => {
+const LectureLesson = ({ lesson, onPrev, onNext, hasPrev, hasNext, blockNext = false }) => {
   const [lightbox, setLightbox] = useState(null);
   const contentRef = useRef(null);
   const readTime = Math.max(1, Math.ceil((lesson.content || '').split(' ').length / 200));
@@ -79,7 +79,7 @@ const LectureLesson = ({ lesson, onPrev, onNext, hasPrev, hasNext }) => {
           </button>
           <button
             onClick={onNext}
-            disabled={!hasNext}
+            disabled={!hasNext || blockNext}
             className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition disabled:opacity-30 disabled:pointer-events-none"
           >
             Следующий <ChevronRight size={16} />

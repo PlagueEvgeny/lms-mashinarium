@@ -3,6 +3,7 @@ from loguru import logger
 from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 from services.lesson_service import LessonDAL
+from services.course_service import CourseDAL
 from db.models.lesson import LessonType, LessonMaterial
 from api.v1.schemas.lesson_schema import (
     LectureCreate, LectureResponse,
@@ -12,7 +13,14 @@ from api.v1.schemas.lesson_schema import (
     TestStudentResponse,
     TestCheckResponse,
     TestQuestionCheckResult,
+    TestSubmissionTeacherResponse,
+    TestSubmissionAnswerTeacherResponse,
+    TestStudentSingleAnswer,
+    TestStudentMultipleAnswer,
+    TestStudentTextAnswer,
 )
+from db.models.user import User
+from sqlalchemy import select
 
 LESSON_TYPE_FIELDS = {
     LessonType.LECTURE: ["content", "images"],
@@ -55,6 +63,84 @@ def _jsonable(value: Any) -> Any:
 
     return value
 
+
+def _normalize_student_answer(raw_answer: Any, q_type: str) -> Any:
+    """
+    Приводит ответ студента к единому виду для проверки.
+    Поддерживает и новый структурированный формат, и legacy-формат.
+    """
+    if isinstance(raw_answer, TestStudentSingleAnswer):
+        return raw_answer.selected_option if q_type == "single" else None
+    if isinstance(raw_answer, TestStudentMultipleAnswer):
+        return raw_answer.selected_options if q_type == "multiple" else None
+    if isinstance(raw_answer, TestStudentTextAnswer):
+        return raw_answer.text if q_type == "text" else None
+
+    if isinstance(raw_answer, dict):
+        answer_type = raw_answer.get("answer_type")
+        if q_type == "single":
+            if answer_type == "single":
+                return raw_answer.get("selected_option")
+            return raw_answer.get("selected_option", raw_answer.get("answer"))
+        if q_type == "multiple":
+            if answer_type == "multiple":
+                return raw_answer.get("selected_options", [])
+            return raw_answer.get("selected_options", raw_answer.get("answer", []))
+        if q_type == "text":
+            if answer_type == "text":
+                return raw_answer.get("text")
+            return raw_answer.get("text", raw_answer.get("answer"))
+        return None
+
+    return raw_answer
+
+
+def _split_test_questions_and_correct_answers(questions: list[Any]) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    public_questions: list[dict[str, Any]] = []
+    correct_answers: list[dict[str, Any]] = []
+
+    for idx, raw in enumerate(questions or []):
+        if not isinstance(raw, dict):
+            continue
+
+        question = dict(raw)
+        q_type = question.get("question_type") or "single"
+        correct_answers.append(
+            {
+                "question_index": idx,
+                "question_type": q_type,
+                "correct_option": question.get("correct_option"),
+                "correct_options": question.get("correct_options"),
+                "correct_text": question.get("correct_text"),
+            }
+        )
+
+        question.pop("correct_option", None)
+        question.pop("correct_options", None)
+        question.pop("correct_text", None)
+        public_questions.append(question)
+
+    return public_questions, correct_answers
+
+
+def _merge_questions_with_correct_answers(
+    questions: list[Any],
+    correct_answers_map: dict[int, Any],
+) -> list[Any]:
+    merged: list[Any] = []
+    for idx, raw in enumerate(questions or []):
+        if not isinstance(raw, dict):
+            merged.append(raw)
+            continue
+        question = dict(raw)
+        correct_row = correct_answers_map.get(idx)
+        if correct_row is not None:
+            question["correct_option"] = correct_row.correct_option
+            question["correct_options"] = correct_row.correct_options
+            question["correct_text"] = correct_row.correct_text
+        merged.append(question)
+    return merged
+
 async def _create_new_lesson(
         body: Union[LectureCreate, VideoCreate, PracticaCreate, TestCreate],
         session: AsyncSession,
@@ -69,6 +155,12 @@ async def _create_new_lesson(
             if getattr(body, field, None) is not None
         }
 
+        test_correct_answers: list[dict[str, Any]] = []
+        if body.lesson_type == LessonType.TEST:
+            raw_questions = _jsonable(getattr(body, "questions", []) or [])
+            public_questions, test_correct_answers = _split_test_questions_and_correct_answers(raw_questions)
+            extra_fields["questions"] = public_questions
+
         lesson = await lesson_dal.create_lesson(
             module_id=body.module_id,
             name=body.name,
@@ -77,6 +169,18 @@ async def _create_new_lesson(
             lesson_type=body.lesson_type,
             **extra_fields,
         )
+
+        if body.lesson_type == LessonType.TEST:
+            normalized_questions = [
+                {
+                    "question_type": item["question_type"],
+                    "correct_option": item.get("correct_option"),
+                    "correct_options": item.get("correct_options"),
+                    "correct_text": item.get("correct_text"),
+                }
+                for item in sorted(test_correct_answers, key=lambda x: x["question_index"])
+            ]
+            await lesson_dal.replace_test_correct_answers(lesson.id, normalized_questions)
 
         response_class = LESSON_RESPONSE_MAP[body.lesson_type]
         return response_class.model_validate(lesson)
@@ -98,6 +202,10 @@ async def _get_lesson(
         if response_class is None:
             raise ValueError(f"Неизвестный тип урока: {lesson.lesson_type}")
 
+        if LessonType(lesson.lesson_type) == LessonType.TEST:
+            correct_map = await lesson_dal.get_test_correct_answers_map(test_lesson_id=lesson.id)
+            lesson.questions = _merge_questions_with_correct_answers(lesson.questions or [], correct_map)
+
         return response_class.model_validate(lesson)
 
 
@@ -116,6 +224,10 @@ async def _get_lesson_by_slug(
         response_class = LESSON_RESPONSE_MAP.get(LessonType(lesson.lesson_type))
         if response_class is None:
             raise ValueError(f"Неизвестный тип урока: {lesson.lesson_type}")
+
+        if LessonType(lesson.lesson_type) == LessonType.TEST:
+            correct_map = await lesson_dal.get_test_correct_answers_map(test_lesson_id=lesson.id)
+            lesson.questions = _merge_questions_with_correct_answers(lesson.questions or [], correct_map)
 
         return response_class.model_validate(lesson)
 
@@ -173,13 +285,20 @@ async def _check_test_answers(
         if LessonType(lesson.lesson_type) != LessonType.TEST:
             raise ValueError("Указанный урок не является тестом")
 
+        existing_submission = await lesson_dal.get_test_submission(test_lesson_id=lesson.id, user_id=user_id)
+        if existing_submission is not None:
+            raise ValueError("Тест уже отправлен. Повторная проверка запрещена")
+
         questions = lesson.questions or []
         if not isinstance(questions, list):
             raise ValueError("Некорректный формат questions")
 
+        correct_answers_map = await lesson_dal.get_test_correct_answers_map(test_lesson_id=lesson.id)
+
         results: list[TestQuestionCheckResult] = []
         checked = 0
         total_score = 0.0
+        answers_for_db: list[dict[str, Any]] = []
 
         for idx, q in enumerate(questions):
             if not isinstance(q, dict):
@@ -187,18 +306,20 @@ async def _check_test_answers(
                 continue
 
             q_type = q.get("question_type") or "single"
-            user_answer = answers[idx] if idx < len(answers) else None
+            raw_user_answer = answers[idx] if idx < len(answers) else None
+            user_answer = _normalize_student_answer(raw_user_answer, q_type)
             score = 0.0
             is_correct: Optional[bool] = None
+            correct_row = correct_answers_map.get(idx)
 
             if q_type == "single":
-                correct = q.get("correct_option")
+                correct = correct_row.correct_option if correct_row is not None else None
                 if correct is not None and isinstance(user_answer, int):
                     is_correct = (user_answer == correct)
                     checked += 1
                     score = 1.0 if is_correct else 0.0
             elif q_type == "multiple":
-                correct = q.get("correct_options")
+                correct = correct_row.correct_options if correct_row is not None else None
                 if isinstance(correct, list) and all(isinstance(i, int) for i in correct) and isinstance(user_answer, list):
                     user_set = {int(i) for i in user_answer if isinstance(i, int)}
                     correct_set = set(correct)
@@ -206,7 +327,7 @@ async def _check_test_answers(
                     checked += 1
                     score = 1.0 if is_correct else 0.0
             elif q_type == "text":
-                correct_text = q.get("correct_text")
+                correct_text = correct_row.correct_text if correct_row is not None else None
                 if isinstance(correct_text, str) and isinstance(user_answer, str):
                     # простая нормализация
                     ua = user_answer.strip().lower()
@@ -218,6 +339,26 @@ async def _check_test_answers(
 
             total_score += score
             results.append(TestQuestionCheckResult(is_correct=is_correct, score=score))
+            answers_for_db.append(
+                {
+                    "question_index": idx,
+                    "question_type": q_type,
+                    "selected_option": user_answer if isinstance(user_answer, int) else None,
+                    "selected_options": user_answer if isinstance(user_answer, list) else None,
+                    "text_answer": user_answer if isinstance(user_answer, str) else None,
+                    "is_correct": is_correct,
+                    "score": score,
+                }
+            )
+
+        await lesson_dal.create_test_submission(
+            test_lesson_id=lesson.id,
+            user_id=user_id,
+            total_questions=len(questions),
+            checked_questions=checked,
+            total_score=total_score,
+            answers=answers_for_db,
+        )
 
         return TestCheckResponse(
             total_questions=len(questions),
@@ -225,6 +366,152 @@ async def _check_test_answers(
             total_score=total_score,
             results=results,
         )
+
+
+async def _get_test_result(
+    lesson_slug: str,
+    user_id: UUID,
+    session: AsyncSession,
+) -> TestCheckResponse:
+    logger.info(f"Получение результата теста '{lesson_slug}' для {user_id}")
+    async with session.begin():
+        lesson_dal = LessonDAL(session)
+        lesson = await lesson_dal.get_lesson_by_slug_for_student(lesson_slug, user_id)
+        if lesson is None:
+            raise ValueError(f"Урок с slug '{lesson_slug}' не найден или нет доступа к курсу")
+
+        if LessonType(lesson.lesson_type) != LessonType.TEST:
+            raise ValueError("Указанный урок не является тестом")
+
+        submission = await lesson_dal.get_test_submission_with_answers(test_lesson_id=lesson.id, user_id=user_id)
+        if submission is None:
+            raise ValueError("Тест еще не отправлялся")
+
+        sorted_answers = sorted(submission.answers or [], key=lambda x: x.question_index)
+        results = [
+            TestQuestionCheckResult(is_correct=item.is_correct, score=float(item.score or 0.0))
+            for item in sorted_answers
+        ]
+
+        return TestCheckResponse(
+            total_questions=submission.total_questions,
+            checked_questions=submission.checked_questions,
+            total_score=float(submission.total_score or 0.0),
+            results=results,
+        )
+
+
+async def _get_test_submissions_for_teacher(
+    lesson_slug: str,
+    session: AsyncSession,
+) -> list[TestSubmissionTeacherResponse]:
+    logger.info(f"Получение отправок теста '{lesson_slug}' для преподавателя")
+    async with session.begin():
+        lesson_dal = LessonDAL(session)
+        lesson = await lesson_dal.get_lesson_by_slug(lesson_slug)
+        if lesson is None:
+            raise ValueError(f"Урок с slug '{lesson_slug}' не найден")
+
+        if LessonType(lesson.lesson_type) != LessonType.TEST:
+            raise ValueError("Указанный урок не является тестом")
+
+        submissions = await lesson_dal.get_test_submissions_with_answers(test_lesson_id=lesson.id)
+        if not submissions:
+            return []
+
+        user_ids = [s.user_id for s in submissions]
+        emails_by_id: dict[UUID, str] = {}
+        r = await session.execute(select(User.user_id, User.email).where(User.user_id.in_(user_ids)))
+        emails_by_id = {row[0]: row[1] for row in r.all()}
+
+        result: list[TestSubmissionTeacherResponse] = []
+        for s in submissions:
+            answers_sorted = sorted(s.answers or [], key=lambda x: x.question_index)
+            answers = [
+                TestSubmissionAnswerTeacherResponse(
+                    question_index=a.question_index,
+                    question_type=a.question_type,
+                    selected_option=a.selected_option,
+                    selected_options=a.selected_options,
+                    text_answer=a.text_answer,
+                    is_correct=a.is_correct,
+                    score=float(a.score or 0.0),
+                )
+                for a in answers_sorted
+            ]
+            result.append(
+                TestSubmissionTeacherResponse(
+                    user_id=str(s.user_id),
+                    user_email=emails_by_id.get(s.user_id),
+                    total_questions=s.total_questions,
+                    checked_questions=s.checked_questions,
+                    total_score=float(s.total_score or 0.0),
+                    submitted_at=s.submitted_at,
+                    answers=answers,
+                )
+            )
+        return result
+
+
+async def _get_test_submissions_for_teacher_by_course(
+    course_slug: str,
+    teacher_user_id: UUID,
+    session: AsyncSession,
+) -> list[TestSubmissionTeacherResponse]:
+    logger.info(f"Получение отправок тестов курса '{course_slug}' для преподавателя")
+    async with session.begin():
+        course_dal = CourseDAL(session)
+        lesson_dal = LessonDAL(session)
+
+        course = await course_dal.get_teacher_course_by_slug(user_id=teacher_user_id, slug=course_slug)
+        if course is None:
+            raise ValueError(f"Курс с slug '{course_slug}' не найден или нет доступа")
+
+        test_lessons = []
+        for module in (course.modules or []):
+            for lesson in (module.lessons or []):
+                if getattr(lesson, "lesson_type", None) == LessonType.TEST.value:
+                    test_lessons.append(lesson)
+
+        test_ids = [lesson.id for lesson in test_lessons]
+        lesson_by_id = {lesson.id: lesson for lesson in test_lessons}
+        submissions = await lesson_dal.get_test_submissions_with_answers_by_ids(test_ids)
+        if not submissions:
+            return []
+
+        user_ids = [s.user_id for s in submissions]
+        r = await session.execute(select(User.user_id, User.email).where(User.user_id.in_(user_ids)))
+        emails_by_id: dict[UUID, str] = {row[0]: row[1] for row in r.all()}
+
+        result: list[TestSubmissionTeacherResponse] = []
+        for s in submissions:
+            answers_sorted = sorted(s.answers or [], key=lambda x: x.question_index)
+            answers = [
+                TestSubmissionAnswerTeacherResponse(
+                    question_index=a.question_index,
+                    question_type=a.question_type,
+                    selected_option=a.selected_option,
+                    selected_options=a.selected_options,
+                    text_answer=a.text_answer,
+                    is_correct=a.is_correct,
+                    score=float(a.score or 0.0),
+                )
+                for a in answers_sorted
+            ]
+            result.append(
+                TestSubmissionTeacherResponse(
+                    user_id=str(s.user_id),
+                    user_email=emails_by_id.get(s.user_id),
+                    lesson_slug=getattr(lesson_by_id.get(s.test_lesson_id), "slug", None),
+                    lesson_name=getattr(lesson_by_id.get(s.test_lesson_id), "name", None),
+                    total_questions=s.total_questions,
+                    checked_questions=s.checked_questions,
+                    total_score=float(s.total_score or 0.0),
+                    submitted_at=s.submitted_at,
+                    answers=answers,
+                )
+            )
+        return result
 
 
 async def _delete_lesson(lesson_id: int, session: AsyncSession) -> int:
@@ -429,7 +716,19 @@ async def _update_lesson(
                 lesson.content = updated_params["content"]
         elif lesson_type == LessonType.TEST:
             if "questions" in updated_params and updated_params["questions"] is not None:
-                lesson.questions = _jsonable(updated_params["questions"])
+                raw_questions = _jsonable(updated_params["questions"])
+                public_questions, correct_answers = _split_test_questions_and_correct_answers(raw_questions)
+                lesson.questions = public_questions
+                normalized_questions = [
+                    {
+                        "question_type": item["question_type"],
+                        "correct_option": item.get("correct_option"),
+                        "correct_options": item.get("correct_options"),
+                        "correct_text": item.get("correct_text"),
+                    }
+                    for item in sorted(correct_answers, key=lambda x: x["question_index"])
+                ]
+                await lesson_dal.replace_test_correct_answers(lesson.id, normalized_questions)
         else:
             raise ValueError(f"Неизвестный тип урока: {lesson.lesson_type}")
 
@@ -438,5 +737,9 @@ async def _update_lesson(
         response_class = LESSON_RESPONSE_MAP.get(lesson_type)
         if response_class is None:
             raise ValueError(f"Неизвестный тип урока: {lesson.lesson_type}")
+
+        if lesson_type == LessonType.TEST:
+            correct_map = await lesson_dal.get_test_correct_answers_map(test_lesson_id=lesson.id)
+            lesson.questions = _merge_questions_with_correct_answers(lesson.questions or [], correct_map)
 
         return response_class.model_validate(lesson)

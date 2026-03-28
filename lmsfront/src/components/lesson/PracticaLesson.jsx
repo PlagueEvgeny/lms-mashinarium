@@ -5,7 +5,7 @@ import { parseMarkdown, LESSON_CSS } from '../../utility/markdownParser';
 import { useStudents } from '../../hooks/useStudents';
 import FilePicker from '../forms/FilePicker';
 
-const PracticaLesson = ({ lesson, onPrev, onNext, hasPrev, hasNext }) => {
+const PracticaLesson = ({ lesson, onPrev, onNext, hasPrev, hasNext, blockNext = false, onRequirementMetChange }) => {
   const { getMyPracticaSubmission, submitPractica } = useStudents();
   const materials = lesson?.materials || [];
   const attachments = lesson?.attachments || [];
@@ -39,6 +39,10 @@ const PracticaLesson = ({ lesson, onPrev, onNext, hasPrev, hasNext }) => {
     };
     load();
   }, [lesson?.slug]);
+
+  useEffect(() => {
+    onRequirementMetChange?.(!!mySubmission);
+  }, [mySubmission, onRequirementMetChange]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -211,6 +215,12 @@ const PracticaLesson = ({ lesson, onPrev, onNext, hasPrev, hasNext }) => {
           </form>
         </div>
 
+        {blockNext && hasNext && (
+          <p className="text-xs text-muted-foreground text-center">
+            Отправьте решение по практике, чтобы перейти к следующему занятию.
+          </p>
+        )}
+
         <div className="flex items-center justify-between">
           <button
             onClick={onPrev}
@@ -221,7 +231,7 @@ const PracticaLesson = ({ lesson, onPrev, onNext, hasPrev, hasNext }) => {
           </button>
           <button
             onClick={onNext}
-            disabled={!hasNext}
+            disabled={!hasNext || blockNext}
             className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition disabled:opacity-30 disabled:pointer-events-none"
           >
             Следующий <ChevronRight size={16} />

@@ -6,6 +6,7 @@ from sqlalchemy import Text
 from sqlalchemy import Boolean
 from sqlalchemy import String
 from sqlalchemy import Integer
+from sqlalchemy import Float
 from sqlalchemy import DateTime
 from sqlalchemy import ForeignKey
 from sqlalchemy import JSON
@@ -93,8 +94,20 @@ class TestLesson(LessonBase):
     __tablename__ = "test_lessons"
 
     id = Column(Integer, ForeignKey("lessons.id"), primary_key=True)
-    # Вопросы теста: [{ "prompt": "...", "options": ["...", "..."] }, ...]
+    # Вопросы теста без правильных ответов (prompt/options/type)
     questions = Column(JSON, nullable=False)
+
+    # Отдельно храним правильные ответы и ответы студентов
+    correct_answers = relationship(
+        "TestCorrectAnswer",
+        back_populates="test_lesson",
+        cascade="all, delete-orphan",
+    )
+    submissions = relationship(
+        "TestSubmission",
+        back_populates="test_lesson",
+        cascade="all, delete-orphan",
+    )
 
     __mapper_args__ = {
         "polymorphic_identity": "test",
@@ -124,6 +137,74 @@ class PracticaSubmission(Base):
 
     __table_args__ = (
         UniqueConstraint("practica_id", "user_id", name="uq_user_practica"),
+    )
+
+
+class TestCorrectAnswer(Base):
+    __tablename__ = "test_correct_answers"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    test_lesson_id = Column(Integer, ForeignKey("test_lessons.id"), nullable=False)
+    question_index = Column(Integer, nullable=False)
+    question_type = Column(String, nullable=False)
+
+    correct_option = Column(Integer, nullable=True)
+    correct_options = Column(JSON, nullable=True)
+    correct_text = Column(Text, nullable=True)
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    test_lesson = relationship("TestLesson", back_populates="correct_answers")
+
+    __table_args__ = (
+        UniqueConstraint("test_lesson_id", "question_index", name="uq_test_correct_answer"),
+    )
+
+
+class TestSubmission(Base):
+    __tablename__ = "test_submissions"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    test_lesson_id = Column(Integer, ForeignKey("test_lessons.id"), nullable=False)
+    user_id = Column(UUID, ForeignKey("users.user_id"), nullable=False)
+
+    total_questions = Column(Integer, nullable=False, default=0)
+    checked_questions = Column(Integer, nullable=False, default=0)
+    total_score = Column(Float, nullable=False, default=0.0)
+    submitted_at = Column(DateTime, default=datetime.utcnow)
+
+    test_lesson = relationship("TestLesson", back_populates="submissions")
+    answers = relationship(
+        "TestSubmissionAnswer",
+        back_populates="submission",
+        cascade="all, delete-orphan",
+    )
+
+    __table_args__ = (
+        UniqueConstraint("test_lesson_id", "user_id", name="uq_user_test_submission"),
+    )
+
+
+class TestSubmissionAnswer(Base):
+    __tablename__ = "test_submission_answers"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    submission_id = Column(Integer, ForeignKey("test_submissions.id"), nullable=False)
+    question_index = Column(Integer, nullable=False)
+    question_type = Column(String, nullable=False)
+
+    selected_option = Column(Integer, nullable=True)
+    selected_options = Column(JSON, nullable=True)
+    text_answer = Column(Text, nullable=True)
+
+    is_correct = Column(Boolean, nullable=True)
+    score = Column(Float, nullable=False, default=0.0)
+
+    submission = relationship("TestSubmission", back_populates="answers")
+
+    __table_args__ = (
+        UniqueConstraint("submission_id", "question_index", name="uq_test_submission_answer"),
     )
 
 class LessonProgress(Base):

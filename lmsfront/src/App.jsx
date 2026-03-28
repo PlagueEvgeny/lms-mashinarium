@@ -16,6 +16,7 @@ import CreateLessonPage from './page/teaching/CreateLessonPage';
 import EditLessonPage from './page/teaching/EditLessonPage';
 import TeachingCourseStudentsPage from './page/teaching/TeachingCourseStudentsPage';
 import TeachingPracticaCheckPage from './page/teaching/TeachingPracticaCheckPage';
+import TeachingTestResultsPage from './page/teaching/TeachingTestResultsPage';
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
         <Route path="/teaching/courses/:slug/modules/:module_slug/lessons/:lesson_slug/edit" element={<PrivateRoute><EditLessonPage /></PrivateRoute>} />
         <Route path="/teaching/courses/:slug/students" element={<PrivateRoute><TeachingCourseStudentsPage /></PrivateRoute>} />
         <Route path="/teaching/courses/:slug/practica-check" element={<PrivateRoute><TeachingPracticaCheckPage /></PrivateRoute>} />
+        <Route path="/teaching/courses/:slug/test-results" element={<PrivateRoute><TeachingTestResultsPage /></PrivateRoute>} />
         <Route path="/user/courses/:slug" element={<PrivateRoute><UserCourse /></PrivateRoute>} />
         <Route path="/user/courses/:slug/modules/:module_slug/lessons/:lesson_slug" element={<PrivateRoute><UserLesson /></PrivateRoute>} />
         <Route path="/profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />

@@ -4,7 +4,7 @@ import toast, { Toaster } from 'react-hot-toast';
 import Header from '../../components/Header';
 import { useAuthUser } from '../../hooks/useAuthUser';
 import { useTeacher } from '../../hooks/useTeacher';
-import { Edit, FileText, GripVertical, MoreVertical, Plus, Trash2, ChevronUp, ChevronDown, Video, ClipboardList, HelpCircle, Edit2, Users, ClipboardCheck } from 'lucide-react';
+import { Edit, FileText, GripVertical, MoreVertical, Plus, Trash2, ChevronUp, ChevronDown, Video, ClipboardList, HelpCircle, Edit2, Users, ClipboardCheck, BarChart3 } from 'lucide-react';
 
 const lessonTypeIcons = {
   lecture: FileText,
@@ -141,7 +141,7 @@ const TeachingCoursesDetail = () => {
             </button> 
           </div>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
           <button
             onClick={() => navigate(`/teaching/courses/${course.slug}/students`)}
             className="bg-card rounded-2xl border border-border p-4 hover:bg-muted/30 transition flex items-center gap-3"
@@ -165,6 +165,18 @@ const TeachingCoursesDetail = () => {
             <div className="text-left">
               <div className="text-sm font-semibold text-foreground">Проверка практик</div>
               <div className="text-xs text-muted-foreground">Отправки и оценивание</div>
+            </div>
+          </button>
+          <button
+            onClick={() => navigate(`/teaching/courses/${course.slug}/test-results`)}
+            className="bg-card rounded-2xl border border-border p-4 hover:bg-muted/30 transition flex items-center gap-3"
+          >
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <BarChart3 className="w-5 h-5 text-primary" />
+            </div>
+            <div className="text-left">
+              <div className="text-sm font-semibold text-foreground">Результаты тестов</div>
+              <div className="text-xs text-muted-foreground">Попытки и баллы студентов</div>
             </div>
           </button>
         </div>

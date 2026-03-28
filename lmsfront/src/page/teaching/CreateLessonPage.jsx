@@ -115,6 +115,7 @@ const CreateLessonPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!moduleData?.id) return toast.error('Модуль еще не загружен, попробуйте через секунду');
     if (!form.name || !form.slug) return toast.error('Заполните обязательные поля');
     if (lessonType === 'lecture' && !form.content) return toast.error('Добавьте содержание лекции');
     if (lessonType === 'video' && !form.video_url) return toast.error('Укажите ссылку на видео');
@@ -206,7 +207,7 @@ const CreateLessonPage = () => {
                 </button>
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || !moduleData?.id}
                   className="px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition disabled:opacity-50"
                 >
                   {loading ? 'Создание...' : 'Создать урок'}

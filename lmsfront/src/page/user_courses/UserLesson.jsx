@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Loader2, AlertCircle } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
@@ -9,6 +9,7 @@ import VideoLesson   from '../../components/lesson/VideoLesson';
 import PracticaLesson from '../../components/lesson/PracticaLesson';
 import TestLesson from '../../components/lesson/TestLesson';
 import { useStudents } from '../../hooks/useStudents';
+import { useSequentialLessonGates } from '../../hooks/useSequentialLessonGates';
 
 const LESSON_COMPONENTS = {
   lecture: LectureLesson,
@@ -20,49 +21,75 @@ const LESSON_COMPONENTS = {
 const UserLesson = () => {
   const { slug, module_slug, lesson_slug } = useParams();
   const navigate = useNavigate();
-  const { getCourseBySlug, getLessonBySlug, completeLesson, getCourseProgress, checkTest } = useStudents();
+  const {
+    getCourseBySlug,
+    getLessonBySlug,
+    completeLesson,
+    checkTest,
+    getMyTestResult,
+  } = useStudents();
 
   const [course, setCourse]               = useState(null);
   const [lesson, setLesson]               = useState(null);
   const [loading, setLoading]             = useState(true);
   const [lessonLoading, setLessonLoading] = useState(false);
   const [error, setError]                 = useState(null);
-  const [completedIds, setCompletedIds]   = useState([]); // lesson.id с бэкенда
 
-  const allLessons = useMemo(() => {
-    if (!course?.modules) return [];
-    return course.modules
-      .slice()
-      .sort((a, b) => a.display_order - b.display_order)
-      .flatMap(m => m.lessons.slice().sort((a, b) => a.display_order - b.display_order));
-  }, [course]);
+  const {
+    allLessons,
+    completedIds,
+    setCompletedIds,
+    sequentialGateById,
+    patchLessonGate,
+    canAccessLessonAtIndex,
+    sidebarCompletedSlugs,
+    lockedSlugsForLesson,
+  } = useSequentialLessonGates(slug, course);
 
-  const currentIndex = allLessons.findIndex(l => l.slug === lesson_slug);
+  const currentIndex = allLessons.findIndex((l) => l.slug === lesson_slug);
   const hasPrev = currentIndex > 0;
   const hasNext = currentIndex < allLessons.length - 1;
 
-  // Загрузка курса + прогресса
+  const onRequirementMetChange = useCallback(
+    (ok) => {
+      if (!lesson) return;
+      if (lesson.lesson_type !== 'practica' && lesson.lesson_type !== 'test') return;
+      patchLessonGate(lesson.id, ok);
+    },
+    [lesson, patchLessonGate]
+  );
+
+  const blockNextForCurrent =
+    lesson &&
+    (lesson.lesson_type === 'practica' || lesson.lesson_type === 'test') &&
+    !sequentialGateById[lesson.id];
+
+  const lockedSlugs = lockedSlugsForLesson(lesson_slug);
+
   useEffect(() => {
     const load = async () => {
       try {
         await getCourseBySlug(slug, { setCourse, setLoading, navigate });
-        const ids = await getCourseProgress(slug);
-        setCompletedIds(ids);
       } catch (err) {
         setError(err.message);
         setLoading(false);
       }
     };
     load();
-  }, [slug]);
+  }, [slug, getCourseBySlug, navigate]);
 
-  // Загрузка урока
   useEffect(() => {
     if (!lesson_slug) return;
     getLessonBySlug(lesson_slug, { setLesson, setLoading: setLessonLoading, navigate });
-  }, [lesson_slug]);
+  }, [lesson_slug, getLessonBySlug, navigate]);
 
   const handleSelect = (newLessonSlug) => {
+    const idx = allLessons.findIndex((l) => l.slug === newLessonSlug);
+    if (idx === -1) return;
+    if (!canAccessLessonAtIndex(idx, currentIndex)) {
+      toast.error('Сначала завершите предыдущие занятия: отправьте практику или пройдите тест.');
+      return;
+    }
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     navigate(`/user/courses/${slug}/modules/${module_slug}/lessons/${newLessonSlug}`);
   };
@@ -72,24 +99,35 @@ const UserLesson = () => {
   };
 
   const handleNext = async () => {
-    if (lesson && !completedIds.includes(lesson.id)) {
+    if (!lesson) return;
+    if (
+      (lesson.lesson_type === 'practica' || lesson.lesson_type === 'test') &&
+      !sequentialGateById[lesson.id]
+    ) {
+      toast.error(
+        lesson.lesson_type === 'practica'
+          ? 'Сначала отправьте решение по практике'
+          : 'Сначала отправьте ответы в тесте'
+      );
+      return;
+    }
+    if (!completedIds.some((x) => x == lesson.id)) {
       try {
         await completeLesson(lesson_slug);
-        setCompletedIds(prev => [...prev, lesson.id]);
+        setCompletedIds((prev) => [...prev, lesson.id]);
+        patchLessonGate(lesson.id, true);
       } catch (err) {
         toast.error('Не удалось сохранить прогресс');
         console.error(err);
+        return;
       }
     }
-    if (hasNext) handleSelect(allLessons[currentIndex + 1].slug);
+    if (hasNext) {
+      const nextSlug = allLessons[currentIndex + 1].slug;
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+      navigate(`/user/courses/${slug}/modules/${module_slug}/lessons/${nextSlug}`);
+    }
   };
-
-  // completedIds (lesson.id) → completedSlugs для сайдбара
-  const completedSlugs = useMemo(() => {
-    return allLessons
-      .filter(l => completedIds.includes(l.id))
-      .map(l => l.slug);
-  }, [allLessons, completedIds]);
 
   const LessonComponent = lesson ? LESSON_COMPONENTS[lesson.lesson_type] : null;
 
@@ -157,7 +195,14 @@ const UserLesson = () => {
                 onNext={handleNext}
                 hasPrev={hasPrev}
                 hasNext={hasNext}
+                blockNext={!!blockNextForCurrent}
                 onCheckTest={lesson?.lesson_type === 'test' ? (answers) => checkTest(lesson_slug, answers) : null}
+                onGetMyTestResult={lesson?.lesson_type === 'test' ? () => getMyTestResult(lesson_slug) : null}
+                onRequirementMetChange={
+                  lesson?.lesson_type === 'practica' || lesson?.lesson_type === 'test'
+                    ? onRequirementMetChange
+                    : undefined
+                }
               />
             )}
           </div>
@@ -167,7 +212,8 @@ const UserLesson = () => {
               modules={course.modules}
               currentSlug={lesson_slug}
               onSelect={handleSelect}
-              completedSlugs={completedSlugs}
+              completedSlugs={sidebarCompletedSlugs}
+              lockedSlugs={lockedSlugs}
             />
           )}
         </div>

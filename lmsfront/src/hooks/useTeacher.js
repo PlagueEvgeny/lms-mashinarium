@@ -1,9 +1,25 @@
+import { useCallback } from 'react';
 import { API } from '../services/api.js';
 import toast from 'react-hot-toast';
 import { authFetch } from '../services/authFetch';
 
 export const useTeacher = () => {
   const getToken = () => localStorage.getItem('access_token');
+
+  const parseApiError = async (response, fallbackMessage) => {
+    const errorData = await response.json().catch(() => ({}));
+    const detail = errorData?.detail;
+    if (typeof detail === 'string' && detail.trim()) return detail;
+    if (Array.isArray(detail) && detail.length > 0) {
+      const first = detail[0];
+      if (typeof first === 'string') return first;
+      if (first?.msg) {
+        const loc = Array.isArray(first.loc) ? first.loc.join('.') : '';
+        return loc ? `${first.msg} (${loc})` : first.msg;
+      }
+    }
+    return fallbackMessage;
+  };
 
   const uploadImage = async (file) => {
     const formData = new FormData();
@@ -78,7 +94,7 @@ export const useTeacher = () => {
     return await response.json();
   };
 
-  const teachingCourseDetail = async (slug, { setCourse, setLoading, navigate, toast }) => {
+  const teachingCourseDetail = useCallback(async (slug, { setCourse, setLoading, navigate, toast }) => {
     try {
       const response = await authFetch(API.teaching_course(slug));
       if (!response.ok) throw new Error('Курс не найден');
@@ -91,7 +107,7 @@ export const useTeacher = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const createModule = async(course_id, formData) => {
     const response = await authFetch(API.create_module, {
@@ -185,8 +201,7 @@ export const useTeacher = () => {
       body: JSON.stringify(formData),
     });
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.detail || 'Ошибка создания');
+      throw new Error(await parseApiError(response, 'Ошибка создания'));
     }
     toast.success('Урок создан');
     return await response.json();
@@ -266,6 +281,15 @@ export const useTeacher = () => {
     return await response.json();
   };
 
+  const getCoursePracticaSubmissions = useCallback(async (courseSlug) => {
+    const response = await authFetch(API.practica_submissions_teacher_course(courseSlug));
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || 'Не удалось получить отправки по курсу');
+    }
+    return await response.json();
+  }, []);
+
   const gradePracticaSubmission = async (lessonSlug, studentUserId, { score, feedback }) => {
     const response = await authFetch(API.practica_grade(lessonSlug, studentUserId), {
       method: 'PATCH',
@@ -281,6 +305,24 @@ export const useTeacher = () => {
     }
     return await response.json();
   };
+
+  const getTestSubmissions = async (lessonSlug) => {
+    const response = await authFetch(API.test_submissions_teacher(lessonSlug));
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || 'Не удалось получить результаты теста');
+    }
+    return await response.json();
+  };
+
+  const getCourseTestSubmissions = useCallback(async (courseSlug) => {
+    const response = await authFetch(API.test_submissions_teacher_course(courseSlug));
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || 'Не удалось получить результаты тестов по курсу');
+    }
+    return await response.json();
+  }, []);
 
   const deleteLesson = async(lesson_id) => {
     const response = await authFetch(API.delete_lesson(lesson_id), {
@@ -314,7 +356,10 @@ export const useTeacher = () => {
     uploadLessonMaterials,
     deleteLesson, 
     getPracticaSubmissions,
+    getCoursePracticaSubmissions,
     gradePracticaSubmission,
+    getTestSubmissions,
+    getCourseTestSubmissions,
     uploadImage, 
     uploadLessonImage 
   };
