@@ -317,7 +317,7 @@ const TeachingPracticaCheckPage = () => {
                               >
                                 <td className="px-3 py-2.5">
                                   <div className="font-medium text-foreground truncate max-w-[220px] sm:max-w-xs">
-                                    {s.user_email || `ID ${s.user_id}`}
+                                    {s.user_email || `ID ${s.user_id}`} 
                                   </div>
                                   {(s.text_answer || (s.files && s.files.length > 0)) && (
                                     <div className="text-xs text-muted-foreground truncate max-w-[280px] sm:max-w-md mt-0.5">
@@ -388,9 +388,18 @@ const TeachingPracticaCheckPage = () => {
                           <p className="text-sm text-muted-foreground">Выберите студента в таблице.</p>
                         ) : selectedRow ? (
                           <div className="rounded-xl border border-border p-4 bg-muted/10 space-y-3 text-sm">
-                            <p className="font-medium text-foreground">
-                              {selectedRow.user_email || `ID ${selectedRow.user_id}`}
-                            </p>
+                                <p className="font-medium text-foreground">
+                                  {selectedRow.user_last_name || selectedRow.user_first_name ? (
+                                    <>
+                                      {selectedRow.user_last_name} {selectedRow.user_first_name}
+                                      <span className="text-muted-foreground ml-2 text-xs">
+                                        ({selectedRow.user_email || `ID ${selectedRow.user_id}`})
+                                      </span>
+                                    </>
+                                  ) : (
+                                    selectedRow.user_email || `ID ${selectedRow.user_id}`
+                                  )}
+                                </p>
                             {selectedRow.text_answer ? (
                               <div className="text-foreground whitespace-pre-wrap break-words">
                                 {selectedRow.text_answer}

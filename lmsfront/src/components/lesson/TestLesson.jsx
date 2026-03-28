@@ -62,16 +62,26 @@ const TestLesson = ({
 
   useEffect(() => {
     if (!onGetMyTestResult || !lesson?.slug) return;
+    const ac = new AbortController();
+    let active = true;
     const loadResult = async () => {
       setLoadingResult(true);
       try {
-        const result = await onGetMyTestResult();
+        const result = await onGetMyTestResult(ac.signal);
+        if (!active) return;
         if (result) setCheckResult(result);
+      } catch (e) {
+        if (e?.name === 'AbortError') return;
+        throw e;
       } finally {
-        setLoadingResult(false);
+        if (active) setLoadingResult(false);
       }
     };
     loadResult();
+    return () => {
+      active = false;
+      ac.abort();
+    };
   }, [onGetMyTestResult, lesson?.slug]);
 
   useEffect(() => {

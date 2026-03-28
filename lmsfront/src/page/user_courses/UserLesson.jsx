@@ -59,6 +59,16 @@ const UserLesson = () => {
     [lesson, patchLessonGate]
   );
 
+  const fetchMyTestResult = useCallback(
+    (signal) => getMyTestResult(lesson_slug, { signal }),
+    [lesson_slug, getMyTestResult]
+  );
+
+  const runCheckTest = useCallback(
+    (answers) => checkTest(lesson_slug, answers),
+    [lesson_slug, checkTest]
+  );
+
   const blockNextForCurrent =
     lesson &&
     (lesson.lesson_type === 'practica' || lesson.lesson_type === 'test') &&
@@ -196,8 +206,8 @@ const UserLesson = () => {
                 hasPrev={hasPrev}
                 hasNext={hasNext}
                 blockNext={!!blockNextForCurrent}
-                onCheckTest={lesson?.lesson_type === 'test' ? (answers) => checkTest(lesson_slug, answers) : null}
-                onGetMyTestResult={lesson?.lesson_type === 'test' ? () => getMyTestResult(lesson_slug) : null}
+                onCheckTest={lesson?.lesson_type === 'test' ? runCheckTest : null}
+                onGetMyTestResult={lesson?.lesson_type === 'test' ? fetchMyTestResult : null}
                 onRequirementMetChange={
                   lesson?.lesson_type === 'practica' || lesson?.lesson_type === 'test'
                     ? onRequirementMetChange

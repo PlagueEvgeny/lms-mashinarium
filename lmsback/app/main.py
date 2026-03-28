@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -12,10 +14,16 @@ app = FastAPI(
         version="0.1.0"
 )
 
-# Логирование
+# Логирование (каталог logs/ — в Docker монтируется томом)
+LOG_DIR = Path("logs")
+LOG_DIR.mkdir(parents=True, exist_ok=True)
 logger.remove()
-logger.add("info.log", format="Log: {time} -- {level} -- {message} -- {file}:{line} {function}",
-           level="INFO", enqueue=True)
+logger.add(
+    LOG_DIR / "info.log",
+    format="Log: {time} -- {level} -- {message} -- {file}:{line} {function}",
+    level="INFO",
+    enqueue=True,
+)
 
 # Настройка CORS
 origins = [

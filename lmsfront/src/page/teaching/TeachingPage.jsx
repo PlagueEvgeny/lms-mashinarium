@@ -106,18 +106,6 @@ const TeachingPage = () => {
                       >
                         Управление курсом
                       </button>
-                      <button
-                        className="bg-muted text-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-muted/80 transition-colors"
-                        onClick={() => navigate(`/teaching/courses/${course.slug}`)}
-                      >
-                        Студенты
-                      </button>
-                      <button
-                        className="bg-muted text-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-muted/80 transition-colors"
-                        onClick={() => navigate(`/teaching/courses/${course.slug}`)}
-                      >
-                        Работы на проверку(В разработке)
-                      </button>
                     </div>  
                   </div>  
                 </div>  

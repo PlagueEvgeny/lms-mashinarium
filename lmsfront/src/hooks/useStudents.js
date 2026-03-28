@@ -45,6 +45,12 @@ export const useStudents = () => {
     return data.completed_lesson_ids;
   }, []);
 
+  const getCourseProgressFull = useCallback(async (slug) => {
+    const response = await authFetch(API.course_progress_full(slug));
+    if (!response.ok) return null;
+    return await response.json();
+  }, []);
+
   const getMyPracticaSubmission = useCallback(async (lessonSlug) => {
     const response = await authFetch(API.practica_my_submission(lessonSlug));
     if (!response.ok) return null;
@@ -94,8 +100,8 @@ export const useStudents = () => {
     return await response.json();
   }, []);
 
-  const getMyTestResult = useCallback(async (lessonSlug) => {
-    const response = await authFetch(API.test_result(lessonSlug));
+  const getMyTestResult = useCallback(async (lessonSlug, { signal } = {}) => {
+    const response = await authFetch(API.test_result(lessonSlug), { signal });
     if (!response.ok) return null;
     return await response.json();
   }, []);
@@ -105,6 +111,7 @@ export const useStudents = () => {
     getLessonBySlug,
     completeLesson,
     getCourseProgress,
+    getCourseProgressFull,
     getMyPracticaSubmission,
     submitPractica,
     checkTest,

@@ -1,9 +1,10 @@
+from pathlib import Path
 from typing import List, Union
 from uuid import UUID
 
 from loguru import logger
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,10 +17,24 @@ from api.v1.routes.actions.user_actions import (_change_user_password, _create_n
                                                 _get_user_all, _add_role_to_user, _remove_role_from_user,
                                                 _set_user_roles, check_role_change_permissions)
 from db.models.user import User
-from db.session import get_db  
+from db.session import get_db
 from utils.hashing import Hasher
+from utils.images import save_upload_image
+from core.config import BASE_URL
 
 user_router = APIRouter()
+
+USER_UPLOAD_DIR = Path("media/users")
+
+@user_router.post("/upload-image/")
+async def upload_user_avatar_image(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user_from_token),
+) -> dict:
+    image_url = await save_upload_image(file, USER_UPLOAD_DIR, BASE_URL)
+    logger.info(f"Аватар загружен пользователем {current_user.email}: {image_url}")
+    return {"image_url": image_url}
+
 
 @user_router.get("/me", response_model=ShowUser)
 async def get_current_user(session: AsyncSession = Depends(get_db),

@@ -24,6 +24,7 @@ export const API = {
   test_submissions_teacher_course: (course_slug) => `${API_URL}/lesson/test/course/${course_slug}/submissions`,
   complete_lesson: (lesson_slug) => `${API_URL}/lessons/complete/${lesson_slug}`,
   course_progress: (slug) => `${API_URL}/lessons/progress/${slug}`,
+  course_progress_full: (slug) => `${API_URL}/lessons/progress-full/${slug}`,
 
   teaching: `${API_URL}/course/teachers`,
   teaching_course: (slug) => `${API_URL}/course/teachers/${slug}`,
@@ -46,6 +47,7 @@ export const API = {
   delete_lesson: (id) => `${API_URL}/lesson/?lesson_id=${id}`,
   
   user: `${API_URL}/user/me`,
+  user_upload_image: `${API_URL}/user/upload-image/`,
   user_change_password: `${API_URL}/user/me/change_password`,
   token: `${API_URL}/auth/token`,   
   refresh: `${API_URL}/auth/refresh`, 

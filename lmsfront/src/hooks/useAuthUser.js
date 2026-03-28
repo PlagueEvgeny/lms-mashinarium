@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { API } from '../services/api.js';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+import { authFetch } from '../services/authFetch';
 
 export const useAuthUser = () => {
   const navigate = useNavigate();
@@ -131,56 +132,78 @@ export const useAuthUser = () => {
     navigate('/login');
   };
 
-const updateUser = async (formData) => {
-  const token = localStorage.getItem('access_token');
-  const response = await fetch(API.user, {
-    method: 'PATCH',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(formData),
-  });
-  if (!response.ok) {
-  const errorData = await response.json().catch(() => ({}));
-  throw new Error(errorData.detail || 'Ошибка сохранения');
-  }  
-  setUser(prev => ({ ...prev, ...formData })); // ← мержим вместо замены
-  toast.success('Данные сохранены');
-};
+  const uploadAvatarImage = async (file) => {
+    const form = new FormData();
+    form.append('file', file);
+    const response = await authFetch(API.user_upload_image, {
+      method: 'POST',
+      body: form,
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      const detail = errorData?.detail;
+      const msg =
+        typeof detail === 'string'
+          ? detail
+          : Array.isArray(detail) && detail[0]?.msg
+            ? detail[0].msg
+            : 'Не удалось загрузить фото';
+      throw new Error(msg);
+    }
+    const data = await response.json();
+    return data.image_url;
+  };
 
-const changePassword = async (current_password, new_password) => {
-  const token = localStorage.getItem('access_token');
-  
-  const url = `${API.user_change_password}?current_password=${encodeURIComponent(current_password)}&new_password=${encodeURIComponent(new_password)}`;
-  
-  const response = await fetch(url, {
-    method: 'PATCH',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'accept': 'application/json',
-    },
-  });
+  const updateUser = async (formData) => {
+    const token = localStorage.getItem('access_token');
+    const response = await fetch(API.user, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formData),
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || 'Ошибка сохранения');
+    }
+    setUser((prev) => ({ ...prev, ...formData }));
+    toast.success('Данные сохранены');
+  };
 
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.detail || 'Ошибка сохранения');
-  }
-  
-  toast.success('Пароль изменен');
-};
+  const changePassword = async (current_password, new_password) => {
+    const token = localStorage.getItem('access_token');
 
-const deleteUser = async () => {
-  const token = localStorage.getItem('access_token');
-  const response = await fetch(API.user, {
-    method: 'DELETE',
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!response.ok) throw new Error('Ошибка удаления');
-  clearTokens();
-  toast.success('Аккаунт удалён');
-  navigate('/login');
-};
+    const url = `${API.user_change_password}?current_password=${encodeURIComponent(current_password)}&new_password=${encodeURIComponent(new_password)}`;
+
+    const response = await fetch(url, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        accept: 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || 'Ошибка сохранения');
+    }
+
+    toast.success('Пароль изменен');
+  };
+
+  const deleteUser = async () => {
+    const token = localStorage.getItem('access_token');
+    const response = await fetch(API.user, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!response.ok) throw new Error('Ошибка удаления');
+    clearTokens();
+    toast.success('Аккаунт удалён');
+    navigate('/login');
+  };
 
   return {
     user,
@@ -189,6 +212,7 @@ const deleteUser = async () => {
     setUser,
     logout,
     updateUser,
+    uploadAvatarImage,
     deleteUser,
     changePassword,
     refetch: () => {

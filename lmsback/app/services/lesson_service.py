@@ -260,6 +260,36 @@ class LessonDAL:
         )
         return list(result.scalars().all())
 
+    async def get_practica_ids_with_submission_for_user(
+        self,
+        practica_ids: list[int],
+        user_id: UUID,
+    ) -> set[int]:
+        if not practica_ids:
+            return set()
+        result = await self.db_session.execute(
+            select(PracticaSubmission.practica_id).where(
+                PracticaSubmission.practica_id.in_(practica_ids),
+                PracticaSubmission.user_id == user_id,
+            )
+        )
+        return set(result.scalars().all())
+
+    async def get_test_lesson_ids_with_submission_for_user(
+        self,
+        test_lesson_ids: list[int],
+        user_id: UUID,
+    ) -> set[int]:
+        if not test_lesson_ids:
+            return set()
+        result = await self.db_session.execute(
+            select(TestSubmission.test_lesson_id).where(
+                TestSubmission.test_lesson_id.in_(test_lesson_ids),
+                TestSubmission.user_id == user_id,
+            )
+        )
+        return set(result.scalars().all())
+
     async def replace_test_correct_answers(self, test_lesson_id: int, questions: list[dict]) -> None:
         existing = await self.db_session.execute(
             select(TestCorrectAnswer).where(TestCorrectAnswer.test_lesson_id == test_lesson_id)
