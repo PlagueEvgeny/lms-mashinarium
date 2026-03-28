@@ -9,7 +9,7 @@ from decimal import Decimal
 from datetime import datetime
 
 from api.v1.schemas.base_schema import TunedModel
-from api.v1.schemas.lesson_schema import LessonResponse, LessonSummaryForTeacher
+from api.v1.schemas.lesson_schema import LessonResponse
 
 class ShowModule(TunedModel):
     id: int
@@ -33,19 +33,6 @@ class ShortModule(TunedModel):
     description: str
     display_order: int
     lessons_count: int = 0
-
-
-class TeacherCourseModule(TunedModel):
-    """Модуль в карточке курса преподавателя: с кратким списком уроков (для UI)."""
-    id: int
-    course_id: int
-    name: str
-    slug: str
-    description: Optional[str] = None
-    display_order: int
-    lessons_count: int = 0
-    lessons: List[LessonSummaryForTeacher] = []
-
 
 class ModuleCreate(BaseModel):
     course_id: int

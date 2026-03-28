@@ -60,6 +60,17 @@ class CourseDAL:
         course = result.scalars().all()
         return list(course)
 
+    async def get_student_course_id_by_slug(self, user_id: UUID, slug: str) -> Optional[int]:
+        """Лёгкая проверка: студент записан на курс с данным slug."""
+        result = await self.db_session.execute(
+            select(Course.id).where(
+                Course.slug == slug,
+                Course.is_active == True,
+                Course.students.any(User.user_id == user_id),
+            )
+        )
+        return result.scalar_one_or_none()
+
     async def get_user_course_by_slug(self, user_id:UUID, slug: str) -> Union[Course, None]:
         query = select(Course).\
                 options(selectinload(Course.categories)).\

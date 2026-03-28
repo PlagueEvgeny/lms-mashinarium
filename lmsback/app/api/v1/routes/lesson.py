@@ -15,8 +15,6 @@ from api.v1.routes.actions.lesson_actions import (
     _update_practica_with_materials,
     _add_lesson_materials,
     _update_lesson,
-    _get_test_submissions_for_teacher,
-    _get_test_submissions_for_teacher_by_course,
 )
 from api.v1.routes.actions.auth_actions import get_current_user_from_token
 from api.v1.routes.actions.user_actions import check_user_permissions_admin, check_user_permissions_teahers
@@ -28,7 +26,6 @@ from api.v1.schemas.lesson_schema import (
     PracticaResponse,
     TestCheckRequest,
     TestCheckResponse,
-    TestSubmissionTeacherResponse,
 )
 from utils.images import save_upload_image
 from utils.files import save_upload_file
@@ -293,62 +290,8 @@ async def check_test_answers(
         )
     except ValueError as e:
         msg = str(e)
-        status_code = 403 if "нет доступа" in msg else 404 if "не найден" in msg else 409 if "уже отправлен" in msg else 400
+        status_code = 403 if "нет доступа" in msg else 404 if "не найден" in msg else 400
         raise HTTPException(status_code=status_code, detail=msg)
-
-
-@lesson_router.get("/test/{lesson_slug}/result", response_model=TestCheckResponse)
-async def get_test_result(
-    lesson_slug: str,
-    session: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user_from_token),
-):
-    try:
-        from api.v1.routes.actions.lesson_actions import _get_test_result
-
-        return await _get_test_result(
-            lesson_slug=lesson_slug,
-            user_id=current_user.user_id,
-            session=session,
-        )
-    except ValueError as e:
-        msg = str(e)
-        status_code = 403 if "нет доступа" in msg else 404
-        raise HTTPException(status_code=status_code, detail=msg)
-
-
-@lesson_router.get("/test/{lesson_slug}/submissions", response_model=list[TestSubmissionTeacherResponse])
-async def get_test_submissions_for_teacher(
-    lesson_slug: str,
-    session: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user_from_token),
-):
-    if not check_user_permissions_teahers(current_user=current_user):
-        logger.error(f"У пользователя {current_user.email} не хватает прав")
-        raise HTTPException(status_code=403, detail="Forbidden.")
-    try:
-        return await _get_test_submissions_for_teacher(lesson_slug=lesson_slug, session=session)
-    except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
-
-
-@lesson_router.get("/test/course/{course_slug}/submissions", response_model=list[TestSubmissionTeacherResponse])
-async def get_test_submissions_for_teacher_by_course(
-    course_slug: str,
-    session: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user_from_token),
-):
-    if not check_user_permissions_teahers(current_user=current_user):
-        logger.error(f"У пользователя {current_user.email} не хватает прав")
-        raise HTTPException(status_code=403, detail="Forbidden.")
-    try:
-        return await _get_test_submissions_for_teacher_by_course(
-            course_slug=course_slug,
-            teacher_user_id=current_user.user_id,
-            session=session,
-        )
-    except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
 
 
 @lesson_router.get("/by-slug/{slug}", response_model=LessonResponse)

@@ -17,16 +17,6 @@ class LessonMaterialResponse(TunedModel):
     created_at: datetime
 
 
-class LessonSummaryForTeacher(TunedModel):
-    """Минимальные поля урока для страниц преподавателя (без тела контента)."""
-    id: int
-    module_id: int
-    name: str
-    slug: str
-    display_order: int
-    lesson_type: LessonType
-
-
 class LessonBaseSchema(TunedModel):
     module_id: int
     name: str = Field(..., min_length=1, max_length=255)
@@ -182,50 +172,9 @@ LessonStudentResponse = Annotated[
 
 
 class TestCheckRequest(TunedModel):
-    # Ответ студента по одному вопросу
-    # payload поддерживает и новый структурированный формат, и legacy-формат
-    # (int | list[int] | str | null), чтобы не ломать текущий frontend.
-    answers: List[
-        Union[
-            "TestStudentSingleAnswer",
-            "TestStudentMultipleAnswer",
-            "TestStudentTextAnswer",
-            int,
-            List[int],
-            str,
-            None,
-        ]
-    ] = Field(..., min_length=1)
-
-
-class TestStudentSingleAnswer(TunedModel):
-    answer_type: Literal["single"] = "single"
-    selected_option: Optional[int] = Field(default=None, ge=0)
-
-
-class TestStudentMultipleAnswer(TunedModel):
-    answer_type: Literal["multiple"] = "multiple"
-    selected_options: List[int] = Field(default_factory=list)
-
-
-class TestStudentTextAnswer(TunedModel):
-    answer_type: Literal["text"] = "text"
-    text: str = ""
-
-
-class TestCorrectSingleAnswer(TunedModel):
-    answer_type: Literal["single"] = "single"
-    correct_option: int = Field(..., ge=0)
-
-
-class TestCorrectMultipleAnswer(TunedModel):
-    answer_type: Literal["multiple"] = "multiple"
-    correct_options: List[int] = Field(..., min_length=1)
-
-
-class TestCorrectTextAnswer(TunedModel):
-    answer_type: Literal["text"] = "text"
-    correct_text: str = Field(..., min_length=1)
+    # список ответов по индексам вопросов:
+    # single -> int | null, multiple -> list[int], text -> str
+    answers: List[Any] = Field(..., min_length=1)
 
 
 class TestQuestionCheckResult(TunedModel):
@@ -238,25 +187,3 @@ class TestCheckResponse(TunedModel):
     checked_questions: int
     total_score: float
     results: List[TestQuestionCheckResult]
-
-
-class TestSubmissionAnswerTeacherResponse(TunedModel):
-    question_index: int
-    question_type: str
-    selected_option: Optional[int] = None
-    selected_options: Optional[List[int]] = None
-    text_answer: Optional[str] = None
-    is_correct: Optional[bool] = None
-    score: float
-
-
-class TestSubmissionTeacherResponse(TunedModel):
-    user_id: str
-    user_email: Optional[str] = None
-    lesson_slug: Optional[str] = None
-    lesson_name: Optional[str] = None
-    total_questions: int
-    checked_questions: int
-    total_score: float
-    submitted_at: datetime
-    answers: List[TestSubmissionAnswerTeacherResponse]
