@@ -1,6 +1,23 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { API } from '../services/api.js';
-import { authFetch } from '../services/authFetch';
+// Лучшее решение — агрегированный API
+
+// Сделай 1 эндпоинт:
+
+// GET /courses/:slug/progress-full
+
+// который вернет:
+
+// {
+//   "completedLessons": [1,2,3],
+//   "practica": {
+//     "lesson-slug-1": true,
+//     "lesson-slug-2": false
+//   },
+//   "tests": {
+//     "lesson-slug-3": true
+//   }
+// }
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useStudents } from './useStudents';
 
 function flattenLessons(course) {
   if (!course?.modules) return [];
@@ -10,98 +27,74 @@ function flattenLessons(course) {
     .flatMap((m) => m.lessons.slice().sort((a, b) => a.display_order - b.display_order));
 }
 
-/** Стабильный ключ по составу уроков (без лишних перезапросов при новом ref того же курса). */
-function lessonsProgressKey(course) {
-  if (!course?.modules?.length) return '';
-  return course.modules
-    .slice()
-    .sort((a, b) => a.display_order - b.display_order)
-    .map((m) =>
-      [
-        m.id,
-        m.lessons
-          .slice()
-          .sort((a, b) => a.display_order - b.display_order)
-          .map((l) => [l.id, l.slug, l.lesson_type].join(':'))
-          .join(','),
-      ].join('|')
-    )
-    .join('||');
-}
-
 export function useSequentialLessonGates(courseSlug, course) {
+  const { getCourseProgress, getMyPracticaSubmission, getMyTestResult } = useStudents();
+
   const allLessons = useMemo(() => flattenLessons(course), [course]);
-  const progressKey = useMemo(() => lessonsProgressKey(course), [course]);
-  const courseRef = useRef(course);
-  courseRef.current = course;
-  const slugRef = useRef(courseSlug);
-  slugRef.current = courseSlug;
-  const progressKeyRef = useRef(progressKey);
-  progressKeyRef.current = progressKey;
 
-  const [completedIds, setCompletedIds] = useState([]);
+  const [completedIds, setCompletedIds]         = useState([]);
   const [sequentialGateById, setSequentialGateById] = useState({});
-  const [gatesLoading, setGatesLoading] = useState(false);
+  const [gatesLoading, setGatesLoading]         = useState(false);
 
+  // [~] Один эффект вместо двух: сначала прогресс, потом гейты — без race condition
   useEffect(() => {
-    if (!courseSlug || !progressKey) return;
+    if (!courseSlug || !allLessons.length) return;
     let cancelled = false;
-    const slugAtStart = courseSlug;
-    const keyAtStart = progressKey;
 
     (async () => {
       setGatesLoading(true);
       try {
-        const response = await authFetch(API.course_progress_full(slugAtStart));
-        if (!response.ok) {
-          if (!cancelled && slugRef.current === slugAtStart && progressKeyRef.current === keyAtStart) {
-            setCompletedIds([]);
-            setSequentialGateById({});
-          }
-          return;
-        }
-        const data = await response.json();
-        if (
-          cancelled ||
-          slugRef.current !== slugAtStart ||
-          progressKeyRef.current !== keyAtStart
-        ) {
-          return;
-        }
-
-        const completed = Array.isArray(data.completed_lesson_ids) ? data.completed_lesson_ids : [];
-        const practicaGate = data.practica && typeof data.practica === 'object' ? data.practica : {};
-        const testsGate = data.tests && typeof data.tests === 'object' ? data.tests : {};
-
+        // 1. Загружаем завершённые уроки из БД
+        const ids = await getCourseProgress(courseSlug);
+        if (cancelled) return;
+        const completed = Array.isArray(ids) ? ids : [];
         setCompletedIds(completed);
+
+        // 2. Локальная функция — не зависит от state, берёт свежие данные
         const isCompleted = (lessonId) => completed.some((x) => x == lessonId);
 
+        // 3. Вычисляем гейты
         const gate = {};
-        for (const l of flattenLessons(courseRef.current)) {
+        const pending = [];
+
+        for (const l of allLessons) {
           if (l.lesson_type === 'lecture' || l.lesson_type === 'video') {
             gate[l.id] = isCompleted(l.id);
           } else if (l.lesson_type === 'practica' || l.lesson_type === 'test') {
             if (isCompleted(l.id)) {
               gate[l.id] = true;
-            } else if (l.lesson_type === 'practica') {
-              gate[l.id] = !!practicaGate[l.slug];
             } else {
-              gate[l.id] = !!testsGate[l.slug];
+              pending.push(l); // нужна проверка submission
             }
           } else {
             gate[l.id] = true;
           }
         }
-        setSequentialGateById(gate);
+
+        // 4. Параллельно проверяем незавершённые practica/test по API
+        await Promise.all(
+          pending.map(async (l) => {
+            if (cancelled) return;
+            if (l.lesson_type === 'practica') {
+              const sub = await getMyPracticaSubmission(l.slug);
+              gate[l.id] = !!sub;
+            } else {
+              const r = await getMyTestResult(l.slug);
+              gate[l.id] = !!r;
+            }
+          })
+        );
+
+        if (!cancelled) setSequentialGateById(gate);
       } finally {
         if (!cancelled) setGatesLoading(false);
       }
     })();
 
-    return () => {
-      cancelled = true;
-    };
-  }, [courseSlug, progressKey]);
+    return () => { cancelled = true; };
+  }, [courseSlug, allLessons, getCourseProgress, getMyPracticaSubmission, getMyTestResult]);
+
+  // [~] refreshSequentialGates больше не нужен — удалён
 
   const patchLessonGate = useCallback((lessonId, ok) => {
     if (lessonId == null) return;

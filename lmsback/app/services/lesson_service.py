@@ -3,7 +3,6 @@ from typing import Optional
 from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy import update
-from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from db.models.lesson import (
@@ -261,32 +260,6 @@ class LessonDAL:
         )
         return list(result.scalars().all())
 
-    async def get_user_practica_submitted_practica_ids(
-        self,
-        user_id: UUID,
-        practica_ids: list[int],
-    ) -> set[int]:
-        if not practica_ids:
-            return set()
-        result = await self.db_session.execute(
-            select(PracticaSubmission.practica_id).where(
-                PracticaSubmission.user_id == user_id,
-                PracticaSubmission.practica_id.in_(practica_ids),
-            )
-        )
-        return set(result.scalars().all())
-
-    async def list_lesson_slug_and_type_for_course(self, course_id: int) -> list[tuple[int, str, str]]:
-        result = await self.db_session.execute(
-            select(LessonBase.id, LessonBase.slug, LessonBase.lesson_type)
-            .join(Module, Module.id == LessonBase.module_id)
-            .where(
-                Module.course_id == course_id,
-                LessonBase.is_active == True,
-            )
-        )
-        return [(int(r[0]), str(r[1]), str(r[2])) for r in result.all()]
-
     async def replace_test_correct_answers(self, test_lesson_id: int, questions: list[dict]) -> None:
         existing = await self.db_session.execute(
             select(TestCorrectAnswer).where(TestCorrectAnswer.test_lesson_id == test_lesson_id)
@@ -356,21 +329,6 @@ class LessonDAL:
         )
         return list(result.scalars().all())
 
-    async def get_user_test_submitted_test_lesson_ids(
-        self,
-        user_id: UUID,
-        test_lesson_ids: list[int],
-    ) -> set[int]:
-        if not test_lesson_ids:
-            return set()
-        result = await self.db_session.execute(
-            select(TestSubmission.test_lesson_id).where(
-                TestSubmission.user_id == user_id,
-                TestSubmission.test_lesson_id.in_(test_lesson_ids),
-            )
-        )
-        return set(result.scalars().all())
-
     async def create_test_submission(
         self,
         test_lesson_id: int,
@@ -407,52 +365,4 @@ class LessonDAL:
         await self.db_session.flush()
         await self.db_session.refresh(submission)
         return submission
-
-    async def upsert_test_submission_after_check(
-        self,
-        test_lesson_id: int,
-        user_id: UUID,
-        total_questions: int,
-        checked_questions: int,
-        total_score: float,
-        answer_rows: list[dict],
-    ) -> None:
-        existing = await self.get_test_submission_with_answers(test_lesson_id, user_id)
-        if existing:
-            await self.db_session.execute(
-                delete(TestSubmissionAnswer).where(TestSubmissionAnswer.submission_id == existing.id)
-            )
-            existing.total_questions = total_questions
-            existing.checked_questions = checked_questions
-            existing.total_score = total_score
-            existing.submitted_at = datetime.utcnow()
-            await self.db_session.flush()
-            sid = existing.id
-        else:
-            sub = TestSubmission(
-                test_lesson_id=test_lesson_id,
-                user_id=user_id,
-                total_questions=total_questions,
-                checked_questions=checked_questions,
-                total_score=total_score,
-                submitted_at=datetime.utcnow(),
-            )
-            self.db_session.add(sub)
-            await self.db_session.flush()
-            sid = sub.id
-
-        for item in answer_rows:
-            self.db_session.add(
-                TestSubmissionAnswer(
-                    submission_id=sid,
-                    question_index=item["question_index"],
-                    question_type=item["question_type"],
-                    selected_option=item.get("selected_option"),
-                    selected_options=item.get("selected_options"),
-                    text_answer=item.get("text_answer"),
-                    is_correct=item.get("is_correct"),
-                    score=float(item.get("score", 0.0)),
-                )
-            )
-        await self.db_session.flush()
 
