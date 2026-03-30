@@ -108,7 +108,8 @@ const TeachingPracticaCheckPage = () => {
     const q = search.trim().toLowerCase();
     return submissions.filter((s) => {
       const email = (s.user_email || String(s.user_id || '')).toLowerCase();
-      if (q && !email.includes(q)) return false;
+      const fullName = ((s.user_last_name || '') + ' ' + (s.user_first_name || '')).toLowerCase().trim();
+      if (q && !email.includes(q) && !fullName.includes(q)) return false;
       if (statusFilter === 'graded' && !s.is_graded) return false;
       if (statusFilter === 'pending' && s.is_graded) return false;
       return true;
@@ -171,7 +172,7 @@ const TeachingPracticaCheckPage = () => {
     <div className="min-h-screen bg-background">
       <Header />
       <Toaster position="top-right" />
-      <main className="max-w-7xl mx-auto px-4 py-8">
+      <main className="max-w-7xl mx-auto px-4 py-10">
         <button
           onClick={() => navigate(`/teaching/courses/${slug}`)}
           className="flex items-center gap-1 text-sm text-muted-foreground hover:text-primary transition-colors mb-8"
@@ -253,7 +254,7 @@ const TeachingPracticaCheckPage = () => {
                       <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                       <input
                         type="search"
-                        placeholder="Поиск по email…"
+                        placeholder="Поиск по ФИО или email…"
                         value={search}
                         onChange={(e) => {
                           setSearch(e.target.value);
@@ -317,7 +318,16 @@ const TeachingPracticaCheckPage = () => {
                               >
                                 <td className="px-3 py-2.5">
                                   <div className="font-medium text-foreground truncate max-w-[220px] sm:max-w-xs">
-                                    {s.user_email || `ID ${s.user_id}`} 
+                                    {s.user_last_name || s.user_first_name ? (
+                                      <>
+                                        {s.user_last_name} {s.user_first_name}
+                                        <span className="text-muted-foreground ml-1 text-xs">
+                                          ({s.user_email || `ID ${s.user_id}`})
+                                        </span>
+                                      </>
+                                    ) : (
+                                      s.user_email || `ID ${s.user_id}`
+                                    )}
                                   </div>
                                   {(s.text_answer || (s.files && s.files.length > 0)) && (
                                     <div className="text-xs text-muted-foreground truncate max-w-[280px] sm:max-w-md mt-0.5">

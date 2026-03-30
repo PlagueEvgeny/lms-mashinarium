@@ -103,7 +103,7 @@ const TeachingTestResultsPage = () => {
     <div className="min-h-screen bg-background">
       <Header />
       <Toaster position="top-right" />
-      <main className="max-w-6xl mx-auto px-4 py-8">
+      <main className="max-w-7xl mx-auto px-4 py-10">
         <button
           onClick={() => navigate(`/teaching/courses/${slug}`)}
           className="flex items-center gap-1 text-sm text-muted-foreground hover:text-primary transition-colors mb-8"
@@ -178,7 +178,18 @@ const TeachingTestResultsPage = () => {
                     <div key={s.user_id} className="border border-border rounded-xl p-4 bg-muted/10">
                       <div className="flex items-center justify-between gap-3">
                         <div className="min-w-0">
-                          <div className="text-sm font-medium text-foreground truncate">{s.user_email || s.user_id}</div>
+                          <div className="text-sm font-medium text-foreground truncate">
+                            {s.user_last_name || s.user_first_name ? (
+                              <>
+                                {s.user_last_name} {s.user_first_name}
+                                <span className="text-muted-foreground ml-2 text-xs">
+                                  ({s.user_email || s.user_id})
+                                </span>
+                              </>
+                            ) : (
+                              s.user_email || s.user_id
+                            )}
+                          </div>
                           <div className="text-xs text-muted-foreground">
                             Отправлено: {new Date(s.submitted_at).toLocaleString()}
                           </div>

@@ -63,14 +63,10 @@ services:
       - custom
     # Загрузки и логи не пропадают при docker compose build/up
     volumes:
-      - lms_media:/app/media
-      - lms_logs:/app/logs
+      - ./media:/app/media
+      - ./logs:/app/logs
 
 networks:
   custom:
     driver: bridge
-
-volumes:
-  lms_media:
-  lms_logs:
 

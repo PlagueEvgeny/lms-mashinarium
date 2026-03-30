@@ -36,7 +36,7 @@ const TeachingCourseStudentsPage = () => {
     <div className="min-h-screen bg-background">
       <Header />
       <Toaster position="top-right" />
-      <main className="max-w-5xl mx-auto px-4 py-8">
+      <main className="max-w-7xl mx-auto px-4 py-10">
         <button
           onClick={() => navigate(`/teaching/courses/${slug}`)}
           className="flex items-center gap-1 text-sm text-muted-foreground hover:text-primary transition-colors mb-8"

@@ -155,17 +155,20 @@ async def _get_submissions_for_course_practicas(
         submissions = await lesson_dal.get_practica_submissions_by_ids(practica_ids)
 
         user_ids = [s.user_id for s in submissions]
-        emails_by_id: dict[UUID, str] = {}
+        user_data: dict[UUID, dict] = {}
         if user_ids:
-            r = await session.execute(select(User.user_id, User.email).where(User.user_id.in_(user_ids)))
-            emails_by_id = {row[0]: row[1] for row in r.all()}
+            r = await session.execute(select(User.user_id, User.email, User.first_name, User.last_name).where(User.user_id.in_(user_ids)))
+            user_data = {row[0]: {"email": row[1], "first_name": row[2], "last_name": row[3]} for row in r.all()}
 
         lesson_by_id = {lesson.id: lesson for lesson in practica_lessons}
         resp: list[PracticaSubmissionResponse] = []
         for s in submissions:
             lesson = lesson_by_id.get(s.practica_id)
+            user_info = user_data.get(s.user_id, {})
             item = PracticaSubmissionResponse.model_validate(s)
-            item.user_email = emails_by_id.get(s.user_id)
+            item.user_email = user_info.get("email")
+            item.user_first_name = user_info.get("first_name")
+            item.user_last_name = user_info.get("last_name")
             item.lesson_slug = getattr(lesson, "slug", None)
             item.lesson_name = getattr(lesson, "name", None)
             resp.append(item)

@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import toast, { Toaster } from 'react-hot-toast';
 import Header from '../../components/Header';
 import { useAuthUser } from '../../hooks/useAuthUser';
-import { Plus, FileText, Users, MoreVertical, Edit } from 'lucide-react';
+import { Plus, FileText, Users, MoreVertical, Edit, Trash2, CheckCircle } from 'lucide-react';
 
 const TeachingPage = () => {
   const { user } = useAuthUser();
@@ -91,12 +91,36 @@ const TeachingPage = () => {
                     </div>
                     <div className='flex items-center gap-6 mt-4 text-sm text-muted-foreground'>
                       <div className='flex items-center gap-2'>
-                        <FileText className='w-4 h-4' / >
+                        <FileText className='w-4 h-4' />
                         <span>{modulesCount} модулей</span>
                       </div>
                       <div className='flex items-center gap-2'>
-                        <Users className='w-4 h-4' / >
+                        <Users className='w-4 h-4' />
                         <span>{usersCount} студентов</span>
+                      </div>
+                      <div className='flex items-center gap-2'>
+                        {course.status.map(status => {
+                          return (
+                            <div key={status} className='flex items-center gap-2'>
+                              {status === 'PUBLISHED' ? (
+                                <CheckCircle className='w-4 h-4 text-green-500' />
+                              ) : status === 'DRAFT' ? (
+                                <Edit className='w-4 h-4 text-yellow-500' />
+                              ) : (
+                                <Trash2 className='w-4 h-4 text-red-500' />
+                              )}
+                              <span className={
+                                status === 'PUBLISHED' ? 'text-green-600' : 
+                                status === 'DRAFT' ? 'text-yellow-600' : 
+                                'text-red-600'
+                              }>
+                                {status === 'PUBLISHED' ? 'Опубликован' : 
+                                status === 'DRAFT' ? 'Черновик' : 
+                                'В корзине'}
+                              </span>
+                            </div>
+                          )
+                        })}
                       </div>
                     </div>
                     <div className='flex items-center gap-3 mt-4'>

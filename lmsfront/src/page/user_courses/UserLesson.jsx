@@ -59,17 +59,17 @@ const UserLesson = () => {
     [lesson, patchLessonGate]
   );
 
-  const fetchMyTestResult = useCallback(
-    (signal) => getMyTestResult(lesson_slug, { signal }),
-    [lesson_slug, getMyTestResult]
-  );
+ const fetchMyTestResult = useCallback(
+ (signal) => getMyTestResult(lesson_slug, { signal }),
+ [lesson_slug, getMyTestResult]
+ );
 
-  const runCheckTest = useCallback(
-    (answers) => checkTest(lesson_slug, answers),
-    [lesson_slug, checkTest]
-  );
+ const runCheckTest = useCallback(
+ (answers) => checkTest(lesson_slug, answers),
+ [lesson_slug, checkTest]
+ );
 
-  const blockNextForCurrent =
+ const blockNextForCurrent =
     lesson &&
     (lesson.lesson_type === 'practica' || lesson.lesson_type === 'test') &&
     !sequentialGateById[lesson.id];

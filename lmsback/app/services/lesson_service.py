@@ -321,14 +321,145 @@ class LessonDAL:
         rows = result.scalars().all()
         return {row.question_index: row for row in rows}
 
-    async def get_test_submission(self, test_lesson_id: int, user_id: UUID) -> Optional[TestSubmission]:
+    async def get_test_submission(self, test_lesson_id: int, user_id: UUID, include_draft: bool = False) -> Optional[TestSubmission]:
+        query = select(TestSubmission).where(
+            TestSubmission.test_lesson_id == test_lesson_id,
+            TestSubmission.user_id == user_id,
+        )
+        if not include_draft:
+            query = query.where(TestSubmission.is_draft == False)
+        result = await self.db_session.execute(query)
+        return result.scalars().first()
+
+    async def get_test_draft(self, test_lesson_id: int, user_id: UUID) -> Optional[TestSubmission]:
+        """Получить черновик теста для пользователя"""
         result = await self.db_session.execute(
-            select(TestSubmission).where(
+            select(TestSubmission)
+            .options(selectinload(TestSubmission.answers))
+            .where(
                 TestSubmission.test_lesson_id == test_lesson_id,
                 TestSubmission.user_id == user_id,
+                TestSubmission.is_draft == True,
             )
         )
         return result.scalars().first()
+
+    async def save_test_draft(
+        self,
+        test_lesson_id: int,
+        user_id: UUID,
+        total_questions: int,
+        answers: list[dict],
+    ) -> TestSubmission:
+        """Сохранить черновик теста"""
+        # Проверяем, есть ли уже черновик
+        existing = await self.get_test_draft(test_lesson_id, user_id)
+        
+        if existing:
+            # Удаляем старые ответы черновика
+            for ans in (existing.answers or []):
+                await self.db_session.delete(ans)
+            await self.db_session.flush()
+            
+            # Обновляем черновик
+            existing.total_questions = total_questions
+            await self.db_session.flush()
+            
+            # Добавляем новые ответы
+            for item in answers:
+                answer = TestSubmissionAnswer(
+                    submission_id=existing.id,
+                    question_index=item["question_index"],
+                    question_type=item["question_type"],
+                    selected_option=item.get("selected_option"),
+                    selected_options=item.get("selected_options"),
+                    text_answer=item.get("text_answer"),
+                )
+                self.db_session.add(answer)
+            
+            await self.db_session.flush()
+            await self.db_session.refresh(existing)
+            return existing
+        else:
+            # Создаем новый черновик
+            submission = TestSubmission(
+                test_lesson_id=test_lesson_id,
+                user_id=user_id,
+                total_questions=total_questions,
+                checked_questions=0,
+                total_score=0.0,
+                submitted_at=datetime.utcnow(),
+                is_draft=True,
+            )
+            self.db_session.add(submission)
+            await self.db_session.flush()
+            
+            # Добавляем ответы
+            for item in answers:
+                answer = TestSubmissionAnswer(
+                    submission_id=submission.id,
+                    question_index=item["question_index"],
+                    question_type=item["question_type"],
+                    selected_option=item.get("selected_option"),
+                    selected_options=item.get("selected_options"),
+                    text_answer=item.get("text_answer"),
+                )
+                self.db_session.add(answer)
+            
+            await self.db_session.flush()
+            await self.db_session.refresh(submission)
+            return submission
+
+    async def convert_draft_to_submission(
+        self,
+        test_lesson_id: int,
+        user_id: UUID,
+        checked_questions: int,
+        total_score: float,
+    ) -> Optional[TestSubmission]:
+        """Преобразовать черновик в финальную отправку"""
+        draft = await self.get_test_draft(test_lesson_id, user_id)
+        if not draft:
+            return None
+        
+        # Удаляем черновик и создаем финальную отправку
+        draft_id = draft.id
+        answers = list(draft.answers or [])
+        
+        # Удаляем черновик (каскадом удалятся и ответы)
+        await self.db_session.delete(draft)
+        await self.db_session.flush()
+        
+        # Создаем финальную отправку
+        submission = TestSubmission(
+            test_lesson_id=test_lesson_id,
+            user_id=user_id,
+            total_questions=draft.total_questions,
+            checked_questions=checked_questions,
+            total_score=total_score,
+            submitted_at=datetime.utcnow(),
+            is_draft=False,
+        )
+        self.db_session.add(submission)
+        await self.db_session.flush()
+        
+        # Копируем ответы
+        for item in answers:
+            answer = TestSubmissionAnswer(
+                submission_id=submission.id,
+                question_index=item.question_index,
+                question_type=item.question_type,
+                selected_option=item.selected_option,
+                selected_options=item.selected_options,
+                text_answer=item.text_answer,
+                is_correct=item.is_correct,
+                score=item.score,
+            )
+            self.db_session.add(answer)
+        
+        await self.db_session.flush()
+        await self.db_session.refresh(submission)
+        return submission
 
     async def get_test_submission_with_answers(self, test_lesson_id: int, user_id: UUID) -> Optional[TestSubmission]:
         result = await self.db_session.execute(

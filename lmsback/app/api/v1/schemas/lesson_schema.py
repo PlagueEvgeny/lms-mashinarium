@@ -253,6 +253,8 @@ class TestSubmissionAnswerTeacherResponse(TunedModel):
 class TestSubmissionTeacherResponse(TunedModel):
     user_id: str
     user_email: Optional[str] = None
+    user_first_name: Optional[str] = None
+    user_last_name: Optional[str] = None
     lesson_slug: Optional[str] = None
     lesson_name: Optional[str] = None
     total_questions: int

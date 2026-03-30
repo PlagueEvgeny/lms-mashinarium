@@ -351,6 +351,13 @@ async def _check_test_answers(
                 }
             )
 
+        # Удаляем черновик, если есть
+        draft = await lesson_dal.get_test_draft(test_lesson_id=lesson.id, user_id=user_id)
+        if draft:
+            # Удаляем черновик (ответы удалятся каскадом)
+            await session.delete(draft)
+            await session.flush()
+
         await lesson_dal.create_test_submission(
             test_lesson_id=lesson.id,
             user_id=user_id,
@@ -420,9 +427,8 @@ async def _get_test_submissions_for_teacher(
             return []
 
         user_ids = [s.user_id for s in submissions]
-        emails_by_id: dict[UUID, str] = {}
-        r = await session.execute(select(User.user_id, User.email).where(User.user_id.in_(user_ids)))
-        emails_by_id = {row[0]: row[1] for row in r.all()}
+        r = await session.execute(select(User.user_id, User.email, User.first_name, User.last_name).where(User.user_id.in_(user_ids)))
+        user_data: dict[UUID, dict] = {row[0]: {"email": row[1], "first_name": row[2], "last_name": row[3]} for row in r.all()}
 
         result: list[TestSubmissionTeacherResponse] = []
         for s in submissions:
@@ -439,10 +445,13 @@ async def _get_test_submissions_for_teacher(
                 )
                 for a in answers_sorted
             ]
+            user_info = user_data.get(s.user_id, {})
             result.append(
                 TestSubmissionTeacherResponse(
                     user_id=str(s.user_id),
-                    user_email=emails_by_id.get(s.user_id),
+                    user_email=user_info.get("email"),
+                    user_first_name=user_info.get("first_name"),
+                    user_last_name=user_info.get("last_name"),
                     total_questions=s.total_questions,
                     checked_questions=s.checked_questions,
                     total_score=float(s.total_score or 0.0),
@@ -480,8 +489,8 @@ async def _get_test_submissions_for_teacher_by_course(
             return []
 
         user_ids = [s.user_id for s in submissions]
-        r = await session.execute(select(User.user_id, User.email).where(User.user_id.in_(user_ids)))
-        emails_by_id: dict[UUID, str] = {row[0]: row[1] for row in r.all()}
+        r = await session.execute(select(User.user_id, User.email, User.first_name, User.last_name).where(User.user_id.in_(user_ids)))
+        user_data: dict[UUID, dict] = {row[0]: {"email": row[1], "first_name": row[2], "last_name": row[3]} for row in r.all()}
 
         result: list[TestSubmissionTeacherResponse] = []
         for s in submissions:
@@ -498,10 +507,13 @@ async def _get_test_submissions_for_teacher_by_course(
                 )
                 for a in answers_sorted
             ]
+            user_info = user_data.get(s.user_id, {})
             result.append(
                 TestSubmissionTeacherResponse(
                     user_id=str(s.user_id),
-                    user_email=emails_by_id.get(s.user_id),
+                    user_email=user_info.get("email"),
+                    user_first_name=user_info.get("first_name"),
+                    user_last_name=user_info.get("last_name"),
                     lesson_slug=getattr(lesson_by_id.get(s.test_lesson_id), "slug", None),
                     lesson_name=getattr(lesson_by_id.get(s.test_lesson_id), "name", None),
                     total_questions=s.total_questions,

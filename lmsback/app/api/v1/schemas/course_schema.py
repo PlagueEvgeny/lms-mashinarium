@@ -50,6 +50,7 @@ class ListTeacherCourse(TunedModel):
     short_description: str
     image: str
     price: Decimal
+    status: List[str]
     display_order: int
     # Для списка курсов преподавателя не тянем уроки (иначе может быть lazy-load/async issues)
     modules: List[ShortModule] = []

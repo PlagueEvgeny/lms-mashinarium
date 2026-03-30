@@ -26,9 +26,10 @@ logger.add(
 )
 
 # Настройка CORS
-origins = [
+allow_origins = [
     "localhost:3000",
     "localhost:5000",
+    "http://localhost:5173",
     "localhost:8081"
 ]
 
@@ -36,7 +37,7 @@ app.add_middleware(
     # Запрещаем сначала все 
     CORSMiddleware,
     # Разрешаем необходимое
-    allow_origins=["*"],
+    allow_origins=allow_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

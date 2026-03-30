@@ -173,6 +173,7 @@ class TestSubmission(Base):
     checked_questions = Column(Integer, nullable=False, default=0)
     total_score = Column(Float, nullable=False, default=0.0)
     submitted_at = Column(DateTime, default=datetime.utcnow)
+    is_draft = Column(Boolean, default=False, nullable=False)
 
     test_lesson = relationship("TestLesson", back_populates="submissions")
     answers = relationship(
@@ -182,7 +183,7 @@ class TestSubmission(Base):
     )
 
     __table_args__ = (
-        UniqueConstraint("test_lesson_id", "user_id", name="uq_user_test_submission"),
+        UniqueConstraint("test_lesson_id", "user_id", "is_draft", name="uq_user_test_submission_draft"),
     )
 
 

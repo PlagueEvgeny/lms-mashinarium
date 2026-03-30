@@ -8,6 +8,8 @@ from sqlalchemy import and_
 from sqlalchemy import select
 from sqlalchemy import update
 from sqlalchemy import func
+from sqlalchemy import case
+from sqlalchemy import desc
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from sqlalchemy.orm import selectin_polymorphic
@@ -30,7 +32,7 @@ class CourseDAL:
             options(selectinload(Course.modules)).\
             options(selectinload(Course.teachers)).\
             options(selectinload(Course.students)).\
-            where(and_(Course.id == id, Course.is_active))
+            where(and_(Course.id == id, Course.is_active, Course.status.contains([Status.PUBLISHED.value])))
         )
         result = await self.db_session.execute(query)
         course_row = result.fetchone()
@@ -44,7 +46,7 @@ class CourseDAL:
                 options(selectinload(Course.modules)).\
                 options(selectinload(Course.teachers)).\
                 options(selectinload(Course.students)).\
-                where(and_(Course.slug == slug, Course.is_active))
+                where(and_(Course.slug == slug, Course.is_active, Course.status.contains([Status.PUBLISHED.value])))
         result = await self.db_session.execute(query)
         course_row = result.fetchone()
         if course_row is not None:
@@ -55,7 +57,7 @@ class CourseDAL:
                 options(selectinload(Course.categories)).\
                 options(selectinload(Course.teachers)).\
                 options(selectinload(Course.students)).\
-                where(and_(Course.students.any(User.user_id == user_id), Course.is_active))
+                where(and_(Course.students.any(User.user_id == user_id), Course.is_active, Course.status.contains([Status.PUBLISHED.value])))
         result = await self.db_session.execute(query)
         course = result.scalars().all()
         return list(course)
@@ -70,13 +72,25 @@ class CourseDAL:
                 ).\
                 options(selectinload(Course.teachers)).\
                 options(selectinload(Course.students)).\
-                where(and_(Course.students.any(User.user_id == user_id), Course.slug == slug, Course.is_active))
+                where(and_(Course.students.any(User.user_id == user_id), Course.slug == slug, Course.is_active, Course.status.contains([Status.PUBLISHED.value])))
         result = await self.db_session.execute(query)
         course_row = result.fetchone()
         if course_row is not None:
             return course_row[0]
 
     async def get_user_courses_as_teacher(self, user_id:UUID) -> List[Course]:
+        status_order = case(
+            {
+                Status.PUBLISHED.value: 1,
+                Status.DRAFT.value: 2,
+                Status.TRASH.value: 3
+            },
+            value=Course.status[1]  # Предполагаем, что статус в первом элементе массива
+        )
+        
+        modules_count = select(func.count(Module.id)).\
+                        where(Module.course_id == Course.id).\
+                        scalar_subquery()
         query = select(Course).\
                 options(selectinload(Course.categories)).\
                 options(
@@ -86,7 +100,9 @@ class CourseDAL:
                 ).\
                 options(selectinload(Course.teachers)).\
                 options(selectinload(Course.students)).\
-                where(and_(Course.teachers.any(User.user_id == user_id), Course.is_active))
+                where(and_(Course.teachers.any(User.user_id == user_id), Course.is_active)).\
+                order_by(status_order, desc(modules_count), desc(Course.updated_at))
+
         result = await self.db_session.execute(query)
         course = result.scalars().all()
         courses = list(course)
@@ -136,6 +152,7 @@ class CourseDAL:
         query = select(Course).\
                 options(selectinload(Course.categories)).\
                 where(Course.is_active,
+                      Course.status.contains([Status.PUBLISHED.value]),
                   ~Course.students.any(User.user_id == user_id))
         result = await self.db_session.execute(query)
         course = result.scalars().all()
@@ -144,7 +161,7 @@ class CourseDAL:
     async def get_course_by_categories(self, categories_slug) -> List[Course]:
         query = select(Course).\
                 options(selectinload(Course.categories)).\
-                where(and_(Course.categories.any(Category.slug == categories_slug), Course.is_active))
+                where(and_(Course.categories.any(Category.slug == categories_slug), Course.is_active, Course.status.contains([Status.PUBLISHED.value])))
 
         result = await self.db_session.execute(query)
         course = result.scalars().all()
