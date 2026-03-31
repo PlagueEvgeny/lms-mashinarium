@@ -38,7 +38,7 @@ const Header = () => {
         <div className="flex items-center gap-4">
           <button
                 title="Сообщения"
-                onClick={() => navigate('/messages')}
+                onClick={() => navigate('/dialog')}
                 className="p-2 hover:bg-muted rounded-lg transition-colors">
             <MessageCircle className="w-5 h-5 text-muted-foregraund" />
           </button>

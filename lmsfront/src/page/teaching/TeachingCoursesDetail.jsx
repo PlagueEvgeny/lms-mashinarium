@@ -4,14 +4,14 @@ import toast, { Toaster } from 'react-hot-toast';
 import Header from '../../components/Header';
 import { useAuthUser } from '../../hooks/useAuthUser';
 import { useTeacher } from '../../hooks/useTeacher';
-import { Edit, FileText, GripVertical, MoreVertical, Plus, Trash2, ChevronUp, ChevronDown, Video, ClipboardList, HelpCircle, Edit2, Users, ClipboardCheck, BarChart3 } from 'lucide-react';
+import { Edit, BookOpen, PlayCircle, Code, FileText, GripVertical, MoreVertical, Plus, Trash2, ChevronUp, ChevronDown, Video, ClipboardList, HelpCircle, Edit2, Users, ClipboardCheck, BarChart3 } from 'lucide-react';
 
 const lessonTypeIcons = {
-  lecture: FileText,
-  video: Video,
-  practica: ClipboardList,
-  test: HelpCircle
-}
+  lecture: BookOpen,        
+  video: PlayCircle,        
+  practica: Code,           
+  test: HelpCircle,      
+};
 
 const lessonTypeLabels = {
   lecture: "Лекция",
@@ -113,7 +113,7 @@ const TeachingCoursesDetail = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <Toaster position="top-right" />
+      <Toaster position="top" />
       <main className="max-w-7xl mx-auto px-4 py-10">
         <button
           onClick={() => navigate('/teaching')}

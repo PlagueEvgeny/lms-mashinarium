@@ -17,6 +17,8 @@ import EditLessonPage from './page/teaching/EditLessonPage';
 import TeachingCourseStudentsPage from './page/teaching/TeachingCourseStudentsPage';
 import TeachingPracticaCheckPage from './page/teaching/TeachingPracticaCheckPage';
 import TeachingTestResultsPage from './page/teaching/TeachingTestResultsPage';
+import CourseMessagesPage from './page/messages/CourseMessagesPage';
+import DialogMessagePage from './page/messages/DialogMessagePage';
 
 function App() {
   return (
@@ -40,6 +42,8 @@ function App() {
         <Route path="/profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
         <Route path="/login" element={<LoginPage />} />
 
+        <Route path="/dialog" element={<PrivateRoute><CourseMessagesPage /></PrivateRoute>} />
+        <Route path="/dialog/:dialog_slug" element={<PrivateRoute><DialogMessagePage /></PrivateRoute>} />
       </Routes>
     </Router>
   );

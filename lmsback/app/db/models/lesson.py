@@ -44,7 +44,7 @@ class LessonBase(Base):
         'polymorphic_identity': 'lesson'
     }
         
-    modules = relationship("Module", back_populates="lessons", lazy="selectin")
+    modules = relationship("Module", back_populates="lessons", order_by="Module.display_order", lazy="selectin")
 
 class Lecture(LessonBase):
     __tablename__ = "lectures"

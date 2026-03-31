@@ -1,12 +1,19 @@
 import toast from 'react-hot-toast';
-import { FileText, Video, ClipboardList, HelpCircle, Lock } from 'lucide-react';
+import { FileText, PlayCircle, BookOpen, Code, ClipboardList, HelpCircle, Lock } from 'lucide-react';
 
 const lessonTypeIcons = {
-  lecture: FileText,
-  video: Video,
-  practica: ClipboardList,
-  test: HelpCircle,
+  lecture: BookOpen,        
+  video: PlayCircle,        
+  practica: Code,           
+  test: HelpCircle,      
 };
+
+const lessonTypeLabels = {
+  lecture: "Лекция",
+  video: "Видео",
+  practica: "Практика",
+  test: "Тестирование"
+}
 
 const LessonCard = ({ navigate, courseSlug, moduleSlug, lesson, locked = false }) => {
   const LessonIcon = lessonTypeIcons[lesson.lesson_type] || FileText;
@@ -47,10 +54,11 @@ const LessonCard = ({ navigate, courseSlug, moduleSlug, lesson, locked = false }
       )}
       <div className="aspect-square flex items-center justify-center mb-2">
         <div className="w-16 h-16 rounded-xl bg-card flex items-center justify-center">
-          <LessonIcon className="w-4 h-4" />
+          <LessonIcon className="w-8 h-8" />
         </div>
       </div>
-      <p className="text-xs text-center text-foreground">{lesson.name}</p>
+      <p className="text-xs text-center text-foreground">{lesson.name}</p> 
+      <p className="text-xs text-center text-foreground"> {lessonTypeLabels[lesson.lesson_type]}</p>
     </div>
   );
 };

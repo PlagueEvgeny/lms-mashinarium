@@ -7,6 +7,7 @@ from sqlalchemy import Integer
 from sqlalchemy import DateTime
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import relationship
+from sqlalchemy.util import walk_subclasses
 
 from db.base import Base
 
@@ -23,5 +24,8 @@ class Module(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     is_active = Column(Boolean, default=True)
 
-    course = relationship("Course", back_populates="modules")
-    lessons = relationship("LessonBase", back_populates="modules", lazy="selectin")
+    course = relationship("Course", back_populates="modules", order_by="Course.display_order")
+    lessons = relationship("LessonBase", 
+                           back_populates="modules", 
+                           order_by="LessonBase.display_order",
+                           lazy="selectin")

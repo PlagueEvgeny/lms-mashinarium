@@ -45,6 +45,10 @@ export const API = {
   update_practica_lesson: (slug) => `${API_URL}/lesson/practica/${slug}`,
   upload_lesson_materials: (slug) => `${API_URL}/lesson/materials/${slug}`,
   delete_lesson: (id) => `${API_URL}/lesson/?lesson_id=${id}`,
+
+  dialogs: `${API_URL}/dialog/list`,
+  dialog: (slug) => `${API_URL}/dialog/${slug}`,
+  ws_dialog: (slug) => `ws://localhost:8000/ws/dialogs/${slug}`,
   
   user: `${API_URL}/user/me`,
   user_upload_image: `${API_URL}/user/upload-image/`,

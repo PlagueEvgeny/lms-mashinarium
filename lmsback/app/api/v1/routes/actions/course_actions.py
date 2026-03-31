@@ -5,6 +5,7 @@ from loguru import logger
 from api.v1.schemas.course_schema import ListCourse, ShowCourse, ListTeacherCourse, ShowTeacherCourse, ShowUserCourse
 from api.v1.schemas.course_schema import CourseCreate
 from services.course_service import CourseDAL
+from services.dialog_service import DialogDAL
 from db.models.course import Course
 
 async def _get_course_by_id(id: int, session) -> Union[Course, None]:
@@ -73,6 +74,8 @@ async def _create_new_course(body: CourseCreate, session) -> ShowCourse:
     logger.info("Создание курса")
     async with session.begin():
         course_dal = CourseDAL(session)
+        dialog_dal = DialogDAL(session)
+
         course = await course_dal.create_course(
             name=body.name,
             slug=body.slug,
@@ -85,6 +88,16 @@ async def _create_new_course(body: CourseCreate, session) -> ShowCourse:
             category_ids=body.category_ids,
             teachers_ids=body.teacher_ids,
         )
+
+        await dialog_dal.create_dialog(
+            course_id=course.id,
+            slug=course.slug,
+            name=course.name,
+            image=course.image,
+
+            members=course.teachers,
+        )
+        
 
         # Возвращаем модель с категориями
         return ShowCourse(

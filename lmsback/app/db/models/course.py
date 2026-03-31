@@ -54,3 +54,6 @@ class Course(Base):
     students = relationship("User", secondary="student_courses", back_populates='student_courses')
 
     modules = relationship("Module", back_populates="course", cascade="all, delete-orphan", order_by="Module.display_order")
+
+    dialogs = relationship("Dialog", back_populates='course', cascade='all, delete-orphan')
+

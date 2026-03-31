@@ -1,6 +1,7 @@
 from .course import Course
 from .module import Module
 from .user import User
+from .dialog import Dialog
 from .category import Category
 from .lesson import (
     LessonBase,
@@ -22,6 +23,7 @@ __all__ = [
     'Module',
     'User',
     'Category',
+    'Dialog',
     "LessonBase",
     "Lecture",
     "VideoLesson",

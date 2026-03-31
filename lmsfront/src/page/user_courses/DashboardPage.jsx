@@ -40,7 +40,7 @@ const DashboardPage = () => {
           <h1 className="text-3xl font-bold text-foreground">{ user?.first_name }, добрый день</h1>
           <p className="text-muted-foreground mt-1">Сегодня отличный день, что бы узнать новое или закрепить знание на практике</p>
         </div>
-        {!loading && !error && courses.length === 0 && (
+{!loading && !error && courses.length === 0 && (
           <div className="text-center py-20 text-muted-foreground">
             <p className="text-lg"></p>
           </div>

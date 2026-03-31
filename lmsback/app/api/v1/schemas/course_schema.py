@@ -90,6 +90,11 @@ class ShowModuleStudent(TunedModel):
     is_active: bool
     lessons: List[LessonStudentResponse] = []
 
+class ShowShortCurse(TunedModel):
+    id: int
+    name:  str
+    slug:  str
+    image: Optional[str]
 
 class ShowUserCourse(TunedModel):
     id: int

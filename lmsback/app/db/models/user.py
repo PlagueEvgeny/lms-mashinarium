@@ -43,3 +43,7 @@ class User(Base):
 
     teacher_courses = relationship("Course", secondary="teacher_courses", back_populates='teachers')
     student_courses = relationship("Course", secondary="student_courses", back_populates='students')
+    
+    dialogs = relationship("Dialog", secondary="dialog_members", back_populates="members")
+    messages = relationship("Message", back_populates="sender", cascade="all, delete-orphan")
+

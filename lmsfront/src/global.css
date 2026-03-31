@@ -114,10 +114,41 @@
 }
 
 @layer base {
+  /* Все элементы с атрибутами onclick/onClick */
+  [onclick],
+  [onClick] {
+    @apply cursor-pointer;
+  }
+  
+  /* Все интерактивные элементы по умолчанию */
+  button,
+  [role="button"],
+  input[type="button"],
+  input[type="submit"],
+  input[type="reset"],
+  a[href],
+  summary {
+    @apply cursor-pointer;
+  }
+  
+  /* Исключения для disabled состояний */
+  button:disabled,
+  [disabled],
+  [aria-disabled="true"] {
+    @apply cursor-not-allowed;
+  }
+  
+  /* Специфичные исключения для div с onClick */
+  div[onclick]:active,
+  div[onClick]:active {
+    @apply transform scale-[0.98] transition-transform;
+  }
+  
   * {
     @apply border-border outline-ring/50;
   }
+  
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
   }
 }

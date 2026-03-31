@@ -61,6 +61,28 @@ async def get_current_user_from_token(
     
     return user
 
+async def get_current_user_from_token_ws(
+        token: str,
+        session: AsyncSession,
+):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            logger.error('Отсутствует почта')
+            return None
+    except JWTError:
+        logger.error(JWTError)
+        return None
+
+    user = await _get_user_by_email_for_auth(email=email, session=session)
+    if user is None:
+        logger.error(f'Пользователь не найден {email}')
+        return None
+
+    return user
+
+
 async def verify_token(
         token: str,
         expected_token_type: str,
