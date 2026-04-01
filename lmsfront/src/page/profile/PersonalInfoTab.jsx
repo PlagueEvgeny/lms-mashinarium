@@ -7,6 +7,7 @@ function PersonalInfoTab({ user, updateUser, uploadAvatarImage, deleteUser }) {
     last_name: user?.last_name || '',
     first_name: user?.first_name || '',
     patronymic: user?.patronymic || '',
+    about: user?.about || '',
     avatar: user?.avatar || '',
     telegram: user?.telegram || '',
     phone: user?.phone || '',
@@ -22,6 +23,7 @@ function PersonalInfoTab({ user, updateUser, uploadAvatarImage, deleteUser }) {
       last_name: user?.last_name || '',
       first_name: user?.first_name || '',
       patronymic: user?.patronymic || '',
+      about: user?.about || '',
       avatar: user?.avatar || '',
       telegram: user?.telegram || '',
       phone: user?.phone || '',
@@ -101,7 +103,7 @@ function PersonalInfoTab({ user, updateUser, uploadAvatarImage, deleteUser }) {
         </div>
         <div>
           <h2 className="text-xl font-semibold">
-            {user?.first_name} {user?.last_name}
+            {user?.last_name} {user?.first_name} 
           </h2>
           <p className="text-sm text-muted-foreground">{user?.email}</p>
         </div>
@@ -215,6 +217,16 @@ function PersonalInfoTab({ user, updateUser, uploadAvatarImage, deleteUser }) {
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div>
+            <label className="block text-xs text-muted-foreground mb-1">Кратко о себе</label>
+            <input
+              type="text"
+              name="about"
+              value={formData.about}
+              onChange={(e) => handleChange('about', e.target.value)}
+              className="w-full px-4 py-3 bg-muted border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+          </div>
           <div>
             <label className="block text-xs text-muted-foreground mb-1">Telegram</label>
             <input

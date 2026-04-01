@@ -40,6 +40,21 @@ class CourseDAL:
             return course_row[0]
         return None
 
+    async def get_course_teachers_by_id(self, id: int) -> Union[Course, None]:
+        query = (
+            select(Course).\
+            options(selectinload(Course.categories)).\
+            options(selectinload(Course.modules)).\
+            options(selectinload(Course.teachers)).\
+            options(selectinload(Course.students)).\
+            where(and_(Course.id == id, Course.is_active))
+        )
+        result = await self.db_session.execute(query)
+        course_row = result.fetchone()
+        if course_row is not None:
+            return course_row[0]
+        return None
+
     async def get_course_by_slug(self, slug: str) -> Union[Course, None]:
         query = select(Course).\
                 options(selectinload(Course.categories)).\

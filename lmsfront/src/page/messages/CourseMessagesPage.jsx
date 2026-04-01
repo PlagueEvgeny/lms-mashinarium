@@ -41,7 +41,7 @@ const CourseMessagesPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <Toaster position="top" />
+      <Toaster position="top-center" />
       <main className="max-w-7xl mx-auto px-4 py-10">
         <div className="p-4 border-b border-border">
             <h1 className="text-3xl font-bold text-foreground">Диалоги</h1>

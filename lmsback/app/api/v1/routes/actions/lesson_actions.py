@@ -396,7 +396,13 @@ async def _get_test_result(
 
         sorted_answers = sorted(submission.answers or [], key=lambda x: x.question_index)
         results = [
-            TestQuestionCheckResult(is_correct=item.is_correct, score=float(item.score or 0.0))
+            TestQuestionCheckResult(
+                is_correct=item.is_correct,
+                score=float(item.score or 0.0),
+                selected_option=item.selected_option,       # [+]
+                selected_options=item.selected_options,     # [+]
+                text_answer=item.text_answer,               # [+]
+            )
             for item in sorted_answers
         ]
 
@@ -418,18 +424,17 @@ async def _get_test_submissions_for_teacher(
         lesson = await lesson_dal.get_lesson_by_slug(lesson_slug)
         if lesson is None:
             raise ValueError(f"Урок с slug '{lesson_slug}' не найден")
-
         if LessonType(lesson.lesson_type) != LessonType.TEST:
             raise ValueError("Указанный урок не является тестом")
-
         submissions = await lesson_dal.get_test_submissions_with_answers(test_lesson_id=lesson.id)
         if not submissions:
             return []
 
+        questions_map = {i: q for i, q in enumerate(lesson.questions or {})}
+
         user_ids = [s.user_id for s in submissions]
         r = await session.execute(select(User.user_id, User.email, User.first_name, User.last_name).where(User.user_id.in_(user_ids)))
         user_data: dict[UUID, dict] = {row[0]: {"email": row[1], "first_name": row[2], "last_name": row[3]} for row in r.all()}
-
         result: list[TestSubmissionTeacherResponse] = []
         for s in submissions:
             answers_sorted = sorted(s.answers or [], key=lambda x: x.question_index)
@@ -442,6 +447,8 @@ async def _get_test_submissions_for_teacher(
                     text_answer=a.text_answer,
                     is_correct=a.is_correct,
                     score=float(a.score or 0.0),
+                    prompt=questions_map.get(a.question_index, {}).get("prompt"),    # [+]
+                    options=questions_map.get(a.question_index, {}).get("options"),  # [+]
                 )
                 for a in answers_sorted
             ]
@@ -460,7 +467,6 @@ async def _get_test_submissions_for_teacher(
                 )
             )
         return result
-
 
 async def _get_test_submissions_for_teacher_by_course(
     course_slug: str,

@@ -178,7 +178,7 @@ const EditLessonPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <Toaster position="top" />
+      <Toaster position="top-center" />
       <main className="max-w-7xl mx-auto px-4 py-10">
         <button
           onClick={() => navigate(`/teaching/courses/${slug}`)}

@@ -39,7 +39,7 @@ const CourseDetailPage = () => {
 return (
     <div className="min-h-screen bg-background">
       <Header />
-      <Toaster position="top" />
+      <Toaster position="top-center" />
       <main className="max-w-7xl mx-auto px-4 py-8">
 
         {/* Назад */}
@@ -82,8 +82,8 @@ return (
                     <span className='text-sm font-medium'>{teacher.first_name[0]}</span>
                   </div>
                   <div>
-                    <p className='text-sm font-medium text-primary'>{teacher.first_name} {teacher.last_name} {teacher.patronymic}</p>
-                    <p className='text-xs text-muted-foreground'>О себе надо добавить</p>
+                    <p className='text-sm font-medium text-primary'>{teacher.last_name} {teacher.first_name} {teacher.patronymic}</p>
+                    <p className='text-xs text-muted-foreground'>{teacher.about || "Преподаватель"}</p>
                   </div>  
                 </div>
               ))}

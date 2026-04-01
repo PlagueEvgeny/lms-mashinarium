@@ -24,6 +24,7 @@ class ShowUser(TunedModel):
     last_name: str
     first_name: str
     patronymic: Optional[str] = None
+    about: Optional[str] = None
     avatar: Optional[str] = None
     telegram: Optional[str] = None
     email: EmailStr
@@ -39,6 +40,7 @@ class ShowUserShort(TunedModel):
     last_name: str
     first_name: str
     patronymic: Optional[str] = None
+    about: Optional[str] = None
     avatar: Optional[str] = None
     telegram: Optional[str] = None
     email: EmailStr
@@ -105,6 +107,7 @@ class UpdateUserRequest(BaseModel):
     last_name: Optional[str] = None
     first_name: Optional[str] = None
     patronymic: Optional[str] = None
+    about: Optional[str] = None
     avatar: Optional[str] = None
     telegram: Optional[str] = None
     phone: Optional[str] = None

@@ -28,7 +28,6 @@ const EditCoursesPage = () => {
 
   const [formData, setFormData] = useState({
     name: '',
-    slug: '',
     short_description: '',
     description: '',
     image: '',
@@ -64,7 +63,6 @@ const EditCoursesPage = () => {
 
         setFormData({
           name:              course.name              ?? '',
-          slug:              course.slug              ?? '',
           short_description: course.short_description ?? '',
           description:       course.description       ?? '',
           image:             course.image             ?? '',
@@ -172,21 +170,6 @@ const handleSubmit = async (e) => {
                 onChange={handleNameChange}
                 className="w-full px-4 py-3 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder="Например: Программирование на Python"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Slug *
-              </label>
-              <input
-                type="text"
-                name="slug"
-                value={formData.slug}
-                onChange={handleChange}
-                className="w-full px-4 py-3 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="python-programming"
                 required
               />
             </div>

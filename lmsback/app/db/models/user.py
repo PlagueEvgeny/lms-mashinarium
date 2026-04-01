@@ -30,6 +30,7 @@ class User(Base):
     last_name = Column(String, nullable=False)
     first_name = Column(String, nullable=False)
     patronymic = Column(String, nullable=True)
+    about = Column(String, nullable=True, default="")
     avatar = Column(String, nullable=True)
     telegram = Column(String, nullable=True)
     email = Column(String, nullable=False, unique=True)

@@ -15,6 +15,7 @@ const TeachingTestResultsPage = () => {
   const [selectedLessonSlug, setSelectedLessonSlug] = useState('');
   const [submissionsByLesson, setSubmissionsByLesson] = useState({});
   const [submissionsFetchError, setSubmissionsFetchError] = useState(false);
+  const [expandedUser, setExpandedUser] = useState(null);
   const [submissions, setSubmissions] = useState([]);
   const [subLoading, setSubLoading] = useState(false);
 
@@ -81,6 +82,7 @@ const TeachingTestResultsPage = () => {
 
   const pickTest = (lessonSlug) => {
     setSelectedLessonSlug(lessonSlug);
+    setExpandedUser(null);
     const cached = submissionsByLesson[lessonSlug];
     if (Array.isArray(cached)) {
       setSubmissions(cached);
@@ -102,7 +104,7 @@ const TeachingTestResultsPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <Toaster position="top" />
+      <Toaster position="top-center" />
       <main className="max-w-7xl mx-auto px-4 py-10">
         <button
           onClick={() => navigate(`/teaching/courses/${slug}`)}
@@ -175,29 +177,79 @@ const TeachingTestResultsPage = () => {
                 </div>
                 <div className="space-y-3">
                   {submissions.map((s) => (
-                    <div key={s.user_id} className="border border-border rounded-xl p-4 bg-muted/10">
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="min-w-0">
-                          <div className="text-sm font-medium text-foreground truncate">
-                            {s.user_last_name || s.user_first_name ? (
-                              <>
-                                {s.user_last_name} {s.user_first_name}
-                                <span className="text-muted-foreground ml-2 text-xs">
-                                  ({s.user_email || s.user_id})
-                                </span>
-                              </>
-                            ) : (
-                              s.user_email || s.user_id
-                            )}
+                    <div key={s.user_id} className="border border-border rounded-xl overflow-hidden">
+                      <button
+                        type="button"
+                        onClick={() => setExpandedUser(expandedUser === s.user_id ? null : s.user_id)}
+                        className="w-full text-left p-4 bg-muted/10 hover:bg-muted/20 transition"
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="min-w-0">
+                            <div className="text-sm font-medium text-foreground truncate">
+                              {s.user_last_name || s.user_first_name ? (
+                                <>
+                                  {s.user_last_name} {s.user_first_name}
+                                  <span className="text-muted-foreground ml-2 text-xs">
+                                    ({s.user_email || s.user_id})
+                                  </span>
+                                </>
+                              ) : (
+                                s.user_email || s.user_id
+                              )}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              Отправлено: {new Date(s.submitted_at).toLocaleString()}
+                            </div>
                           </div>
-                          <div className="text-xs text-muted-foreground">
-                            Отправлено: {new Date(s.submitted_at).toLocaleString()}
+                          <div className="flex items-center gap-3">
+                            <div className="text-sm font-semibold text-foreground">
+                              {s.total_score} / {s.total_questions}
+                            </div>
+                            <span className="text-xs text-muted-foreground">
+                              {expandedUser === s.user_id ? '▲' : '▼'}
+                            </span>
                           </div>
                         </div>
-                        <div className="text-sm font-semibold text-foreground">
-                          {s.total_score} / {s.total_questions}
+                      </button>
+
+                      {expandedUser === s.user_id && (
+                        <div className="border-t border-border divide-y divide-border">
+                          {(s.answers || []).map((a) => {
+                            const options = a.options || [];
+                            return (
+                              <div key={a.question_index} className="px-4 py-3 flex items-start gap-3">
+                                <div className={`mt-1 w-2 h-2 rounded-full shrink-0 ${
+                                  a.is_correct ? 'bg-green-500' : 'bg-red-400'
+                                }`} />
+                                <div className="flex-1 min-w-0">
+                                  <div className="text-xs font-medium text-foreground mb-1">
+                                    {a.prompt || `Вопрос ${a.question_index + 1}`}
+                                    <span className={`ml-2 font-normal ${a.is_correct ? 'text-green-600' : 'text-red-500'}`}>
+                                      {a.score} балл(ов)
+                                    </span>
+                                  </div>
+                                  {/* [~] Одиночный выбор — текст опции */}
+                                  {a.selected_option != null && (
+                                    <div className="text-sm text-muted-foreground">
+                                      {options[a.selected_option] ?? `Вариант ${a.selected_option + 1}`}
+                                    </div>
+                                  )}
+                                  {/* [~] Множественный выбор — тексты всех выбранных */}
+                                  {Array.isArray(a.selected_options) && a.selected_options.length > 0 && (
+                                    <div className="text-sm text-muted-foreground">
+                                      {a.selected_options.map((i) => options[i] ?? `Вариант ${i + 1}`).join(', ')}
+                                    </div>
+                                  )}
+                                  {/* Текстовый ответ */}
+                                  {a.text_answer != null && (
+                                    <div className="text-sm text-muted-foreground">{a.text_answer}</div>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
-                      </div>
+                      )}
                     </div>
                   ))}
                 </div>

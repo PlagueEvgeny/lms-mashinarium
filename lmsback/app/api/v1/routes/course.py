@@ -17,7 +17,8 @@ from api.v1.routes.actions.course_actions import (_get_course_by_id, _create_new
                                                   _remove_students_from_course, _remove_teachers_from_course,
                                                   _get_course_by_slug, _get_course_all, _get_course_by_categories,
                                                   _get_user_courses_as_student, _get_user_course_by_slug,
-                                                  _get_user_courses_as_teacher, _get_teacher_course_by_slug)
+                                                  _get_user_courses_as_teacher, _get_teacher_course_by_slug,
+                                                  _get_course_teacher_by_id)
 from db.models.user import User
 from db.models.course import Course
 from db.session import get_db
@@ -172,7 +173,7 @@ async def update_course_by_id(id: int,
         logger.error("Обновление не может быть пустым")
         raise HTTPException(status_code=422, detail="At least one parametr for user update info should be provided")
 
-    course_for_update = await _get_course_by_id(id, session)
+    course_for_update = await _get_course_teacher_by_id(id, session)
     if course_for_update is None:
         logger.error(f"Курс {id} не найден.")
         raise HTTPException(status_code=404, detail=f"Course with id {id} not found")

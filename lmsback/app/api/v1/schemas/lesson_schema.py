@@ -231,7 +231,9 @@ class TestCorrectTextAnswer(TunedModel):
 class TestQuestionCheckResult(TunedModel):
     is_correct: Optional[bool] = None  # None если не смогли автопроверить (text без correct_text)
     score: float = 0.0
-
+    selected_option: Optional[int] = None
+    selected_options: Optional[list[int]] = None
+    text_answer: Optional[str] = None
 
 class TestCheckResponse(TunedModel):
     total_questions: int
@@ -248,6 +250,8 @@ class TestSubmissionAnswerTeacherResponse(TunedModel):
     text_answer: Optional[str] = None
     is_correct: Optional[bool] = None
     score: float
+    prompt: Optional[str] = None
+    options: Optional[List[str]] = None
 
 
 class TestSubmissionTeacherResponse(TunedModel):

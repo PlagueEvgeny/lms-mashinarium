@@ -16,6 +16,14 @@ async def _get_course_by_id(id: int, session) -> Union[Course, None]:
         if course is not None:
             return course
 
+async def _get_course_teacher_by_id(id: int, session) -> Union[Course, None]:
+    logger.info("Получение категории по id")
+    async with session.begin():
+        course_dal = CourseDAL(session)
+        course = await course_dal.get_course_teachers_by_id(id=id)
+        if course is not None:
+            return course
+
 async def _get_course_by_slug(slug: str, session) -> Union[Course, None]:
     logger.info("Получение курса по slug")
     async with session.begin():
@@ -129,8 +137,18 @@ async def _update_course(updated_course_params: dict, id: int, session) -> Union
     logger.info("Обновление курса")
     async with session.begin():
         course_dal = CourseDAL(session)
+        dialog_dal = DialogDAL(session)
 
         category_ids = updated_course_params.pop("category_ids", None)
+        
+        dialog_params = {}
+        if "name" in updated_course_params:
+            dialog_params["name"] = updated_course_params["name"]
+        if "image" in updated_course_params:
+            dialog_params["image"] = updated_course_params["image"]
+        if "status" in updated_course_params:
+            status = updated_course_params["status"]
+            dialog_params["is_active"] = ("PUBLISHED" in status)
 
         updated_course_id = await course_dal.update_course(
             id=id, **updated_course_params,
@@ -138,6 +156,9 @@ async def _update_course(updated_course_params: dict, id: int, session) -> Union
 
         if category_ids is not None:
             await course_dal.update_course_categories(course_id=id, category_ids=category_ids)
+        
+        if dialog_params:
+            await dialog_dal.update_by_course_id(course_id=id, **dialog_params)
 
         return updated_course_id
 

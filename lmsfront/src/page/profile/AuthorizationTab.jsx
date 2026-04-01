@@ -48,7 +48,7 @@ function AuthorizationTab({ user, changePassword }) {
           )}
         </div>
         <div>
-          <h2 className="text-xl font-semibold">{user?.first_name} {user?.last_name}</h2>
+          <h2 className="text-xl font-semibold">{user?.last_name} {user?.first_name}</h2>
           <p className='text-sm text-muted-foreground'>{user?.email}</p>
         </div> 
       </div>

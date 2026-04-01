@@ -47,6 +47,7 @@ async def dialog_websocket(
                     "content":     m.content,
                     "sender_id":   str(m.sender_id),
                     "sender_name": f"{m.sender.first_name} {m.sender.last_name}",
+                    "sender_avatar": m.sender.avatar,
                     "created_at":  m.created_at.isoformat(),
                 }
                 for m in reversed(messages)
@@ -77,6 +78,7 @@ async def dialog_websocket(
                     content=message.content,
                     sender_id=str(message.sender_id),
                     sender_name=f"{message.sender.first_name} {message.sender.last_name}",
+                    sender_avatar=message.sender.avatar,
                     created_at=message.created_at.isoformat(),
                 )
                 await manager.broadcast(dialog_slug, out.model_dump())

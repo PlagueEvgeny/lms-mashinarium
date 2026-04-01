@@ -5,7 +5,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import toast, { Toaster } from 'react-hot-toast';
 import Header from '../../components/Header';
 import { useAuthUser } from '../../hooks/useAuthUser';
-import { Send, Loader2 } from 'lucide-react';
+import { Send } from 'lucide-react';
 
 const DialogMessagePage = () => {
   const { user }   = useAuthUser();
@@ -38,12 +38,12 @@ const DialogMessagePage = () => {
       }
     };
     fetchDialog();
-  }, [slug, navigate]);
+  }, [dialog_slug, navigate]);
 
   useEffect(() => {
-    if (!slug) return;
+    if (!dialog_slug) return;
     const token = localStorage.getItem('access_token');
-    const ws = new WebSocket(`${API.ws_dialog(slug)}?token=${token}`);
+    const ws = new WebSocket(`${API.ws_dialog(dialog_slug)}?token=${token}`);
     wsRef.current = ws;
     let closed = false;
 
@@ -59,7 +59,7 @@ const DialogMessagePage = () => {
     ws.onclose = () => setWsReady(false);
 
     return () => { closed = true; ws.close(); };
-  }, [slug]);
+  }, [dialog_slug]);
 
   useEffect(() => {
     if (!messagesRef.current) return;
@@ -119,7 +119,7 @@ const DialogMessagePage = () => {
   return (
     <div className="h-screen bg-background flex flex-col overflow-hidden">
       <Header />
-      <Toaster position="top-right" />
+      <Toaster position="top-center" />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 pt-5 pb-4 flex flex-col min-h-0 gap-3">
         <button
@@ -195,11 +195,25 @@ const DialogMessagePage = () => {
                         className={`flex gap-3 ${isOwn ? 'flex-row-reverse' : ''} ${isSameSender ? 'mt-0.5' : 'mt-3'}`}
                       >
                         <div className="w-8 shrink-0">
-                          {!isSameSender && (
-                            <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-medium text-foreground">
-                              {getInitials(msg.sender_name)}
-                            </div>
-                          )}
+                        {!isSameSender && (
+                          <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-medium text-foreground overflow-hidden">
+                            {msg.sender_avatar ? (
+                              <img 
+                                src={msg.sender_avatar} 
+                                alt={msg.sender_name}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  // Если аватар не загрузился, показываем инициалы
+                                  e.target.style.display = 'none';
+                                  e.target.parentElement.textContent = getInitials(msg.sender_name);
+                                  e.target.parentElement.classList.add('bg-muted');
+                                }}
+                              />
+                            ) : (
+                              getInitials(msg.sender_name)
+                            )}
+                          </div>
+                        )}
                         </div>
 
                         <div className={`max-w-[65%] flex flex-col gap-0.5 ${isOwn ? 'items-end' : 'items-start'}`}>
