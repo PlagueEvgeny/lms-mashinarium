@@ -25,6 +25,7 @@ class LessonSummaryForTeacher(TunedModel):
     slug: str
     display_order: int
     lesson_type: LessonType
+    is_visibility: Optional[bool] = None
 
 
 class LessonBaseSchema(TunedModel):
@@ -118,6 +119,7 @@ class TestQuestionStudent(TestQuestionBase):
 class TestCreate(LessonBaseSchema):
     lesson_type: Literal[LessonType.TEST] = LessonType.TEST
     questions: List[TestQuestionTeacher] = Field(..., min_length=1)
+    is_visibility: bool
 
 
 LessonCreate = Annotated[
@@ -158,6 +160,7 @@ class PracticaResponse(LessonBaseResponse):
 class TestResponse(LessonBaseResponse):
     lesson_type: Literal[LessonType.TEST] = LessonType.TEST
     questions: List[TestQuestionTeacher]
+    is_visibility: bool
 
 
 class DeleteResponse(TunedModel):
@@ -173,6 +176,7 @@ LessonResponse = Annotated[
 class TestStudentResponse(LessonBaseResponse):
     lesson_type: Literal[LessonType.TEST] = LessonType.TEST
     questions: List[TestQuestionStudent]
+    is_visibility: bool
 
 
 LessonStudentResponse = Annotated[
@@ -182,9 +186,6 @@ LessonStudentResponse = Annotated[
 
 
 class TestCheckRequest(TunedModel):
-    # Ответ студента по одному вопросу
-    # payload поддерживает и новый структурированный формат, и legacy-формат
-    # (int | list[int] | str | null), чтобы не ломать текущий frontend.
     answers: List[
         Union[
             "TestStudentSingleAnswer",

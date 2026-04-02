@@ -23,6 +23,7 @@ const INITIAL_FORM = {
   deadline_days: null,
   materials: [],
   questions: [],
+  is_visibility: true,
 };
 
 const CreateLessonPage = () => {
@@ -75,6 +76,7 @@ const CreateLessonPage = () => {
     if (lessonType === 'test') {
       return {
         ...base,
+        is_visibility: form.is_visibility,
         questions: (form.questions || []).map((q) => {
           const t = q?.question_type || 'single';
           if (t === 'text') {

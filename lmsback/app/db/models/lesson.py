@@ -96,6 +96,7 @@ class TestLesson(LessonBase):
     id = Column(Integer, ForeignKey("lessons.id"), primary_key=True)
     # Вопросы теста без правильных ответов (prompt/options/type)
     questions = Column(JSON, nullable=False)
+    is_visibility = Column(Boolean, default=True)
 
     # Отдельно храним правильные ответы и ответы студентов
     correct_answers = relationship(

@@ -49,6 +49,7 @@ const UserLesson = () => {
   const currentIndex = allLessons.findIndex((l) => l.slug === lesson_slug);
   const hasPrev = currentIndex > 0;
   const hasNext = currentIndex < allLessons.length - 1;
+  const isLast = !hasNext;
 
   const onRequirementMetChange = useCallback(
     (ok) => {
@@ -139,6 +140,30 @@ const UserLesson = () => {
     }
   };
 
+  const handleFinish = async () => {
+    if (!lesson) return;
+    if (blockNextForCurrent) {
+      toast.error(
+        lesson.lesson_type === 'practica'
+          ? 'Сначала отправьте решение по практике'
+          : 'Сначала отправьте ответы в тесте'
+      );
+      return;
+    }
+    if (!completedIds.some((x) => x == lesson.id)) {
+      try {
+        await completeLesson(lesson_slug);
+        setCompletedIds((prev) => [...prev, lesson.id]);
+        patchLessonGate(lesson.id, true);
+      } catch (err) {
+        toast.error('Не удалось сохранить прогресс');
+        return;
+      }
+    }
+    toast.success('Курс завершён!');
+    navigate(`/user/courses/${slug}`);
+  };
+
   const LessonComponent = lesson ? LESSON_COMPONENTS[lesson.lesson_type] : null;
 
   if (loading) {
@@ -206,6 +231,8 @@ const UserLesson = () => {
                 hasPrev={hasPrev}
                 hasNext={hasNext}
                 blockNext={!!blockNextForCurrent}
+                isLast={isLast}
+                onFinish={handleFinish}
                 onCheckTest={lesson?.lesson_type === 'test' ? runCheckTest : null}
                 onGetMyTestResult={lesson?.lesson_type === 'test' ? fetchMyTestResult : null}
                 onRequirementMetChange={

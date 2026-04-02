@@ -27,6 +27,7 @@ const EditLessonPage = () => {
     deadline_days: null,
     newMaterials: [],
     questions: [],
+    is_visibility: true,
   });
 
   useEffect(() => {
@@ -46,6 +47,7 @@ const EditLessonPage = () => {
           deadline_days: data.deadline_days ?? null,
           newMaterials: [],
           questions: data.questions ?? [],
+          is_visibility: data.is_visibility ?? true,
         });
       } catch (e) {
         toast.error(e.message || 'Не удалось загрузить занятие');
@@ -98,6 +100,7 @@ const EditLessonPage = () => {
         await updateLesson(lesson.id, {
           name: form.name,
           display_order: form.display_order,
+          is_visibility: form.is_visibility,
           questions: (form.questions || []).map((q) => {
             const t = q?.question_type || 'single';
             if (t === 'text') {

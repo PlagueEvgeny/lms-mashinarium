@@ -1,7 +1,7 @@
 from typing import TypeVar
 from typing import Optional
 from uuid import UUID
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -291,16 +291,14 @@ class LessonDAL:
         return set(result.scalars().all())
 
     async def replace_test_correct_answers(self, test_lesson_id: int, questions: list[dict]) -> None:
-        existing = await self.db_session.execute(
-            select(TestCorrectAnswer).where(TestCorrectAnswer.test_lesson_id == test_lesson_id)
+        await self.db_session.execute(
+            delete(TestCorrectAnswer).where(TestCorrectAnswer.test_lesson_id == test_lesson_id)
         )
-        for item in existing.scalars().all():
-            await self.db_session.delete(item)
+        await self.db_session.flush()  
 
         for idx, q in enumerate(questions or []):
             if not isinstance(q, dict):
                 continue
-
             question_type = q.get("question_type") or "single"
             correct = TestCorrectAnswer(
                 test_lesson_id=test_lesson_id,

@@ -55,6 +55,15 @@ const TestFormFields = ({ form, onChange }) => {
         <p className="text-sm font-medium text-foreground">Вопросы теста</p>
       </div>
 
+      <label className="flex items-center gap-3 cursor-pointer select-none">
+        <input
+          type="checkbox"
+          checked={!!form.is_visibility}
+          onChange={(e) => onChange('is_visibility', e.target.checked)}
+        />
+        <span>Показывать студентам правильные ответы после сдачи</span>
+      </label>
+
       {(questions || []).map((q, idx) => {
         const qType = q.question_type || 'single';
         const options = Array.isArray(q.options) ? q.options : [];

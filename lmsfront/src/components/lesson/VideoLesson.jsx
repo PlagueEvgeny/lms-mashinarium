@@ -42,7 +42,7 @@ const formatDuration = (s) => {
   return h > 0 ? `${h}:${m.toString().padStart(2, '0')}` : `${m} мин`;
 };
 
-const VideoLesson = ({ lesson, onPrev, onNext, hasPrev, hasNext, blockNext = false }) => {
+const VideoLesson = ({ lesson, onPrev, onNext, hasPrev, hasNext, blockNext = false, isLast = false, onFinish }) => {
   const [fallbackPlaying, setFallbackPlaying] = useState(false);
   const [bbbStatus, setBbbStatus] = useState(null); // null | 'ready' | 'error'
 
@@ -199,10 +199,23 @@ const VideoLesson = ({ lesson, onPrev, onNext, hasPrev, hasNext, blockNext = fal
           className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-border text-sm hover:bg-muted/40 transition disabled:opacity-30 disabled:pointer-events-none">
           <ChevronLeft size={16} /> Предыдущий
         </button>
-        <button onClick={onNext} disabled={!hasNext || blockNext}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition disabled:opacity-30 disabled:pointer-events-none">
-          Следующий <ChevronRight size={16} />
-        </button>
+        {isLast ? (
+          <button
+            onClick={onFinish}
+            disabled={blockNext}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-green-600 text-white text-sm font-medium hover:bg-green-600/90 transition disabled:opacity-30 disabled:pointer-events-none"
+          >
+            Завершить курс ✓
+          </button>
+        ) : (
+          <button
+            onClick={onNext}
+            disabled={!hasNext || blockNext}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition disabled:opacity-30 disabled:pointer-events-none"
+          >
+            Следующий <ChevronRight size={16} />
+          </button>
+          )}
       </div>
     </div>
   );

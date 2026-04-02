@@ -12,6 +12,8 @@ const TestLesson = ({
   onGetMyTestResult,
   blockNext = false,
   onRequirementMetChange,
+  isLast = false,
+  onFinish
 }) => {
   const questions = useMemo(() => lesson?.questions || [], [lesson?.questions]);
   const materials = lesson?.materials || [];
@@ -29,7 +31,6 @@ const TestLesson = ({
   const [checkResult, setCheckResult] = useState(null);
   const [loadingResult, setLoadingResult] = useState(false);
 
-  // Нормализуем длину answers при смене урока
   useEffect(() => {
     const init = buildInitialAnswers();
     setAnswers((prev) => {
@@ -41,7 +42,6 @@ const TestLesson = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lesson?.slug, questions.length]);
 
-  // Загружаем результат с сервера
   useEffect(() => {
     if (!onGetMyTestResult || !lesson?.slug) return;
     const ac = new AbortController();
@@ -63,7 +63,6 @@ const TestLesson = ({
     return () => { active = false; ac.abort(); };
   }, [onGetMyTestResult, lesson?.slug]);
 
-  // Восстанавливаем ответы из результата
   useEffect(() => {
     if (!checkResult?.results?.length) return;
     const restored = questions.map((q, idx) => {
@@ -108,7 +107,7 @@ const TestLesson = ({
     }
   };
 
-  // Режим просмотра результатов
+  // Полный разбор с подсветкой (is_visibility = true)
   const renderResults = () => {
     const results = checkResult?.results || [];
     return (
@@ -181,6 +180,56 @@ const TestLesson = ({
     );
   };
 
+  const renderDisabledAnswers = () => (
+    <>
+      {questions.map((q, idx) => (
+        <div key={idx} className="space-y-3 border border-border rounded-xl p-4 bg-muted/10">
+          <p className="font-medium text-foreground">
+            {idx + 1}. {q.prompt}
+          </p>
+
+          {(q.question_type || 'single') === 'text' ? (
+            <textarea
+              value={typeof answers[idx] === 'string' ? answers[idx] : ''}
+              rows={4}
+              disabled
+              className="w-full px-4 py-3 rounded-xl border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none transition"
+            />
+          ) : (
+            <div className="space-y-2">
+              {(q.options || []).map((opt, optIdx) => {
+                const t = q.question_type || 'single';
+                const checked =
+                  t === 'multiple'
+                    ? (Array.isArray(answers[idx]) ? answers[idx] : []).includes(optIdx)
+                    : answers[idx] === optIdx;
+                return (
+                  <label key={optIdx} className="flex items-center gap-2 text-sm cursor-not-allowed opacity-70">
+                    <input
+                      type={t === 'multiple' ? 'checkbox' : 'radio'}
+                      name={`q_${idx}`}
+                      checked={checked}
+                      disabled
+                      readOnly
+                    />
+                    <span className="text-foreground">{opt}</span>
+                  </label>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      ))}
+
+      <div className="pt-2 text-sm text-muted-foreground">
+        Тест отправлен. Баллы:{' '}
+        <span className="text-foreground font-medium">{checkResult.total_score}</span>
+        {' / '}
+        <span className="text-foreground font-medium">{checkResult.total_questions}</span>
+      </div>
+    </>
+  );
+
   return (
     <>
       <style>{LESSON_CSS}</style>
@@ -200,7 +249,8 @@ const TestLesson = ({
           {questions.length === 0 ? (
             <p className="text-sm text-muted-foreground">В тесте нет вопросов.</p>
           ) : checkResult ? (
-            renderResults()
+            // [~] is_visibility определяет режим отображения результатов
+            lesson.is_visibility ? renderResults() : renderDisabledAnswers()
           ) : (
             <>
               {questions.map((q, idx) => (
@@ -301,13 +351,23 @@ const TestLesson = ({
           >
             <ChevronLeft size={16} /> Предыдущий
           </button>
-          <button
-            onClick={onNext}
-            disabled={!hasNext || blockNext}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition disabled:opacity-30 disabled:pointer-events-none"
-          >
-            Следующий <ChevronRight size={16} />
-          </button>
+          {isLast ? (
+            <button
+              onClick={onFinish}
+              disabled={blockNext}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-green-600 text-white text-sm font-medium hover:bg-green-600/90 transition disabled:opacity-30 disabled:pointer-events-none"
+            >
+              Завершить курс ✓
+            </button>
+          ) : (
+            <button
+              onClick={onNext}
+              disabled={!hasNext || blockNext}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition disabled:opacity-30 disabled:pointer-events-none"
+            >
+              Следующий <ChevronRight size={16} />
+            </button>
+          )}
         </div>
       </div>
     </>

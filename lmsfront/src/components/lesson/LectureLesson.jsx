@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { ChevronLeft, ChevronRight, Clock, BookOpen, X, FileText } from 'lucide-react';
 import { parseMarkdown, LESSON_CSS } from '../../utility/markdownParser';
 
-const LectureLesson = ({ lesson, onPrev, onNext, hasPrev, hasNext, blockNext = false }) => {
+const LectureLesson = ({ lesson, onPrev, onNext, hasPrev, hasNext, blockNext = false, isLast = false, onFinish }) => {
   const [lightbox, setLightbox] = useState(null);
   const contentRef = useRef(null);
   const readTime = Math.max(1, Math.ceil((lesson.content || '').split(' ').length / 200));
@@ -77,13 +77,23 @@ const LectureLesson = ({ lesson, onPrev, onNext, hasPrev, hasNext, blockNext = f
           >
             <ChevronLeft size={16} /> Предыдущий
           </button>
-          <button
-            onClick={onNext}
-            disabled={!hasNext || blockNext}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition disabled:opacity-30 disabled:pointer-events-none"
-          >
-            Следующий <ChevronRight size={16} />
-          </button>
+          {isLast ? (
+            <button
+              onClick={onFinish}
+              disabled={blockNext}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-green-600 text-white text-sm font-medium hover:bg-green-600/90 transition disabled:opacity-30 disabled:pointer-events-none"
+            >
+              Завершить курс ✓
+            </button>
+          ) : (
+            <button
+              onClick={onNext}
+              disabled={!hasNext || blockNext}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition disabled:opacity-30 disabled:pointer-events-none"
+            >
+              Следующий <ChevronRight size={16} />
+            </button>
+          )}
         </div>
       </div>
 

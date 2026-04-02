@@ -26,7 +26,7 @@ LESSON_TYPE_FIELDS = {
     LessonType.LECTURE: ["content", "images"],
     LessonType.VIDEO:   ["video_url", "duration"],
     LessonType.PRACTICA: ["content", "attachments", "max_score", "deadline_days"],
-    LessonType.TEST:    ["questions"],
+    LessonType.TEST:    ["questions", "is_visibility"],
 }
 
 LESSON_RESPONSE_MAP = {
@@ -747,6 +747,8 @@ async def _update_lesson(
                     for item in sorted(correct_answers, key=lambda x: x["question_index"])
                 ]
                 await lesson_dal.replace_test_correct_answers(lesson.id, normalized_questions)
+            if "is_visibility" in updated_params and updated_params["is_visibility"] is not None:
+                lesson.is_visibility = updated_params["is_visibility"]
         else:
             raise ValueError(f"Неизвестный тип урока: {lesson.lesson_type}")
 
