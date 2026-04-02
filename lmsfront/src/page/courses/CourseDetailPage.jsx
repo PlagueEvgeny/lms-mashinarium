@@ -79,7 +79,15 @@ return (
               {course.teachers.map((teacher) => (
                 <div key={teacher.user_id} className='flex items-start gap-3'>
                   <div className='w-10 h-10 rounded-full bg-muted flex items-center justify-center flex-shrink-0'>
-                    <span className='text-sm font-medium'>{teacher.first_name[0]}</span>
+                    {teacher.avatar ? (
+                      <img 
+                          src={teacher.avatar} 
+                          alt={teacher.last_name}
+                          className="w-full h-full rounded-full object-cover"
+                          />
+                      ) : (
+                      <span className='text-sm font-medium'>{teacher.first_name[0]}</span>
+                    )}
                   </div>
                   <div>
                     <p className='text-sm font-medium text-primary'>{teacher.last_name} {teacher.first_name} {teacher.patronymic}</p>

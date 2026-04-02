@@ -226,7 +226,7 @@ const DialogMessagePage = () => {
                                 {formatTime(msg.created_at)}
                               </span>
                             )}
-                            <div className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed break-words ${
+                            <div className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed break-words whitespace-pre-wrap ${
                               isOwn
                                 ? 'bg-primary text-primary-foreground rounded-tr-sm'
                                 : 'bg-muted text-foreground rounded-tl-sm'
