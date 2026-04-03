@@ -55,6 +55,7 @@ export const API = {
   user_change_password: `${API_URL}/user/me/change_password`,
 
   list_user: `${API_URL}/user/all`,
+  admin_logs: (lines) => `${API_URL}/admin/logs?${lines}`,
 
   token: `${API_URL}/auth/token`,   
   refresh: `${API_URL}/auth/refresh`, 

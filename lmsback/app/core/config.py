@@ -2,6 +2,8 @@ from envparse import Env
 
 env = Env()
 
+LOG_FILES = "logs/info.log"
+
 BASE_URL = "http://localhost:8000"
 REAL_DATABASE_URL = env.str(
     "REAL_DATABASE_URL",
