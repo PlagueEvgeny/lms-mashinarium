@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import PrivateRoute from './components/PrivateRoute';
+import { PORTAL_ROLES } from './utility/roles';
 import LoginPage from './page/auth/LoginPage';
 import ProfilePage from './page/profile/ProfilePage';
 import AdminPage from './page/admin/AdminPage';
@@ -28,20 +29,24 @@ function App() {
         <Route path="/" element={<PrivateRoute><CoursesPage /></PrivateRoute>} />
         <Route path="/courses/:slug" element={<PrivateRoute><CourseDetailPage /></PrivateRoute>} />
         <Route path="/dashboard" element={<PrivateRoute><DashboardPage /></PrivateRoute>} />
-        <Route path="/teaching" element={<PrivateRoute><TeachingPage /></PrivateRoute>} />
-        <Route path="/teaching/courses/:slug" element={<PrivateRoute><TeachingCoursesDetail /></PrivateRoute>} />
-        <Route path="/teaching/courses/new" element={<PrivateRoute><CreateCoursesPage /></PrivateRoute>} />
-        <Route path="/teaching/courses/:slug/edit" element={<PrivateRoute><EditCoursesPage /></PrivateRoute>} />
-        <Route path="/teaching/courses/:slug/modules/:module_slug/edit" element={<PrivateRoute><EditModulePage /></PrivateRoute>} />
-        <Route path="/teaching/courses/:slug/modules/:module_slug/lessons/new" element={<PrivateRoute><CreateLessonPage /></PrivateRoute>} />
-        <Route path="/teaching/courses/:slug/modules/:module_slug/lessons/:lesson_slug/edit" element={<PrivateRoute><EditLessonPage /></PrivateRoute>} />
-        <Route path="/teaching/courses/:slug/students" element={<PrivateRoute><TeachingCourseStudentsPage /></PrivateRoute>} />
-        <Route path="/teaching/courses/:slug/practica-check" element={<PrivateRoute><TeachingPracticaCheckPage /></PrivateRoute>} />
-        <Route path="/teaching/courses/:slug/test-results" element={<PrivateRoute><TeachingTestResultsPage /></PrivateRoute>} />
+
+        <Route path="/teaching" element={<PrivateRoute allowedRoles={[PORTAL_ROLES.teacher, PORTAL_ROLES.moderator, PORTAL_ROLES.admin]}> <TeachingPage /> </PrivateRoute> } />
+        <Route path="/teaching/courses/:slug" element={<PrivateRoute allowedRoles={[PORTAL_ROLES.teacher, PORTAL_ROLES.moderator, PORTAL_ROLES.admin]}><TeachingCoursesDetail /></PrivateRoute>} />
+        <Route path="/teaching/courses/new" element={<PrivateRoute allowedRoles={[PORTAL_ROLES.teacher, PORTAL_ROLES.moderator, PORTAL_ROLES.admin]}><CreateCoursesPage /></PrivateRoute>} />
+        <Route path="/teaching/courses/:slug/edit" element={<PrivateRoute allowedRoles={[PORTAL_ROLES.teacher, PORTAL_ROLES.moderator, PORTAL_ROLES.admin]}><EditCoursesPage /></PrivateRoute>} />
+        <Route path="/teaching/courses/:slug/modules/:module_slug/edit" element={<PrivateRoute allowedRoles={[PORTAL_ROLES.teacher, PORTAL_ROLES.moderator, PORTAL_ROLES.admin]}><EditModulePage /></PrivateRoute>} />
+        <Route path="/teaching/courses/:slug/modules/:module_slug/lessons/new" element={<PrivateRoute allowedRoles={[PORTAL_ROLES.teacher, PORTAL_ROLES.moderator, PORTAL_ROLES.admin]}><CreateLessonPage /></PrivateRoute>} />
+        <Route path="/teaching/courses/:slug/modules/:module_slug/lessons/:lesson_slug/edit" element={<PrivateRoute allowedRoles={[PORTAL_ROLES.teacher, PORTAL_ROLES.moderator, PORTAL_ROLES.admin]}><EditLessonPage /></PrivateRoute>} />
+        <Route path="/teaching/courses/:slug/students" element={<PrivateRoute allowedRoles={[PORTAL_ROLES.teacher, PORTAL_ROLES.moderator, PORTAL_ROLES.admin]}><TeachingCourseStudentsPage /></PrivateRoute>} />
+        <Route path="/teaching/courses/:slug/practica-check" element={<PrivateRoute allowedRoles={[PORTAL_ROLES.teacher, PORTAL_ROLES.moderator, PORTAL_ROLES.admin]}><TeachingPracticaCheckPage /></PrivateRoute>} />
+        <Route path="/teaching/courses/:slug/test-results" element={<PrivateRoute allowedRoles={[PORTAL_ROLES.teacher, PORTAL_ROLES.moderator, PORTAL_ROLES.admin]}><TeachingTestResultsPage /></PrivateRoute>} />
+
         <Route path="/user/courses/:slug" element={<PrivateRoute><UserCourse /></PrivateRoute>} />
         <Route path="/user/courses/:slug/modules/:module_slug/lessons/:lesson_slug" element={<PrivateRoute><UserLesson /></PrivateRoute>} />
         <Route path="/profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
-        <Route path="/admin" element={<PrivateRoute><AdminPage /></PrivateRoute>} />
+        
+        <Route path="/admin" element={<PrivateRoute allowedRoles={[PORTAL_ROLES.moderator, PORTAL_ROLES.admin]}><AdminPage /></PrivateRoute>} />
+
         <Route path="/login" element={<LoginPage />} />
 
         <Route path="/dialog" element={<PrivateRoute><CourseMessagesPage /></PrivateRoute>} />

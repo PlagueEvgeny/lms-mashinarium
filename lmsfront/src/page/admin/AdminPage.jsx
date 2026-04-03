@@ -4,15 +4,22 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom';
 import toast, { Toaster } from 'react-hot-toast';
 import { useAuthUser } from '../../hooks/useAuthUser';
+import { useAdmin } from '../../hooks/useAdmin';
 import Sidebar from '../../components/Sidebar';
 import { Users } from 'lucide-react';
 
 const AdminPage = () => {
   const { user } = useAuthUser();
+  const { fetchListUser } = useAdmin();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    fetchListUser()
+      .then(user)
+      .catch(console.error);
+  }, []);
 
   return (
     <div className="min-h-screen bg-background flex">

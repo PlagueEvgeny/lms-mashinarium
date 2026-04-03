@@ -30,8 +30,13 @@ export const roleHelpers = {
   },
 
   // Проверка на несколько ролей
-  hasAnyRole: (userRole, allowedRoles) => {
-    return allowedRoles.includes(userRole);
+  hasAnyRole: (userRoles, allowedRoles) => {
+    if (!userRoles) return false;
+
+    // если вдруг строка — приводим к массиву
+    const rolesArray = Array.isArray(userRoles) ? userRoles : [userRoles];
+
+    return rolesArray.some(role => allowedRoles.includes(role));
   },
 
   // Получение приоритета роли (для сравнения)
