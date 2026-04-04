@@ -1,6 +1,6 @@
 export const PORTAL_ROLES = {
   user: "ROLE_PORTAL_USER",
-  teacher: "ROLE_PORTAL_TEACHER", 
+  teacher: "ROLE_PORTAL_TEACHER",
   moderator: "ROLE_PORTAL_MODERATOR",
   admin: "ROLE_PORTAL_ADMIN"
 };
@@ -24,8 +24,8 @@ export const roleHelpers = {
 
   // Проверка, является ли пользователь учителем или выше
   isTeacherOrHigher: (userRole) => {
-    return userRole === PORTAL_ROLES.teacher || 
-           userRole === PORTAL_ROLES.moderator || 
+    return userRole === PORTAL_ROLES.teacher ||
+           userRole === PORTAL_ROLES.moderator ||
            userRole === PORTAL_ROLES.admin;
   },
 

@@ -42,8 +42,14 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     hashed_password = Column(String, nullable=False)
 
-    teacher_courses = relationship("Course", secondary="teacher_courses", back_populates='teachers')
-    student_courses = relationship("Course", secondary="student_courses", back_populates='students')
+    teacher_courses = relationship("Course", 
+                                   secondary="teacher_courses", 
+                                   back_populates='teachers',
+                                   lazy="selectin")
+    student_courses = relationship("Course", 
+                                   secondary="student_courses", 
+                                   back_populates='students',
+                                   lazy="selectin")
     
     dialogs = relationship("Dialog", secondary="dialog_members", back_populates="members")
     messages = relationship("Message", back_populates="sender", cascade="all, delete-orphan")

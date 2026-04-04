@@ -54,7 +54,7 @@ export const API = {
   user_upload_image: `${API_URL}/user/upload-image/`,
   user_change_password: `${API_URL}/user/me/change_password`,
 
-  list_user: `${API_URL}/user/all`,
+  list_user: `${API_URL}/admin/user/all`,
   admin_logs: (lines) => `${API_URL}/admin/logs?${lines}`,
 
   token: `${API_URL}/auth/token`,   

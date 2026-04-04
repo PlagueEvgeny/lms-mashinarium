@@ -4,6 +4,10 @@ import { PORTAL_ROLES } from './utility/roles';
 import LoginPage from './page/auth/LoginPage';
 import ProfilePage from './page/profile/ProfilePage';
 import AdminPage from './page/admin/AdminPage';
+import UserAdminPage from './page/admin/UserAdminPage';
+import CourseAdminPage from './page/admin/CourseAdminPage';
+import SettingAdminPage from './page/admin/SettingAdminPage';
+import LogsAdminPage from './page/admin/LogsAdminPage';
 import CoursesPage from './page/courses/CoursesPage';
 import CourseDetailPage from './page/courses/CourseDetailPage';
 import DashboardPage from './page/user_courses/DashboardPage';
@@ -46,6 +50,10 @@ function App() {
         <Route path="/profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
         
         <Route path="/admin" element={<PrivateRoute allowedRoles={[PORTAL_ROLES.moderator, PORTAL_ROLES.admin]}><AdminPage /></PrivateRoute>} />
+        <Route path="/admin/users" element={<PrivateRoute allowedRoles={[PORTAL_ROLES.moderator, PORTAL_ROLES.admin]}><UserAdminPage /></PrivateRoute>} />
+        <Route path="/admin/courses" element={<PrivateRoute allowedRoles={[PORTAL_ROLES.moderator, PORTAL_ROLES.admin]}><CourseAdminPage /></PrivateRoute>} />
+        <Route path="/admin/logs" element={<PrivateRoute allowedRoles={[PORTAL_ROLES.moderator, PORTAL_ROLES.admin]}><LogsAdminPage /></PrivateRoute>} />
+        <Route path="/admin/settings" element={<PrivateRoute allowedRoles={[PORTAL_ROLES.moderator, PORTAL_ROLES.admin]}><SettingAdminPage /></PrivateRoute>} />
 
         <Route path="/login" element={<LoginPage />} />
 

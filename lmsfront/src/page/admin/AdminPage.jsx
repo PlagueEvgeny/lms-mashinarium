@@ -12,12 +12,12 @@ const AdminPage = () => {
   const { user } = useAuthUser();
   const { fetchListUser, fetchListCourse, fetchLogs } = useAdmin();
 
-  const [users, setUsers]     = useState([]);
+  const [users, setUsers] = useState([]);
   const [courses, setCourses] = useState([]);
-  const [logs, setLogs]       = useState([]);
+  const [logs, setLogs] = useState([]);
   const [logsLoading, setLogsLoading] = useState(false);
 
-  const usersCount  = users?.length  || 0;
+  const usersCount = users?.length  || 0;
   const courseCount = courses?.length || 0;
   const errorsCount = logs.filter(isError).length;
 
@@ -33,18 +33,17 @@ const AdminPage = () => {
     }
   }, [fetchLogs]);
 
-  useEffect(() => { fetchListUser().then(setUsers).catch(console.error); },     []);
+  useEffect(() => { fetchListUser().then(setUsers).catch(console.error); }, []);
   useEffect(() => { fetchListCourse().then(setCourses).catch(console.error); }, []);
-  useEffect(() => { loadLogs(); },                                               []);
+  useEffect(() => { loadLogs(); }, []);
 
   return (
     <div className="min-h-screen bg-background flex">
       <Sidebar />
       <Toaster position="top-center" />
-      <main className="flex-1 overflow-auto">
+      <main className="md:ml-64 flex-1 overflow-auto">
         <div className="p-8">
 
-          {/* Header */}
           <div className="mb-8 flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-foreground">Обзор системы</h1>
@@ -60,7 +59,6 @@ const AdminPage = () => {
             </button>
           </div>
 
-          {/* Stats */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             {[
               { label: 'Всего пользователей', value: usersCount,  color: 'bg-blue-500',  icon: Users },
@@ -84,7 +82,6 @@ const AdminPage = () => {
             ))}
           </div>
 
-          {/* Log cards */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <RecentActivityCard logs={logs} />
             <RecentErrorsCard   logs={logs} />

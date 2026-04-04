@@ -160,7 +160,7 @@ class PracticaResponse(LessonBaseResponse):
 class TestResponse(LessonBaseResponse):
     lesson_type: Literal[LessonType.TEST] = LessonType.TEST
     questions: List[TestQuestionTeacher]
-    is_visibility: bool
+    is_visibility: Optional[bool] = None 
 
 
 class DeleteResponse(TunedModel):
@@ -176,7 +176,7 @@ LessonResponse = Annotated[
 class TestStudentResponse(LessonBaseResponse):
     lesson_type: Literal[LessonType.TEST] = LessonType.TEST
     questions: List[TestQuestionStudent]
-    is_visibility: bool
+    is_visibility: Optional[bool] = None
 
 
 LessonStudentResponse = Annotated[

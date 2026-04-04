@@ -7,14 +7,26 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from api.v1.schemas.admin_schema import ShowUserAdmin
 from api.v1.routes.actions.auth_actions import get_current_user_from_token
-from api.v1.routes.actions.user_actions import check_user_permissions_admin
+from api.v1.routes.actions.user_actions import check_user_permissions_admin, _get_user_all
+
 from core.config import LOG_FILES
 from db.models.user import User 
 from db.session import get_db
   
 
 admin_router = APIRouter()
+
+@admin_router.get("/user/all", response_model=List[ShowUserAdmin])
+async def get_user_all(session: AsyncSession = Depends(get_db),
+                       current_user: User = Depends(get_current_user_from_token),
+                       ):
+    logger.info("Получение пользоватей")
+    if not check_user_permissions_admin(current_user=current_user):
+        raise HTTPException(status_code=403, detail="Forbidden.")
+    users = await _get_user_all(session)
+    return users
 
 @admin_router.get("/logs/all")
 async def get_logs_all(
