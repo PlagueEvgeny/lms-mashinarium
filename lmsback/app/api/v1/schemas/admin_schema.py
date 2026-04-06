@@ -45,3 +45,9 @@ class ShowUserAdmin(TunedModel):
 
     student_courses: List[ListCourse] = []
     teacher_courses: List[ListCourse] = []
+
+class DeleteUserResponse(BaseModel):
+    deleted_user_id: uuid.UUID
+
+class UpdatedUserResponse(BaseModel):
+    updated_user_id: uuid.UUID

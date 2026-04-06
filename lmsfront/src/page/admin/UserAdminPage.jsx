@@ -4,19 +4,37 @@ import { BookOpen, Users, Clock, AlertCircle, RefreshCw, Search, Eye, Edit3, Tra
 import { useAuthUser } from '../../hooks/useAuthUser';
 import { useAdmin } from '../../hooks/useAdmin';
 import Sidebar from '../../components/Sidebar';
+import { PORTAL_ROLES } from '../../utility/roles';
 
-const RoleBadge = ({ role }) => {
-  const map = {
-    ROLE_PORTAL_USER: 'bg-blue-500/10 text-blue-600 dark:text-blue-400',
-    ROLE_PORTAL_TEACHER: 'bg-purple-500/10 text-purple-600 dark:text-purple-400',
-    ROLE_PORTAL_MODERATOR:   'bg-primary/10 text-primary',
-    ROLE_PORTAL_ADMIN:   'bg-primary/10 text-primary',
-  };
-  const labels = { ROLE_PORTAL_USER: 'Студент', ROLE_PORTAL_TEACHER: 'Преподаватель', ROLE_PORTAL_MODERATOR: "Модератор", ROLE_PORTAL_ADMIN: 'Админ' };
+const ROLE_OPTIONS = [
+  { value: 'all',                        label: 'Все роли' },
+  { value: PORTAL_ROLES.user,            label: 'Студенты' },
+  { value: PORTAL_ROLES.teacher,         label: 'Преподаватели' },
+  { value: PORTAL_ROLES.moderator,       label: 'Модераторы' },
+  { value: PORTAL_ROLES.admin,           label: 'Администраторы' },
+];
+
+const ROLE_STYLE = {
+  [PORTAL_ROLES.user]:      'bg-blue-500/10 text-blue-600 dark:text-blue-400',
+  [PORTAL_ROLES.teacher]:   'bg-purple-500/10 text-purple-600 dark:text-purple-400',
+  [PORTAL_ROLES.moderator]: 'bg-primary/10 text-primary',
+  [PORTAL_ROLES.admin]:     'bg-primary/10 text-primary',
+};
+
+const ROLE_LABEL = {
+  [PORTAL_ROLES.user]:      'Студент',
+  [PORTAL_ROLES.teacher]:   'Преподаватель',
+  [PORTAL_ROLES.moderator]: 'Модератор',
+  [PORTAL_ROLES.admin]:     'Админ',
+};
+
+const RoleBadge = ({ roles }) => {
+  const priority = [PORTAL_ROLES.admin, PORTAL_ROLES.moderator, PORTAL_ROLES.teacher, PORTAL_ROLES.user];
+  const role = priority.find(r => Array.isArray(roles) && roles.includes(r)) || roles?.[0];
   return (
-    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${map[role] || ''}`}>
-      {labels[role] || role}
-    </span>
+  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${ROLE_STYLE[role] || ''}`}>
+    {ROLE_LABEL[role] || role}
+  </span>
   );
 };
 
@@ -26,20 +44,55 @@ const FormattedDate = ({ rawDate }) => {
   return formattedDate
 }
 
+const SELECT_STYLE = {
+  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
+  backgroundPosition: 'right 0.75rem center',
+  backgroundSize: '1rem',
+};
+
 const UserAdminPage = () => {
   const { user } = useAuthUser();
-  const { fetchListUser, fetchListCourse, fetchLogs } = useAdmin();
+  const { fetchListUser, deleteUser, restoreUser, fetchListCourse, fetchLogs } = useAdmin();
   const [ search, setSearch ] = useState('');
+  const [ roleFilter, setRoleFilter ] = useState('all')
   const [ users, setUsers ] = useState([]);
   
-  const filtered = useMemo(() => users.filter(u => {
-    const matchSearch = u.last_name.toLowerCase().includes(search.toLowerCase()) ||
-                        u.first_name.toLowerCase().includes(search.toLowerCase()) ||
-                        u.email.toLowerCase().includes(search.toLowerCase());
-    return matchSearch;
-  }), [search]);
-  
-  useEffect(() => { fetchListUser().then(setUsers).catch(console.error); }, []);
+    const loadUsers = useCallback(async () => {
+    try {
+      const data = await fetchListUser();
+      setUsers(data);
+    } catch (e) {
+      console.error(e);
+    }
+  }, [fetchListUser]);
+ 
+  useEffect(() => { loadUsers(); }, []);
+
+  const filtered = useMemo(() => {
+    const query = search.toLowerCase();
+    return users.filter(u => {
+      if (u.user_id === user?.user_id) return false;
+      const matchSearch = u.last_name.toLowerCase().includes(query) ||
+                          u.first_name.toLowerCase().includes(query)  ||
+                          u.email.toLowerCase().includes(query);
+      const matchRole = roleFilter === 'all' || (Array.isArray(u.roles) && u.roles.includes(roleFilter));
+      return matchSearch && matchRole;
+    }); 
+  },  [users, search, roleFilter, user?.user_id]);
+
+  const handleDeleteUser = async (user_id) => {
+    if (confirm("Деактивировать этого пользователя")) {
+      await deleteUser(user_id);
+      await loadUsers();
+    }
+  };
+
+  const handleRestoreUser = async (user_id) => {
+    if (confirm("Активировать этого пользователя")) {
+      await restoreUser(user_id);
+      await loadUsers();
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -66,20 +119,16 @@ const UserAdminPage = () => {
                          className="w-full pl-9 pr-4 py-2.5 bg-muted border border-border rounded-xl text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
                   />
                 </div>
-                <select
-                      className="px-4 py-2.5 pr-10 bg-muted border border-border rounded-xl text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition appearance-none bg-no-repeat"
-                      style={{
-                        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
-                        backgroundPosition: 'right 0.75rem center',
-                        backgroundSize: '1rem',
-                      }}
+                  <select
+                    value={roleFilter}
+                    onChange={e => setRoleFilter(e.target.value)}
+                    className="px-4 py-2.5 pr-10 bg-muted border border-border rounded-xl text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition appearance-none bg-no-repeat"
+                    style={SELECT_STYLE}
                   >
-                  <option value="all">Все роли</option>
-                  <option value="ROLE_PORTAL_USER">Студенты</option>
-                  <option value="ROLE_PORTAL_TEACHER">Преподаватели</option>
-                  <option value="ROLE_PORTAL_MODERATOR">Модераторы</option>
-                  <option value="ROLE_PORTAL_ADMIN">Администраторы</option>
-                </select>              
+                    {ROLE_OPTIONS.map(({ value, label }) => (
+                      <option key={value} value={value}>{label}</option>
+                    ))}
+                  </select>
              </div> 
             </div>
           </div>
@@ -98,7 +147,7 @@ const UserAdminPage = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((user_filter, index) => (
+                  {filtered.map((user_filter) => (
                     <tr key={user_filter.user_id} className="border-b border-border last:border-0 hover:bg-muted/20 transition ">
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
@@ -111,7 +160,7 @@ const UserAdminPage = () => {
                           </div>
                         </div>
                       </td>
-                      <td className="text-center px-5 py-3.5"><RoleBadge role={user_filter.roles} /> </td>
+                      <td className="text-center px-5 py-3.5"><RoleBadge roles={user_filter.roles} /> </td>
                       <td className="text-center px-5 py-3.5">{user_filter.student_courses?.length || 0}</td>
                       <td className="text-center px-5 py-3.5">{user_filter.teacher_courses?.length || 0}</td>
                       <td className="text-center text-xs px-2 py-0.5 rounded-full font-medium">
@@ -132,9 +181,16 @@ const UserAdminPage = () => {
                           <button className="p-1.5 rounded-lg hover:bg-muted/50 text-muted-foreground hover:text-foreground transition">
                             <Edit3 size={14} />
                           </button>
-                          <button className="p-1.5 rounded-lg hover:bg-red-500/10 text-muted-foreground hover:text-red-500 transition">
-                            <Trash2 size={14} />
-                          </button>                        
+                            {user_filter.is_active ?
+                            <button onClick={() => handleDeleteUser(user_filter.user_id)}
+                                    className="p-1.5 rounded-lg hover:bg-red-500/10 text-muted-foreground hover:text-red-500 transition">
+                              <Trash2 size={14} /> 
+                            </button> :
+                            <button onClick={() => handleRestoreUser(user_filter.user_id)}
+                                    className="p-1.5 rounded-lg hover:bg-primary-500/10 text-muted-foreground hover:text-primary-500 transition">
+                              <RefreshCw size={14} />
+                            </button>
+                            }
                         </div>
                       </td>
                     </tr>

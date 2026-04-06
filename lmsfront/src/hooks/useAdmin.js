@@ -23,6 +23,38 @@ export const useAdmin = () => {
       throw err;
     }
   }, []);
+
+  const deleteUser = async(user_id) => {
+    const response = await authFetch(API.user_delete(user_id), {
+      method:'DELETE',
+      headers: {
+        Authorization: `Bearer ${getToken()}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || 'Ошибка удаление');
+    }
+    toast.success('Пользователь деактивирован');
+    return await response.json();
+  }
+
+  const restoreUser = async(user_id) => {
+    const response = await authFetch(API.user_restore(user_id), {
+      method:'PATCH',
+      headers: {
+        Authorization: `Bearer ${getToken()}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || 'Ошибка восстановления');
+    }
+    toast.success('Пользователь активирован');
+    return await response.json();
+  }
   
   const fetchListCourse = useCallback(async () => {
     try {
@@ -57,6 +89,8 @@ export const useAdmin = () => {
 
   return {
     fetchListUser,
+    restoreUser,
+    deleteUser,
     fetchListCourse,
     fetchLogs,
   };

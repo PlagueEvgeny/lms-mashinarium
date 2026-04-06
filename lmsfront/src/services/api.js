@@ -55,6 +55,8 @@ export const API = {
   user_change_password: `${API_URL}/user/me/change_password`,
 
   list_user: `${API_URL}/admin/user/all`,
+  user_delete: (admin_user_id) => `${API_URL}/admin/user/delete?user_id=${admin_user_id}`, 
+  user_restore: (admin_user_id) => `${API_URL}/admin/user/restore?user_id=${admin_user_id}`, 
   admin_logs: (lines) => `${API_URL}/admin/logs?${lines}`,
 
   token: `${API_URL}/auth/token`,   
