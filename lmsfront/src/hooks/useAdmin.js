@@ -58,7 +58,7 @@ export const useAdmin = () => {
   
   const fetchListCourse = useCallback(async () => {
     try {
-      const response = await authFetch(API.list_course)
+      const response = await authFetch(API.list_admin_course)
       if (!response.ok){
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.detail || "Ошибка загрузки курсов");

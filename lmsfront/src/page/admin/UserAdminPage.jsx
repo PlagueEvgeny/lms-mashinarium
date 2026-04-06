@@ -7,25 +7,25 @@ import Sidebar from '../../components/Sidebar';
 import { PORTAL_ROLES } from '../../utility/roles';
 
 const ROLE_OPTIONS = [
-  { value: 'all',                        label: 'Все роли' },
-  { value: PORTAL_ROLES.user,            label: 'Студенты' },
-  { value: PORTAL_ROLES.teacher,         label: 'Преподаватели' },
-  { value: PORTAL_ROLES.moderator,       label: 'Модераторы' },
-  { value: PORTAL_ROLES.admin,           label: 'Администраторы' },
+  { value: 'all', label: 'Все роли' },
+  { value: PORTAL_ROLES.user, label: 'Студенты' },
+  { value: PORTAL_ROLES.teacher, label: 'Преподаватели' },
+  { value: PORTAL_ROLES.moderator, label: 'Модераторы' },
+  { value: PORTAL_ROLES.admin, label: 'Администраторы' },
 ];
 
 const ROLE_STYLE = {
-  [PORTAL_ROLES.user]:      'bg-blue-500/10 text-blue-600 dark:text-blue-400',
-  [PORTAL_ROLES.teacher]:   'bg-purple-500/10 text-purple-600 dark:text-purple-400',
+  [PORTAL_ROLES.user]: 'bg-blue-500/10 text-blue-600 dark:text-blue-400',
+  [PORTAL_ROLES.teacher]: 'bg-purple-500/10 text-purple-600 dark:text-purple-400',
   [PORTAL_ROLES.moderator]: 'bg-primary/10 text-primary',
-  [PORTAL_ROLES.admin]:     'bg-primary/10 text-primary',
+  [PORTAL_ROLES.admin]: 'bg-primary/10 text-primary',
 };
 
 const ROLE_LABEL = {
-  [PORTAL_ROLES.user]:      'Студент',
-  [PORTAL_ROLES.teacher]:   'Преподаватель',
+  [PORTAL_ROLES.user]: 'Студент',
+  [PORTAL_ROLES.teacher]: 'Преподаватель',
   [PORTAL_ROLES.moderator]: 'Модератор',
-  [PORTAL_ROLES.admin]:     'Админ',
+  [PORTAL_ROLES.admin]: 'Админ',
 };
 
 const RoleBadge = ({ roles }) => {
@@ -52,7 +52,7 @@ const SELECT_STYLE = {
 
 const UserAdminPage = () => {
   const { user } = useAuthUser();
-  const { fetchListUser, deleteUser, restoreUser, fetchListCourse, fetchLogs } = useAdmin();
+  const { fetchListUser, deleteUser, restoreUser } = useAdmin();
   const [ search, setSearch ] = useState('');
   const [ roleFilter, setRoleFilter ] = useState('all')
   const [ users, setUsers ] = useState([]);
@@ -197,6 +197,9 @@ const UserAdminPage = () => {
                   ))}
                 </tbody>
               </table>
+            </div>
+            <div className="px-5 py-3 border-t border-border text-xs text-muted-foreground">
+              Показано {filtered.length} из {Math.max(0, users.length - 1)}
             </div>
           </div>
         </div>

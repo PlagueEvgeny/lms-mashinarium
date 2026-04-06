@@ -1,19 +1,25 @@
-from datetime import date
+from decimal import Decimal
 from typing import Union
 from typing import Optional
-from typing import List 
-
+from typing import List
 from uuid import UUID
-
-from decimal import Decimal
-
+from fastapi import HTTPException
 from sqlalchemy import and_
 from sqlalchemy import select
 from sqlalchemy import update
-from sqlalchemy.orm import selectinload
+from sqlalchemy import func
+from sqlalchemy import case
+from sqlalchemy import desc
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import selectin_polymorphic
+from services.category_service import CategoryDAL
+from services.user_service import UserDAL
+from db.models.course import Course, Status
 from db.models.user import User
-from db.models.course import Course
+from db.models.category import Category
+from db.models.module import Module
+from db.models.lesson import LessonBase, Lecture, VideoLesson, Practica, TestLesson
 
 class AdminDAL:
     def __init__(self, db_session: AsyncSession):
@@ -56,3 +62,32 @@ class AdminDAL:
         restored_user_id_row = result.fetchone()
         if restored_user_id_row is not None:
             return restored_user_id_row[0]
+
+    async def get_course_all(self) -> List[Course]:
+        status_order = case(
+            {
+                Status.PUBLISHED.value: 1,
+                Status.DRAFT.value: 2,
+                Status.TRASH.value: 3
+            },
+            value=Course.status[1]
+        )
+        
+        modules_count = select(func.count(Module.id)).\
+                        where(Module.course_id == Course.id).\
+                        scalar_subquery()
+        query = select(Course).\
+                options(selectinload(Course.categories)).\
+                options(
+                    selectinload(Course.modules)
+                    .selectinload(Module.lessons.and_(LessonBase.is_active == True))
+                    .options(selectin_polymorphic(LessonBase, [Lecture, VideoLesson, Practica, TestLesson]))
+                ).\
+                options(selectinload(Course.teachers)).\
+                options(selectinload(Course.students)).\
+                order_by(status_order, desc(modules_count), desc(Course.updated_at))
+
+        result = await self.db_session.execute(query)
+        course = result.scalars().all()
+        courses = list(course)
+        return courses

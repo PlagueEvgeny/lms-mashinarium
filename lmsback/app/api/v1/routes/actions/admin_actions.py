@@ -4,6 +4,7 @@ from loguru import logger
 from fastapi import HTTPException
 
 from db.models.user import PortalRole, User
+from api.v1.schemas.course_schema import ListAdminCourse
 from services.admin_service import AdminDAL
 
 async def _get_user_by_id(user_id, session) -> Union[User, None]:
@@ -34,3 +35,10 @@ async def _restore_user(user_id, session) -> Union[UUID, None]:
         admin_dal = AdminDAL(session)
         restored_user_id = await admin_dal.restore_user(user_id=user_id)
         return restored_user_id
+
+async def _get_course_all(session) -> List[ListAdminCourse]:
+    logger.info("Получение курсов преподавателя")
+    async with session.begin():
+        admin_dal = AdminDAL(session)
+        course = await admin_dal.get_course_all()
+        return [ListAdminCourse.model_validate(c) for c in list(course)]
