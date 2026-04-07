@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { useParams, useNavigate } from 'react-router-dom';
 import toast, { Toaster } from 'react-hot-toast';
 import Header from '../../components/Header';
@@ -53,6 +54,9 @@ const UserCourse = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>{course.name}</title>
+      </Helmet>
       <Header />
       <Toaster position="top-center" />
       <main className="max-w-7xl mx-auto px-4 py-8">

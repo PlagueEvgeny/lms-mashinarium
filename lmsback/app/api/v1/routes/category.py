@@ -28,14 +28,12 @@ async def create_category(body: CategoryCreate,
         logger.error(f"У пользователя {current_user.email} не хватает прав")
         raise HTTPException(status_code=403, detail="Forbiden.")
     
-    logger.info("Категория создана")
     return await _create_new_category(body, session)
 
 @category_router.get("/{id}", response_model=ShowCategory)
 async def get_category_by_id(id: int, 
                          session: AsyncSession = Depends(get_db),
 ) -> Union[Category, None]:
-    logger.info("Получение категории по id")
     category = await _get_category_by_id(id, session)
     if category is None:
         logger.error(f"Категория {id} не найден.")
@@ -44,7 +42,6 @@ async def get_category_by_id(id: int,
 
 @category_router.get("/all/", response_model=List[ShowCategory])
 async def get_user_all(session: AsyncSession = Depends(get_db)):
-    logger.info("Получение категорий")
     category = await _get_categories_all(session)
     return category
 

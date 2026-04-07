@@ -30,7 +30,6 @@ async def _get_course_progress(
         user_id: UUID,
         session: AsyncSession,
 ) -> list[int]:
-    logger.info(f"Получение прогресса по курсу {course_slug} для пользователя {user_id}")
     async with session.begin():
         course_dal   = CourseDAL(session)
         lesson_dal   = LessonDAL(session)

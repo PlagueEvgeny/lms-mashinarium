@@ -9,7 +9,6 @@ from db.models.user import PortalRole, User
 from utils.hashing import Hasher
 
 async def _get_user_by_id(user_id, session) -> Union[User, None]:
-    logger.info(f"Получение пользователя {user_id} по id")
     async with session.begin():
         user_dal = UserDAL(session)
         user = await user_dal.get_user_by_id(
@@ -19,7 +18,6 @@ async def _get_user_by_id(user_id, session) -> Union[User, None]:
             return user
 
 async def _get_user_all(session) -> List[User]:
-    logger.info("Получение пользователей")
     async with session.begin():
         user_dal = UserDAL(session)
         user = await user_dal.get_user_all()
@@ -27,7 +25,6 @@ async def _get_user_all(session) -> List[User]:
 
 
 async def _get_user_by_email(email, session) -> Union[User, None]:
-    logger.info(f"Получение пользователя {email} по email")
     async with session.begin():
         user_dal = UserDAL(session)
         user = await user_dal.get_user_by_email(
@@ -37,6 +34,7 @@ async def _get_user_by_email(email, session) -> Union[User, None]:
             return user
 
 async def _create_new_user(body: UserCreate, session) -> ShowUser:
+    logger.info(f"Регистрация пользователя {body.email}")
     async with session.begin():
         user_dal = UserDAL(session)
         user = await user_dal.create_user(
@@ -71,12 +69,14 @@ async def _create_new_user(body: UserCreate, session) -> ShowUser:
         )
 
 async def _delete_user(user_id, session) -> Union[UUID, None]:
+    logger.info(f"Удаление пользователя {user_id}")
     async with session.begin():
         user_dal = UserDAL(session)
         deleted_user_id = await user_dal.delete_user(user_id=user_id)
         return deleted_user_id
 
 async def _update_user(updated_user_params: dict, user_id: UUID, session) -> Union[UUID, None]:
+    logger.info(f"Удаление пользователя {user_id}")
     async with session.begin():
         user_dal = UserDAL(session)
         updated_user_id = await user_dal.update_user(
@@ -170,8 +170,6 @@ def check_user_permissions(target_user: User, current_user: User) -> bool:
 
 
 def check_user_permissions_teahers(current_user: User) -> bool:
-    logger.info(f"Проверка пользовательских ({current_user.last_name} {current_user.first_name}) разрешений")
-    # check admin role
     if not {
         PortalRole.ROLE_PORTAL_ADMIN,
         PortalRole.ROLE_PORTAL_TEACHER,
@@ -180,8 +178,6 @@ def check_user_permissions_teahers(current_user: User) -> bool:
     return True
 
 def check_user_permissions_moderator(current_user: User) -> bool:
-    logger.info(f"Проверка пользовательских ({current_user.last_name} {current_user.first_name}) разрешений")
-    # check admin role
     if not {
         PortalRole.ROLE_PORTAL_ADMIN,
         PortalRole.ROLE_PORTAL_MODERATOR,
@@ -190,8 +186,6 @@ def check_user_permissions_moderator(current_user: User) -> bool:
     return True
 
 def check_user_permissions_admin(current_user: User) -> bool:
-    logger.info(f"Проверка пользовательских ({current_user.last_name} {current_user.first_name}) разрешений")
-    # check admin role
     if not {
         PortalRole.ROLE_PORTAL_ADMIN
     }.intersection(current_user.roles):

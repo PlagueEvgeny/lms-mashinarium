@@ -1,18 +1,35 @@
-import { useState, useCallback } from 'react';
+import { useState, useEffect,useCallback } from 'react';
 import { MessageCircle, BookOpen, GraduationCap, Settings, LogOut, ShieldCheck } from 'lucide-react';
 import { useAuthUser } from '../hooks/useAuthUser';
 import { useNavigate } from 'react-router-dom';
-import logo from '../assets/logo-gor.png';
+import { useAdmin } from '../hooks/useAdmin';
 import avatar from '../assets/default-avatar.jpg';
 import { PORTAL_ROLES, roleHelpers, RoleGuard, useRole } from '../utility/roles'; 
 
 const Header = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuthUser();
+  const { fetchSettings } = useAdmin();
+  const [settings, setSettings] = useState(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const userRole = user?.roles || PORTAL_ROLES.user;
   const role = useRole(userRole);
 
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const data = await fetchSettings();
+        setSettings(data || {}); // 👈 ВАЖНО
+        console.log(data)
+      } catch (error) {
+        console.error(error);
+        setSettings({});
+      }
+    };
+
+    loadSettings();
+  }, []);
+  
   const handleLogout = useCallback(async () => {
     await logout();
   }, [logout]);
@@ -22,7 +39,7 @@ const Header = () => {
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <img
-            src={logo}
+            src={settings?.logo_horizontal_url}
             alt="Mashinarium IT-School"
             className="h-10 cursor-pointer hover:scale-105 transition-transform"
             onClick={() => navigate('/')}

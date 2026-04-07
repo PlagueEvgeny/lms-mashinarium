@@ -1,4 +1,5 @@
 import { API } from '../../services/api';
+import { Helmet } from 'react-helmet-async';
 import { authFetch } from '../../services/authFetch';
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -118,6 +119,9 @@ const DialogMessagePage = () => {
 
   return (
     <div className="h-screen bg-background flex flex-col overflow-hidden">
+      <Helmet>
+        <title>{dialog.name}</title>
+      </Helmet>
       <Header />
       <Toaster position="top-center" />
 

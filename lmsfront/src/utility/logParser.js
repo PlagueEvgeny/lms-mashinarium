@@ -25,11 +25,17 @@ export const parseLogLine = (raw) => {
     const source    = parts[3]?.trim() || '';
 
     const date = new Date(timestamp);
-    const time = isNaN(date.getTime())
-      ? timestamp
-      : date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const valid = !isNaN(date.getTime());
 
-    return { timestamp, time, level, message, source, raw };
+    const time = valid
+      ? date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+      : timestamp;
+
+    const dateStr = valid
+      ? date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' })
+      : '';
+
+    return { timestamp, time, date: dateStr, level, message, source, raw };
   } catch {
     return { timestamp: '', time: '', level: 'INFO', message: raw.trim(), source: '', raw };
   }

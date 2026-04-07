@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { useNavigate, useParams } from 'react-router-dom';
 import toast, { Toaster } from 'react-hot-toast';
 import { ChevronLeft, ChevronRight, ClipboardCheck, FileText, Search, Users } from 'lucide-react';
@@ -170,6 +171,9 @@ const TeachingPracticaCheckPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>Проверка практик</title>
+      </Helmet>
       <Header />
       <Toaster position="top-center" />
       <main className="max-w-7xl mx-auto px-4 py-10">

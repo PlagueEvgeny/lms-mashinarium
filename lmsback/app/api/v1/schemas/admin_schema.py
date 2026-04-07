@@ -1,10 +1,9 @@
 import uuid
 from pydantic import BaseModel
 from pydantic import EmailStr
-from pydantic import validator
 
-from fastapi import HTTPException
 
+from datetime import datetime
 from typing import Optional
 from typing import List
 
@@ -14,9 +13,6 @@ from datetime import date
 
 from api.v1.schemas.base_schema import TunedModel
 
-from db.models.user import PortalRole
-from utils.letter_pattern import LETTER_MATCH_PATTERN
-from utils.letter_pattern import PHONE_MATCH_PATTERN
 
 class ListCourse(TunedModel):
     id: int
@@ -51,3 +47,34 @@ class DeleteUserResponse(BaseModel):
 
 class UpdatedUserResponse(BaseModel):
     updated_user_id: uuid.UUID
+
+class DeleteCourseResponse(BaseModel):
+    deleted_course_id: int
+
+class UpdatedCourseResponse(BaseModel):
+    updated_course_id: int
+
+class PlatformSettingsResponse(TunedModel):
+    id: int
+    site_name: Optional[str] = None
+    site_description: Optional[str] = None
+    support_email: Optional[str] = None
+    logo_url: Optional[str] = None
+    logo_horizontal_url: Optional[str] = None
+    smtp_host: Optional[str] = None
+    smtp_port: Optional[int] = None
+    smtp_user: Optional[str] = None
+    smtp_from: Optional[str] = None
+    # smtp_password намеренно не возвращаем
+
+class UpdateSettingsRequest(TunedModel):
+    site_name: Optional[str] = None
+    site_description: Optional[str] = None
+    support_email: Optional[str] = None
+    logo_url: Optional[str] = None
+    logo_horizontal_url: Optional[str] = None
+    smtp_host: Optional[str] = None
+    smtp_port: Optional[int] = None
+    smtp_user: Optional[str] = None
+    smtp_password: Optional[str] = None
+    smtp_from: Optional[str] = None

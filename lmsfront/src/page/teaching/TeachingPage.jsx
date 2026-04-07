@@ -1,4 +1,5 @@
 import { API } from '../../services/api';
+import { Helmet } from 'react-helmet-async';
 import { authFetch } from '../../services/authFetch';
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom';
@@ -34,6 +35,9 @@ const TeachingPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>Управление курсами и материалами</title>
+      </Helmet>
       <Header />
       <Toaster position="top-center" />
       <main className="max-w-7xl mx-auto px-4 py-10">

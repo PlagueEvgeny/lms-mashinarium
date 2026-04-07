@@ -29,6 +29,7 @@ async def _create_new_module(body: ModuleCreate, session) -> ShowModule:
         )
 
 async def _update_module(updated_module_params: dict, id: int, session) -> Union[int, None]:
+    logger.info("Обновление модуля")
     async with session.begin():
         module_dal = ModuleDAL(session)
         updated_module_id = await module_dal.update_module(
@@ -37,7 +38,6 @@ async def _update_module(updated_module_params: dict, id: int, session) -> Union
         return updated_module_id
 
 async def _get_module_by_id(id, session) -> Union[Module, None]:
-    logger.info(f"Получение модуля {id} по id")
     async with session.begin():
         module_dal = ModuleDAL(session)
         module = await module_dal.get_module_by_id(id=id)
@@ -47,7 +47,6 @@ async def _get_module_by_id(id, session) -> Union[Module, None]:
             return ShowModule.model_validate(module)
 
 async def _get_module_by_slug(slug, session) -> Union[Module, None]:
-    logger.info(f"Получение модуля {slug} по slug")
     async with session.begin():
         module_dal = ModuleDAL(session)
         module = await module_dal.get_module_by_slug(slug=slug)

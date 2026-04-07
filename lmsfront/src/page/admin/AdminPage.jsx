@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { Helmet } from 'react-helmet-async';
 import toast, { Toaster } from 'react-hot-toast';
 import { BookOpen, Users, Clock, AlertCircle, RefreshCw } from 'lucide-react';
 import { useAuthUser } from '../../hooks/useAuthUser';
@@ -39,6 +40,9 @@ const AdminPage = () => {
 
   return (
     <div className="min-h-screen bg-background flex">
+      <Helmet>
+        <title>Обзор системы</title>
+      </Helmet>
       <Sidebar />
       <Toaster position="top-center" />
       <main className="md:ml-64 flex-1 overflow-auto">

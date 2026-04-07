@@ -6,14 +6,12 @@ from services.category_service import CategoryDAL
 from db.models.category import Category
 
 async def _get_categories_all(session) -> List[Category]:
-    logger.info("Получение всех категорий")
     async with session.begin():
         category_dal = CategoryDAL(session)
         category = await category_dal.get_categories_all()
         return list(category)
 
 async def _get_category_by_id(id, session) -> Union[Category, None]:
-    logger.info(f"Получение категории {id} по id")
     async with session.begin():
         category_dal = CategoryDAL(session)
         category = await category_dal.get_category_by_id(id=id)

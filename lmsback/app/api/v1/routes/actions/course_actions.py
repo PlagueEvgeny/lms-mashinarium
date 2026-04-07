@@ -9,7 +9,6 @@ from services.dialog_service import DialogDAL
 from db.models.course import Course
 
 async def _get_course_by_id(id: int, session) -> Union[Course, None]:
-    logger.info("Получение категории по id")
     async with session.begin():
         course_dal = CourseDAL(session)
         course = await course_dal.get_course_by_id(id=id)
@@ -17,7 +16,6 @@ async def _get_course_by_id(id: int, session) -> Union[Course, None]:
             return course
 
 async def _get_course_teacher_by_id(id: int, session) -> Union[Course, None]:
-    logger.info("Получение категории по id")
     async with session.begin():
         course_dal = CourseDAL(session)
         course = await course_dal.get_course_teachers_by_id(id=id)
@@ -25,7 +23,6 @@ async def _get_course_teacher_by_id(id: int, session) -> Union[Course, None]:
             return course
 
 async def _get_course_by_slug(slug: str, session) -> Union[Course, None]:
-    logger.info("Получение курса по slug")
     async with session.begin():
         course_dal = CourseDAL(session)
         course = await course_dal.get_course_by_slug(slug=slug)
@@ -33,7 +30,6 @@ async def _get_course_by_slug(slug: str, session) -> Union[Course, None]:
             return course
 
 async def _get_course_all(user_id: UUID, session) -> List[ListCourse]:
-    logger.info("Получение курсов")
     async with session.begin():
         course_dal = CourseDAL(session)
         course = await course_dal.get_course_all(user_id=user_id)
@@ -47,7 +43,6 @@ async def _get_user_courses_as_student(user_id: UUID, session) -> List[ListCours
         return list(course)
 
 async def _get_user_course_by_slug(user_id: UUID, slug: str, session) -> Union[Course, None]:
-    logger.info("Получение курса пользователя по slug")
     async with session.begin():
         course_dal = CourseDAL(session)
         course = await course_dal.get_user_course_by_slug(user_id=user_id, slug=slug)
@@ -55,7 +50,6 @@ async def _get_user_course_by_slug(user_id: UUID, slug: str, session) -> Union[C
             return ShowUserCourse.model_validate(course)
 
 async def _get_user_courses_as_teacher(user_id: UUID, session) -> List[ListCourse]:
-    logger.info("Получение курсов преподавателя")
     async with session.begin():
         course_dal = CourseDAL(session)
         course = await course_dal.get_user_courses_as_teacher(user_id=user_id)
@@ -64,7 +58,6 @@ async def _get_user_courses_as_teacher(user_id: UUID, session) -> List[ListCours
         return [ListTeacherCourse.model_validate(c) for c in list(course)]
 
 async def _get_teacher_course_by_slug(user_id: UUID, slug: str, session) -> Union[Course, None]:
-    logger.info("Получение курса преподавателя по slug")
     async with session.begin():
         course_dal = CourseDAL(session)
         course = await course_dal.get_teacher_course_by_slug(user_id=user_id, slug=slug)
@@ -72,7 +65,6 @@ async def _get_teacher_course_by_slug(user_id: UUID, slug: str, session) -> Unio
             return ShowTeacherCourse.model_validate(course)
 
 async def _get_course_by_categories(categories_slug: str, session) -> List[ListCourse]:
-    logger.info("Получение курсов по категориям")
     async with session.begin():
         course_dal = CourseDAL(session)
         course = await course_dal.get_course_by_categories(categories_slug=categories_slug)

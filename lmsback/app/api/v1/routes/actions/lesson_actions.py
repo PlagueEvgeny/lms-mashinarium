@@ -190,7 +190,6 @@ async def _get_lesson(
         lesson_id: int,
         session: AsyncSession,
 ) -> Union[LectureResponse, VideoResponse, PracticaResponse, TestResponse]:
-    logger.info(f"Получение урока {lesson_id}")
     async with session.begin():
         lesson_dal = LessonDAL(session)
         lesson = await lesson_dal.get_lesson_by_id(lesson_id)
@@ -213,7 +212,6 @@ async def _get_lesson_by_slug(
         slug: str,
         session: AsyncSession,
 ) -> Union[LectureResponse, VideoResponse, PracticaResponse, TestResponse]:
-    logger.info(f"Получение урока по slug: {slug}")
     async with session.begin():
         lesson_dal = LessonDAL(session)
         lesson = await lesson_dal.get_lesson_by_slug(slug)
@@ -237,7 +235,6 @@ async def _get_lesson_by_slug_for_student(
         user_id: UUID,
         session: AsyncSession,
 ) -> Union[LectureResponse, VideoResponse, PracticaResponse, TestResponse]:
-    logger.info(f"Получение урока {slug} для студента {user_id}")
     async with session.begin():
         lesson_dal = LessonDAL(session)
         lesson = await lesson_dal.get_lesson_by_slug_for_student(slug, user_id)

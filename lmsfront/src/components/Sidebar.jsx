@@ -1,8 +1,8 @@
-import { useState, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Users, BookOpen, ChevronLeft, Settings, LogOut, LayoutDashboard, BarChart3, Menu } from 'lucide-react';
 import { useAuthUser } from '../hooks/useAuthUser';
 import { useNavigate } from 'react-router-dom';
-import logo from '../assets/logo.svg';
+import { useAdmin } from '../hooks/useAdmin';
 import { PORTAL_ROLES, useRole } from '../utility/roles'; 
 
 const navigation = [
@@ -17,9 +17,25 @@ const Sidebar = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuthUser();
   const [isOpen, setIsOpen] = useState(false);
-
+  const { fetchSettings } = useAdmin();
+  const [settings, setSettings] = useState(null);
   const userRole = user?.roles || PORTAL_ROLES.user;
   const role = useRole(userRole);
+  
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const data = await fetchSettings();
+        setSettings(data || {}); 
+        console.log(data)
+      } catch (error) {
+        console.error(error);
+        setSettings({});
+      }
+    };
+
+    loadSettings();
+  }, []);
 
   const handleLogout = useCallback(async () => {
     await logout();
@@ -55,7 +71,7 @@ const Sidebar = () => {
         {/* Logo */}
         <div className="p-4 border-b border-border">
           <a href="/admin" className="flex items-center gap-3">
-            <img src={logo} alt="logo" className="h-10 w-10" />
+            <img src={settings?.logo_url} alt="logo" className="h-10 w-10" />
             <div>
               <div className="font-bold text-foreground">Админ панель</div>
               <div className="text-xs text-muted-foreground">МАШИНАРИУМ</div>

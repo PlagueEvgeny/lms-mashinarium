@@ -1,5 +1,4 @@
-import { API } from '../../services/api';
-import { authFetch } from '../../services/authFetch';
+import { Helmet } from 'react-helmet-async';
 import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import toast, { Toaster } from 'react-hot-toast';
@@ -25,6 +24,9 @@ const ProfilePage = () => {
 
   return (
      <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>Профиль</title>
+      </Helmet>
       <Header />
       <Toaster position="top-center" />
       <main className="max-w-7xl mx-auto px-4 py-10">

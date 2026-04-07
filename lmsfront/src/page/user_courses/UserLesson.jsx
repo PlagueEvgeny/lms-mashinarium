@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Loader2, AlertCircle } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
@@ -190,6 +191,9 @@ const UserLesson = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>{lesson.name}</title>
+      </Helmet>
       <Header />
       <Toaster position="top-center" />
       <main className="max-w-7xl mx-auto px-4 py-8">

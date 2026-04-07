@@ -52,6 +52,7 @@ class ListAdminCourse(TunedModel):
     price: Decimal
     status: List[str]
     display_order: int
+    is_active: bool
     modules: List[ShortModule] = []
     students: List[ShowUserShort] = []
     teachers: List[ShowUserShort] = []

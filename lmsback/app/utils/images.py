@@ -4,7 +4,12 @@ import aiofiles
 import uuid
 
 
-ALLOWED_TYPES = {"image/jpeg", "image/png", "image/webp"}
+ALLOWED_TYPES = {
+    'image/jpeg',
+    'image/png',
+    'image/webp',
+    'image/svg+xml' 
+}
 MAX_SIZE_MB = 5
 
 
