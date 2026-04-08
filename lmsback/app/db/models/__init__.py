@@ -3,6 +3,7 @@ from .module import Module
 from .user import User
 from .dialog import Dialog
 from .category import Category
+from .settings import PlatformSettings 
 from .lesson import (
     LessonBase,
     Lecture,
@@ -35,4 +36,5 @@ __all__ = [
     "TestCorrectAnswer",
     "TestSubmission",
     "TestSubmissionAnswer",
+    "PlatformSettings",
 ]
